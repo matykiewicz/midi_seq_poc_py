@@ -6,9 +6,23 @@ authors = ["Entaroadun <pawel.matykiewicz@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.9.0,<3.12.0"
+textual = "^0.52.1"
+rtmidi = "^2.5.0"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+black = "^24.2.0"
+isort = "^5.13.2"
+flake8 = "^7.0.0"
+mypy = "^1.9.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+files = "pulse_generator, tests"
+ignore_missing_imports = true
+check_untyped_defs = true
