@@ -1,0 +1,28 @@
+
+OptionsUI {
+    layout: horizontal;
+    height: 5;
+    margin: 0;
+    min-width: 50;
+    padding: 0;
+    border: white;
+    align: center middle;
+}
+
+Label {
+    margin: 0;
+    content-align: center middle;
+    align: center middle;
+    border: white;
+}
+
+KeysUI {
+    layout: horizontal;
+    height: 5;
+    margin: 0;
+    min-width: 50;
+    padding: 0;
+    border: white;
+    align: center middle;
+}
+
