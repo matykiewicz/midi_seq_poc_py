@@ -13,11 +13,19 @@ async def test_ui(command_line_args):
     pilot: Pilot
     async with ui.run_test() as pilot:
         time.sleep(1)
-        await pilot.press("b")
-        time.sleep(1)
-        await pilot.press("b")
+        await pilot.press("c")
         time.sleep(1)
         await pilot.press("d")
         time.sleep(1)
         await pilot.press("e")
         time.sleep(1)
+        await pilot.press("f")
+        time.sleep(1)
+        await pilot.press("c")
+        time.sleep(1)
+        await pilot.press("d")
+        time.sleep(1)
+        await pilot.press("g")
+        time.sleep(1)
+    for midi in ui.midis.keys():
+        ui.midis[midi].process.kill()

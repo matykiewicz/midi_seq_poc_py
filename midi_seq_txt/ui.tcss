@@ -1,28 +1,45 @@
 
-OptionsUI {
-    layout: horizontal;
-    height: 5;
+NavigationUI {
     margin: 0;
     min-width: 50;
     padding: 0;
     border: white;
+    display: block;
     align: center middle;
+    content-align: center middle;
 }
 
 Label {
     margin: 0;
-    content-align: center middle;
-    align: center middle;
     border: white;
+    display: block;
+    align: center middle;
+    content-align: center middle;
 }
 
 KeysUI {
-    layout: horizontal;
-    height: 5;
     margin: 0;
     min-width: 50;
     padding: 0;
     border: white;
+    display: block;
     align: center middle;
+    content-align: center middle;
 }
 
+Sparkline {
+    width: 16;
+    margin: 1;
+    color: white;
+    display: block;
+    align: center middle;
+    content-align: center middle;
+}
+
+.sparkline--max-color {
+    color: $success;
+}
+
+.sparkline--min-color {
+    color: $success;
+}
