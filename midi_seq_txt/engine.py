@@ -4,8 +4,8 @@ from multiprocessing import Process, Queue
 from typing import Any, Dict, List, Tuple
 
 import attrs
-import rtmidi
 import mingus.core.scales as scales
+import rtmidi
 
 from .configs import InitConfig
 from .functionalities import (

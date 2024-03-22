@@ -331,9 +331,14 @@ class NavigationUI(Static):
     def update_settings_vis(self) -> None:
         tempo_ind = self.sequencer.settings[ValidSettings.TEMPO].ind
         tempo_val = self.sequencer.settings[ValidSettings.TEMPO].values[tempo_ind]
-        voice_value, note_value, octave_value, scale_value, motion_code, motion_value = (
-            self.sequencer.get_sound_properties()
-        )
+        (
+            voice_value,
+            note_value,
+            octave_value,
+            scale_value,
+            motion_code,
+            motion_value,
+        ) = self.sequencer.get_sound_properties()
         text = f"|Tempo:{tempo_val:03}|Scale:{scale_value}|Octave:{octave_value}|Note:{note_value}|"
         self.settings_vis.update(text)
 

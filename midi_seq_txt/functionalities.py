@@ -338,9 +338,8 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
                 name=ValidModes.OCTAVE_1,
                 ind=0,
                 first_only=False,
-                values=[0] + [
-                    i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
-                ],
+                values=[0]
+                + [i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)],
             )
 
     class Octave2(MFunctionality):
@@ -349,9 +348,8 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
                 name=ValidModes.OCTAVE_2,
                 ind=0,
                 first_only=False,
-                values=[0] + [
-                    i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
-                ],
+                values=[0]
+                + [i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)],
             )
 
     class Octave3(MFunctionality):
@@ -360,9 +358,8 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
                 name=ValidModes.OCTAVE_3,
                 ind=0,
                 first_only=False,
-                values=[0] + [
-                    i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
-                ],
+                values=[0]
+                + [i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)],
             )
 
     class Voice1(MFunctionality):
@@ -398,7 +395,10 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
                 name=ValidModes.MOTION_1,
                 ind=0,
                 first_only=False,
-                values=[round((i / InitConfig().n_keys) * 127) for i in range(0, InitConfig().n_keys + 1)],
+                values=[
+                    round((i / InitConfig().n_keys) * 127)
+                    for i in range(0, InitConfig().n_keys + 1)
+                ],
             )
 
     class Motion2(MFunctionality):
@@ -407,7 +407,10 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
                 name=ValidModes.MOTION_2,
                 ind=0,
                 first_only=False,
-                values=[round((i / InitConfig().n_keys) * 127) for i in range(0, InitConfig().n_keys + 1)],
+                values=[
+                    round((i / InitConfig().n_keys) * 127)
+                    for i in range(0, InitConfig().n_keys + 1)
+                ],
             )
 
     class Motion3(MFunctionality):
@@ -416,7 +419,10 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
                 name=ValidModes.MOTION_3,
                 ind=0,
                 first_only=False,
-                values=[round((i / InitConfig().n_keys) * 127) for i in range(0, InitConfig().n_keys + 1)],
+                values=[
+                    round((i / InitConfig().n_keys) * 127)
+                    for i in range(0, InitConfig().n_keys + 1)
+                ],
             )
 
     class Scale(MFunctionality):
