@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Tuple
 
 import attrs
 import rtmidi
-from mingus.core import keys
+import mingus.core.scales as scales
 
 from .configs import InitConfig
 from .functionalities import (
@@ -50,14 +50,7 @@ class Sequencer:
                 for part in range(len(self.settings[ValidSettings.PART].values)):
                     mode: ValidModes
                     for mode in list(ValidModes):
-                        first_only = self.modes[mode].first_only
-                        def_ind = self.modes[mode].def_ind
-                        if first_only:
-                            sequence = [0] * steps
-                            sequence[0] = def_ind
-                        else:
-                            sequence = [def_ind] * steps
-                        sequences[midi][channel][part][mode] = sequence
+                        sequences[midi][channel][part][mode] = [0] * steps
         self.sequences = sequences
 
     def get_current_pos(self) -> Tuple[int, int, int, ValidModes, int]:
@@ -69,10 +62,76 @@ class Sequencer:
         step_ind = self.settings[ValidSettings.STEP].ind
         return midi_ind, channel_ind, part_ind, mode, step_ind
 
+    def get_first_mode_value(self, valid_mode: ValidModes) -> MFunctionality:
+        midi, channel, part, _, _ = self.get_current_pos()
+        mode_ind = self.sequences[midi][channel][part][valid_mode][0]
+        mode = self.modes[valid_mode]
+        mode.ind = mode_ind
+        return mode
+
+    def get_current_mode_value(self, valid_mode: ValidModes) -> MFunctionality:
+        midi, channel, part, _, step = self.get_current_pos()
+        mode_ind = self.sequences[midi][channel][part][valid_mode][step]
+        mode = self.modes[valid_mode]
+        mode.ind = mode_ind
+        return mode
+
+    def get_sound_properties(self) -> Tuple[int, str, int, str, int, int]:
+        midi, channel, part, mode, step = self.get_current_pos()
+        sound_id = 1
+        if mode.name.startswith("VOICE_"):
+            sound_id = int(mode.name.replace("VOICE_", ""))
+        elif mode.name.startswith("OCTAVE_"):
+            sound_id = int(mode.name.replace("OCTAVE_", ""))
+        elif mode.name.startswith("MOTION_"):
+            sound_id = int(mode.name.replace("MOTION_", ""))
+        voice_valid_mode = ValidModes(f"Vo{sound_id}")
+        octave_valid_mode = ValidModes(f"Oc{sound_id}")
+        motion_valid_mode = ValidModes(f"Mo{sound_id}")
+        current_voice = self.get_current_mode_value(voice_valid_mode)
+        current_octave = self.get_current_mode_value(octave_valid_mode)
+        current_motion = self.get_current_mode_value(motion_valid_mode)
+        voice_value = current_voice.values[current_voice.ind]
+        octave_value = current_octave.values[current_octave.ind]
+        motion_value = current_motion.values[current_motion.ind]
+        motion_code = current_motion.codes[0]
+        scale_value = self.get_current_scale()
+        notes = self.get_current_notes()
+        if voice_value > 0:
+            note_value = notes[voice_value - 1]
+        else:
+            note_value = "NA"
+        return (
+            voice_value,
+            note_value,
+            octave_value,
+            scale_value,
+            motion_code,
+            motion_value,
+        )
+
+    def get_current_notes(self) -> List[str]:
+        scale_value = self.get_current_scale()
+        notes = scales.get_notes(key=scale_value)
+        notes += [notes[0]]
+        return notes
+
+    def get_current_scale(self) -> str:
+        scale = self.get_first_mode_value(ValidModes.SCALE)
+        scale_value = scale.values[scale.ind]
+        return scale_value
+
+    def get_current_mode(self) -> MFunctionality:
+        midi, channel, part, mode, step = self.get_current_pos()
+        mode_ind = self.sequences[midi][channel][part][mode][step]
+        mode = self.modes[mode]
+        mode.ind = mode_ind
+        return mode
+
     def set_step(self, key: MFunctionality) -> None:
         if self.settings[ValidSettings.RECORD].ind == 1:
-            midi, channel, part, key_type, step = self.get_current_pos()
-            self.sequences[midi][channel][part][key_type][step] = key.values[key.ind]
+            midi, channel, part, mode, step = self.get_current_pos()
+            self.sequences[midi][channel][part][mode][step] = key.ind
             ind = self.settings[ValidSettings.STEP].ind
             ind += 1
             if ind >= self.internal_config.steps:
@@ -140,7 +199,7 @@ class Engine(Sequencer):
         while True:
             if not self.func_queue.empty():
                 func_dict: Dict[str, Any] = self.func_queue.get()
-                if "hex_codes" in func_dict:
+                if "codes" in func_dict:
                     mode = self.convert_to_mode(func_dict)
                     self.set_step(key=mode)
                 else:

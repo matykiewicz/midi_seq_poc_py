@@ -23,6 +23,12 @@ async def test_ui(command_line_args):
         time.sleep(1)
         await pilot.press("f")  # key 2
         time.sleep(1)
+        await pilot.press("9")  # octave
+        time.sleep(1)
+        await pilot.press("e")  # key 1
+        time.sleep(1)
+        await pilot.press("f")  # key 2
+        time.sleep(1)
         await pilot.press("a")  # record off
         time.sleep(1)
         await pilot.press("b")  # option+

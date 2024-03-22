@@ -175,10 +175,9 @@ class MFunctionality(AttrsInstance):
     # MIDI & Modes
     name: str
     ind: int
-    def_ind: int
     first_only: bool
     values: List[Union[str, int]]
-    hex_codes: List[int] = list()
+    codes: List[int] = [0]
 
 
 def init_nav() -> Dict[ValidNav, NFunctionality]:
@@ -337,10 +336,9 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
         def __init__(self):
             super().__init__(
                 name=ValidModes.OCTAVE_1,
-                ind=2,
-                def_ind=2,
+                ind=0,
                 first_only=False,
-                values=[
+                values=[0] + [
                     i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
                 ],
             )
@@ -349,10 +347,9 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
         def __init__(self):
             super().__init__(
                 name=ValidModes.OCTAVE_2,
-                ind=2,
-                def_ind=2,
+                ind=0,
                 first_only=False,
-                values=[
+                values=[0] + [
                     i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
                 ],
             )
@@ -361,10 +358,9 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
         def __init__(self):
             super().__init__(
                 name=ValidModes.OCTAVE_3,
-                ind=2,
-                def_ind=2,
+                ind=0,
                 first_only=False,
-                values=[
+                values=[0] + [
                     i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
                 ],
             )
@@ -374,7 +370,6 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.VOICE_1,
                 ind=0,
-                def_ind=0,
                 first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
             )
@@ -384,7 +379,6 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.VOICE_2,
                 ind=0,
-                def_ind=0,
                 first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
             )
@@ -394,7 +388,6 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.VOICE_3,
                 ind=0,
-                def_ind=0,
                 first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
             )
@@ -404,9 +397,8 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.MOTION_1,
                 ind=0,
-                def_ind=0,
                 first_only=False,
-                values=[i for i in range(0, InitConfig().n_keys + 1)],
+                values=[round((i / InitConfig().n_keys) * 127) for i in range(0, InitConfig().n_keys + 1)],
             )
 
     class Motion2(MFunctionality):
@@ -414,9 +406,8 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.MOTION_2,
                 ind=0,
-                def_ind=0,
                 first_only=False,
-                values=[i for i in range(0, InitConfig().n_keys + 1)],
+                values=[round((i / InitConfig().n_keys) * 127) for i in range(0, InitConfig().n_keys + 1)],
             )
 
     class Motion3(MFunctionality):
@@ -424,19 +415,17 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.MOTION_3,
                 ind=0,
-                def_ind=0,
                 first_only=False,
-                values=[i for i in range(0, InitConfig().n_keys + 1)],
+                values=[round((i / InitConfig().n_keys) * 127) for i in range(0, InitConfig().n_keys + 1)],
             )
 
     class Scale(MFunctionality):
         def __init__(self):
             super().__init__(
                 name=ValidModes.SCALE,
-                ind=7,
-                def_ind=7,
+                ind=0,
                 first_only=True,
-                values=keys.major_keys + keys.minor_keys,
+                values=["C"] + keys.major_keys + keys.minor_keys,
             )
 
     return {
