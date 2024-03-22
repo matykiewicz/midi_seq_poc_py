@@ -3,6 +3,7 @@ from typing import Dict, List, Tuple, Union
 
 from attrs import AttrsInstance, define
 from mingus.core import keys
+import mingus.core.scales as scales
 
 from .configs import InitConfig
 
@@ -30,6 +31,7 @@ class ValidButtons(StrEnum):
     MODE = "Mode"
     TEMPO_UP = "Temp+"
     TEMPO_DOWN = "Temp-"
+    NEXT = "Next"
 
 
 BUT_TEMPO = (
@@ -143,11 +145,8 @@ class ValidSettings(StrEnum):
 
 class ValidModes(StrEnum):
     VOICE_1 = "Vo1"
-    OCTAVE_1 = "Oc1"
     VOICE_2 = "Vo2"
-    OCTAVE_2 = "Oc2"
     VOICE_3 = "Vo3"
-    OCTAVE_3 = "Oc3"
     SCALE = "Sca"
     MOTION_1 = "Mo1"
     MOTION_2 = "Mo2"
@@ -159,7 +158,7 @@ class NFunctionality(AttrsInstance):
     # Navigation & Menus
     name: str
     ind: int
-    buttons: Tuple[ValidNav, ...]
+    buttons: Tuple[ValidButtons, ...]
 
 
 @define
@@ -175,14 +174,15 @@ class MFunctionality(AttrsInstance):
     # MIDI & Modes
     name: str
     ind: int
+    offset: int
     first_only: bool
-    values: List[Union[str, int]]
+    values: List[str]
     codes: List[int] = [0]
 
 
 def init_nav() -> Dict[ValidNav, NFunctionality]:
 
-    class Play(NFunctionality):
+    class PlayN(NFunctionality):
         def __init__(self):
             super().__init__(
                 name=ValidNav.PLAY,
@@ -190,7 +190,7 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
                 ind=0,
             )
 
-    class Record(NFunctionality):
+    class RecordN(NFunctionality):
         def __init__(self):
             super().__init__(
                 name=ValidNav.RECORD,
@@ -198,7 +198,7 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
                 ind=0,
             )
 
-    class View(NFunctionality):
+    class ViewN(NFunctionality):
         def __init__(self):
             super().__init__(
                 name=ValidNav.VIEW,
@@ -206,7 +206,7 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
                 ind=0,
             )
 
-    class Tempo(NFunctionality):
+    class TempoN(NFunctionality):
         def __init__(self):
             super().__init__(
                 name=ValidNav.TEMPO,
@@ -214,7 +214,7 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
                 ind=0,
             )
 
-    class Copy(NFunctionality):
+    class CopyN(NFunctionality):
         def __init__(self):
             super().__init__(
                 name=ValidNav.COPY,
@@ -223,152 +223,133 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
             )
 
     return {
-        ValidNav.RECORD: Record(),
-        ValidNav.VIEW: View(),
-        ValidNav.PLAY: Play(),
-        ValidNav.TEMPO: Tempo(),
-        ValidNav.COPY: Copy(),
+        ValidNav.RECORD: RecordN(),
+        ValidNav.VIEW: ViewN(),
+        ValidNav.PLAY: PlayN(),
+        ValidNav.TEMPO: TempoN(),
+        ValidNav.COPY: CopyN(),
     }
 
 
+class TempoS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.TEMPO,
+            ind=0,
+            values=[
+                str(i * InitConfig().tempo_step)
+                for i in range(InitConfig().tempo_min, InitConfig().tempo_max + 1)
+            ],
+        )
+
+
+class PartS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.PART,
+            ind=0,
+            values=[i for i in range(1, InitConfig().parts + 1)],
+        )
+
+
+class StepS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.STEP,
+            ind=0,
+            values=[i for i in range(1, InitConfig().steps + 1)],
+        )
+
+
+class MIDIS(SFunctionality):
+    def __init__(self, n_midis: int):
+        super().__init__(
+            name=ValidSettings.MIDI,
+            ind=0,
+            values=[i for i in range(n_midis)],
+        )
+
+
+class ChannelS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.CHANNEL,
+            ind=0,
+            values=[i for i in range(1, InitConfig().n_channels + 1)],
+        )
+
+
+class ModeS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.MODE,
+            ind=0,
+            values=[k for k in ValidModes],
+        )
+
+
+class RecordS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.RECORD,
+            ind=0,
+            values=["Off", "On"],
+        )
+
+
+class ViewS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.VIEW,
+            ind=0,
+            values=["Off", "On"],
+        )
+
+
+class PlayS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.PLAY,
+            ind=0,
+            values=["Off", "On"],
+        )
+
+
+class CopyS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.COPY,
+            ind=0,
+            values=["Off", "On"],
+        )
+
+
 def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
-
-    class Tempo(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.TEMPO,
-                ind=0,
-                values=[
-                    i * InitConfig().tempo_step
-                    for i in range(InitConfig().tempo_min, InitConfig().tempo_max + 1)
-                ],
-            )
-
-    class Part(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.PART,
-                ind=0,
-                values=[i for i in range(1, InitConfig().parts + 1)],
-            )
-
-    class Step(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.STEP,
-                ind=0,
-                values=[i for i in range(1, InitConfig().steps + 1)],
-            )
-
-    class MIDI(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.MIDI,
-                ind=0,
-                values=[i for i in range(n_midis)],
-            )
-
-    class Channel(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.CHANNEL,
-                ind=0,
-                values=[i for i in range(1, InitConfig().n_channels + 1)],
-            )
-
-    class Mode(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.MODE,
-                ind=0,
-                values=[k for k in ValidModes],
-            )
-
-    class Record(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.RECORD,
-                ind=0,
-                values=["Off", "On"],
-            )
-
-    class View(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.VIEW,
-                ind=0,
-                values=["Off", "On"],
-            )
-
-    class Play(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.PLAY,
-                ind=0,
-                values=["Off", "On"],
-            )
-
-    class Copy(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.COPY,
-                ind=0,
-                values=["Off", "On"],
-            )
-
     return {
-        ValidSettings.TEMPO: Tempo(),
-        ValidSettings.MIDI: MIDI(),
-        ValidSettings.CHANNEL: Channel(),
-        ValidSettings.MODE: Mode(),
-        ValidSettings.PART: Part(),
-        ValidSettings.STEP: Step(),
-        ValidSettings.RECORD: Record(),
-        ValidSettings.VIEW: View(),
-        ValidSettings.PLAY: Play(),
-        ValidSettings.COPY: Copy(),
+        ValidSettings.TEMPO: TempoS(),
+        ValidSettings.MIDI: MIDIS(n_midis=n_midis),
+        ValidSettings.CHANNEL: ChannelS(),
+        ValidSettings.MODE: ModeS(),
+        ValidSettings.PART: PartS(),
+        ValidSettings.STEP: StepS(),
+        ValidSettings.RECORD: RecordS(),
+        ValidSettings.VIEW: ViewS(),
+        ValidSettings.PLAY: PlayS(),
+        ValidSettings.COPY: CopyS(),
     }
 
 
 def init_modes() -> Dict[ValidModes, MFunctionality]:
-
-    class Octave1(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.OCTAVE_1,
-                ind=0,
-                first_only=False,
-                values=[0]
-                + [i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)],
-            )
-
-    class Octave2(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.OCTAVE_2,
-                ind=0,
-                first_only=False,
-                values=[0]
-                + [i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)],
-            )
-
-    class Octave3(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.OCTAVE_3,
-                ind=0,
-                first_only=False,
-                values=[0]
-                + [i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)],
-            )
 
     class Voice1(MFunctionality):
         def __init__(self):
             super().__init__(
                 name=ValidModes.VOICE_1,
                 ind=0,
+                offset=1 + 8 * 2,
                 first_only=False,
-                values=[i for i in range(0, InitConfig().n_keys + 1)],
+                codes=[0x90, 0x80],
+                values=create_notes("C"),
             )
 
     class Voice2(MFunctionality):
@@ -376,8 +357,10 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.VOICE_2,
                 ind=0,
+                offset=1 + 8 * 2,
                 first_only=False,
-                values=[i for i in range(0, InitConfig().n_keys + 1)],
+                codes=[0x90, 0x80],
+                values=create_notes("C"),
             )
 
     class Voice3(MFunctionality):
@@ -385,8 +368,10 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.VOICE_3,
                 ind=0,
+                offset=1 + 8 * 2,
                 first_only=False,
-                values=[i for i in range(0, InitConfig().n_keys + 1)],
+                codes=[0x90, 0x80],
+                values=create_notes("C"),
             )
 
     class Motion1(MFunctionality):
@@ -394,11 +379,9 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.MOTION_1,
                 ind=0,
+                offset=1,
                 first_only=False,
-                values=[
-                    round((i / InitConfig().n_keys) * 127)
-                    for i in range(0, InitConfig().n_keys + 1)
-                ],
+                values=create_motions(),
             )
 
     class Motion2(MFunctionality):
@@ -406,11 +389,9 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.MOTION_2,
                 ind=0,
+                offset=1,
                 first_only=False,
-                values=[
-                    round((i / InitConfig().n_keys) * 127)
-                    for i in range(0, InitConfig().n_keys + 1)
-                ],
+                values=create_motions(),
             )
 
     class Motion3(MFunctionality):
@@ -418,11 +399,9 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.MOTION_3,
                 ind=0,
+                offset=1,
                 first_only=False,
-                values=[
-                    round((i / InitConfig().n_keys) * 127)
-                    for i in range(0, InitConfig().n_keys + 1)
-                ],
+                values=create_motions(),
             )
 
     class Scale(MFunctionality):
@@ -430,19 +409,63 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.SCALE,
                 ind=0,
+                offset=1,
                 first_only=True,
-                values=["C"] + keys.major_keys + keys.minor_keys,
+                values=create_scales(),
             )
 
     return {
         ValidModes.VOICE_1: Voice1(),
-        ValidModes.OCTAVE_1: Octave1(),
         ValidModes.VOICE_2: Voice2(),
-        ValidModes.OCTAVE_2: Octave2(),
         ValidModes.VOICE_3: Voice3(),
-        ValidModes.OCTAVE_3: Octave3(),
         ValidModes.SCALE: Scale(),
         ValidModes.MOTION_1: Motion1(),
         ValidModes.MOTION_2: Motion2(),
         ValidModes.MOTION_3: Motion3(),
     }
+
+
+def create_scales() -> List[str]:
+    no_button_scales = keys.major_keys + keys.minor_keys
+    button_scale = ["C"]
+    n_keys = InitConfig().n_keys
+    for i in range(len(no_button_scales)):
+        if (i + 1) % (n_keys - 1) == 0:
+            button_scale.append(no_button_scales[i])
+            button_scale.append(ValidButtons.NEXT)
+        else:
+            button_scale.append(no_button_scales[i])
+    return button_scale
+
+
+def create_notes(scale: str) -> List[str]:
+    notes = scales.get_notes(key=scale)
+    no_button_notes = list()
+    button_notes = ["NA"]
+    for octave in range(1, InitConfig().octaves + 1):
+        for note in notes:
+            no_button_notes.append(f"{note}{octave}")
+    n_keys = InitConfig().n_keys
+    for i in range(len(no_button_notes)):
+        if (i + 1) % (n_keys - 1) == 0:
+            button_notes.append(no_button_notes[i])
+            button_notes.append(ValidButtons.NEXT)
+        else:
+            button_notes.append(no_button_notes[i])
+    return button_notes
+
+
+def create_motions() -> List[str]:
+    no_button_motions = list()
+    button_motions = ["0"]
+    for i in range(1, InitConfig().n_motions):
+        motion = round((i / InitConfig().n_motions) * 127)
+        no_button_motions.append(motion)
+    n_keys = InitConfig().n_keys
+    for i in range(len(no_button_motions)):
+        if (i + 1) % (n_keys - 1) == 0:
+            button_motions.append(str(no_button_motions[i]))
+            button_motions.append(ValidButtons.NEXT)
+        else:
+            button_motions.append(str(no_button_motions[i]))
+    return button_motions

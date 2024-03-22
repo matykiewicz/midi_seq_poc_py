@@ -1,4 +1,5 @@
 import time
+import random
 from collections import defaultdict
 from multiprocessing import Process, Queue
 from typing import Any, Dict, List, Tuple
@@ -12,6 +13,7 @@ from .functionalities import (
     MFunctionality,
     SFunctionality,
     ValidModes,
+    ValidButtons,
     ValidSettings,
     init_modes,
     init_settings,
@@ -48,9 +50,9 @@ class Sequencer:
         for midi in range(len(self.settings[ValidSettings.MIDI].values)):
             for channel in range(len(self.settings[ValidSettings.CHANNEL].values)):
                 for part in range(len(self.settings[ValidSettings.PART].values)):
-                    mode: ValidModes
-                    for mode in list(ValidModes):
-                        sequences[midi][channel][part][mode] = [0] * steps
+                    for mode_str in list(ValidModes):
+                        valid_mode = ValidModes(mode_str)
+                        sequences[midi][channel][part][valid_mode] = [0] * steps
         self.sequences = sequences
 
     def get_current_pos(self) -> Tuple[int, int, int, ValidModes, int]:
@@ -58,7 +60,7 @@ class Sequencer:
         channel_ind = self.settings[ValidSettings.CHANNEL].ind
         part_ind = self.settings[ValidSettings.PART].ind
         mode_ind = self.settings[ValidSettings.MODE].ind
-        mode = ValidModes(self.settings[ValidSettings.MODE].values[mode_ind])
+        mode = ValidModes(str(self.settings[ValidSettings.MODE].values[mode_ind]))
         step_ind = self.settings[ValidSettings.STEP].ind
         return midi_ind, channel_ind, part_ind, mode, step_ind
 
@@ -76,38 +78,15 @@ class Sequencer:
         mode.ind = mode_ind
         return mode
 
-    def get_sound_properties(self) -> Tuple[int, str, int, str, int, int]:
-        midi, channel, part, mode, step = self.get_current_pos()
-        sound_id = 1
-        if mode.name.startswith("VOICE_"):
-            sound_id = int(mode.name.replace("VOICE_", ""))
-        elif mode.name.startswith("OCTAVE_"):
-            sound_id = int(mode.name.replace("OCTAVE_", ""))
-        elif mode.name.startswith("MOTION_"):
-            sound_id = int(mode.name.replace("MOTION_", ""))
-        voice_valid_mode = ValidModes(f"Vo{sound_id}")
-        octave_valid_mode = ValidModes(f"Oc{sound_id}")
-        motion_valid_mode = ValidModes(f"Mo{sound_id}")
-        current_voice = self.get_current_mode_value(voice_valid_mode)
-        current_octave = self.get_current_mode_value(octave_valid_mode)
-        current_motion = self.get_current_mode_value(motion_valid_mode)
-        voice_value = current_voice.values[current_voice.ind]
-        octave_value = current_octave.values[current_octave.ind]
-        motion_value = current_motion.values[current_motion.ind]
-        motion_code = current_motion.codes[0]
+    def get_sound_properties(self) -> Tuple[str, str, str]:
+        midi, channel, part, valid_mode, step = self.get_current_pos()
+        current_mode = self.get_current_mode_value(valid_mode)
+        mode_value = current_mode.values[current_mode.ind]
         scale_value = self.get_current_scale()
-        notes = self.get_current_notes()
-        if voice_value > 0:
-            note_value = notes[voice_value - 1]
-        else:
-            note_value = "NA"
         return (
-            voice_value,
-            note_value,
-            octave_value,
             scale_value,
-            motion_code,
-            motion_value,
+            current_mode.name,
+            mode_value,
         )
 
     def get_current_notes(self) -> List[str]:
@@ -122,14 +101,18 @@ class Sequencer:
         return scale_value
 
     def get_current_mode(self) -> MFunctionality:
-        midi, channel, part, mode, step = self.get_current_pos()
-        mode_ind = self.sequences[midi][channel][part][mode][step]
-        mode = self.modes[mode]
+        midi, channel, part, valid_mode, step = self.get_current_pos()
+        mode_ind = self.sequences[midi][channel][part][valid_mode][step]
+        mode = self.modes[valid_mode]
         mode.ind = mode_ind
         return mode
 
     def set_step(self, key: MFunctionality) -> None:
-        if self.settings[ValidSettings.RECORD].ind == 1:
+        key_value = key.values[key.ind]
+        if (
+            self.settings[ValidSettings.RECORD].ind == 1
+            or self.settings[ValidSettings.COPY].ind == 1
+        ) and key_value != ValidButtons.NEXT:
             midi, channel, part, mode, step = self.get_current_pos()
             self.sequences[midi][channel][part][mode][step] = key.ind
             ind = self.settings[ValidSettings.STEP].ind
@@ -229,7 +212,7 @@ class Engine(Sequencer):
     def send_delete(self) -> None:
         midi, channel, part, mode, step = self.get_current_pos()
         key = self.modes[mode]
-        key.ind = key.def_ind
+        key.ind = 0
         self.send_mode(mode=key)
 
     def send_pos(self, midi: int, channel: int, part: int, mode: ValidModes) -> None:
@@ -256,3 +239,24 @@ class Engine(Sequencer):
             step_ind = 0
         self.settings[ValidSettings.STEP].ind = step_ind
         self.send_setting(setting=self.settings[ValidSettings.STEP])
+
+    def send_copy(
+        self,
+        f_midi: int,
+        f_channel: int,
+        f_part: int,
+        f_mode: ValidModes,
+        button: ValidButtons,
+    ):
+        f_sequence = self.sequences[f_midi][f_channel][f_part][f_mode]
+        t_mode = self.get_current_mode()
+        shuffle = list(range(len(f_sequence)))
+        random.shuffle(shuffle)
+        for i in range(len(f_sequence)):
+            if button == ValidButtons.C_AS_IS:
+                t_mode.ind = f_sequence[i]
+            elif button == ValidButtons.C_REVERSE:
+                t_mode.ind = f_sequence[self.internal_config.steps - i - 1]
+            elif button == ValidButtons.C_RANDOM:
+                t_mode.ind = f_sequence[shuffle[i]]
+            self.send_mode(t_mode)

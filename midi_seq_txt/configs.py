@@ -6,7 +6,8 @@ class InitConfig:
     sleep: float = 0.01
     steps: int = 16
     parts: int = 16
-    octaves: int = 2
+    octaves: int = 5
+    n_motions: int = 21
     tempo_step: int = 10
     tempo_min: int = 5
     tempo_max: int = 20
