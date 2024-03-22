@@ -10,67 +10,135 @@ from .configs import InitConfig
 class ValidButtons(StrEnum):
     OPT_UP = "Opt+"
     OPT_DOWN = "Opt-"
-    SET_UP = "Set+"
-    SET_DOWN = "Set-"
-    BACK = "Back"
-    ENTER = "Enter"
     EMPTY = ""
+    REC_ON = "RecOn"
+    REC_OFF = "RecOff"
+    VIEW_ON = "ViewSet"
+    VIEW_OFF = "ViewExit"
+    PLAY_ON = "PlayOn"
+    PLAY_OFF = "PlayOff"
+    COPY_ON = "CopyOn"
+    COPY_OFF = "CopyOff"
+    C_RANDOM = "Random"
+    C_REVERSE = "Reverse"
+    C_AS_IS = "AsIs"
+    SKIP = "Skip"
     DELETE = "Delete"
-    VIEW = "View"
-    PLAY = "Play"
-    NEXT = "Next"
-    PREVIOUS = "Previous"
+    MIDI = "Midi"
+    CHANNEL = "Channel"
+    PART = "Part"
+    MODE = "Mode"
+    TEMPO_UP = "Temp+"
+    TEMPO_DOWN = "Temp-"
 
+
+BUT_TEMPO = (
+    ValidButtons.OPT_DOWN,
+    ValidButtons.OPT_UP,
+    ValidButtons.TEMPO_DOWN,
+    ValidButtons.TEMPO_UP,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+)
 
 BUT_REC = (
     ValidButtons.OPT_DOWN,
     ValidButtons.OPT_UP,
-    ValidButtons.ENTER,
+    ValidButtons.REC_ON,
     ValidButtons.EMPTY,
-    ValidButtons.BACK,
-    ValidButtons.PREVIOUS,
-    ValidButtons.NEXT,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+    ValidButtons.REC_OFF,
+    ValidButtons.EMPTY,
+    ValidButtons.SKIP,
     ValidButtons.DELETE,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
 )
 
 BUT_PLAY = (
     ValidButtons.OPT_DOWN,
     ValidButtons.OPT_UP,
-    ValidButtons.ENTER,
+    ValidButtons.PLAY_ON,
     ValidButtons.EMPTY,
-    ValidButtons.BACK,
-    ValidButtons.PREVIOUS,
-    ValidButtons.NEXT,
-    ValidButtons.PLAY,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+    ValidButtons.PLAY_OFF,
+    ValidButtons.EMPTY,
+    ValidButtons.EMPTY,
+    ValidButtons.EMPTY,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
 )
 
 BUT_VIEW = (
     ValidButtons.OPT_DOWN,
     ValidButtons.OPT_UP,
-    ValidButtons.ENTER,
+    ValidButtons.VIEW_ON,
     ValidButtons.EMPTY,
-    ValidButtons.BACK,
-    ValidButtons.PREVIOUS,
-    ValidButtons.NEXT,
-    ValidButtons.VIEW,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+    ValidButtons.VIEW_OFF,
+    ValidButtons.EMPTY,
+    ValidButtons.EMPTY,
+    ValidButtons.EMPTY,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+)
+
+BUT_COPY = (
+    ValidButtons.OPT_DOWN,
+    ValidButtons.OPT_UP,
+    ValidButtons.COPY_ON,
+    ValidButtons.EMPTY,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+    ValidButtons.COPY_OFF,
+    ValidButtons.C_RANDOM,
+    ValidButtons.C_REVERSE,
+    ValidButtons.C_AS_IS,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
 )
 
 
 class ValidNav(StrEnum):
     RECORD = "Record"
+    COPY = "Copy"
     VIEW = "View"
     PLAY = "Play"
+    TEMPO = "Tempo"
 
 
 class ValidSettings(StrEnum):
     TEMPO = "Tempo"
     MIDI = "MIDI"
     MODE = "Mode"
-    SCALE = "Scale"
     PART = "Part"
     STEP = "Step"
     CHANNEL = "Channel"
-    RECORD = "Channel"
+    RECORD = "Record"
+    PLAY = "Play"
+    VIEW = "View"
+    COPY = "COPY"
 
 
 class ValidModes(StrEnum):
@@ -80,6 +148,7 @@ class ValidModes(StrEnum):
     OCTAVE_2 = "Oc2"
     VOICE_3 = "Vo3"
     OCTAVE_3 = "Oc3"
+    SCALE = "Sca"
     MOTION_1 = "Mo1"
     MOTION_2 = "Mo2"
     MOTION_3 = "Mo3"
@@ -90,7 +159,6 @@ class NFunctionality(AttrsInstance):
     # Navigation & Menus
     name: str
     ind: int
-    b_ind: int
     buttons: Tuple[ValidNav, ...]
 
 
@@ -108,6 +176,7 @@ class MFunctionality(AttrsInstance):
     name: str
     ind: int
     def_ind: int
+    first_only: bool
     values: List[Union[str, int]]
     hex_codes: List[int] = list()
 
@@ -120,7 +189,6 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
                 name=ValidNav.PLAY,
                 buttons=BUT_PLAY,
                 ind=0,
-                b_ind=0,
             )
 
     class Record(NFunctionality):
@@ -129,7 +197,6 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
                 name=ValidNav.RECORD,
                 buttons=BUT_REC,
                 ind=0,
-                b_ind=0,
             )
 
     class View(NFunctionality):
@@ -138,13 +205,30 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
                 name=ValidNav.VIEW,
                 buttons=BUT_VIEW,
                 ind=0,
-                b_ind=0,
+            )
+
+    class Tempo(NFunctionality):
+        def __init__(self):
+            super().__init__(
+                name=ValidNav.TEMPO,
+                buttons=BUT_TEMPO,
+                ind=0,
+            )
+
+    class Copy(NFunctionality):
+        def __init__(self):
+            super().__init__(
+                name=ValidNav.COPY,
+                buttons=BUT_COPY,
+                ind=0,
             )
 
     return {
         ValidNav.RECORD: Record(),
         ValidNav.VIEW: View(),
         ValidNav.PLAY: Play(),
+        ValidNav.TEMPO: Tempo(),
+        ValidNav.COPY: Copy(),
     }
 
 
@@ -177,14 +261,6 @@ def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
                 values=[i for i in range(1, InitConfig().steps + 1)],
             )
 
-    class Scale(SFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidSettings.SCALE,
-                ind=7,
-                values=keys.major_keys + keys.minor_keys,
-            )
-
     class MIDI(SFunctionality):
         def __init__(self):
             super().__init__(
@@ -212,7 +288,31 @@ def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
     class Record(SFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidSettings.MODE,
+                name=ValidSettings.RECORD,
+                ind=0,
+                values=["Off", "On"],
+            )
+
+    class View(SFunctionality):
+        def __init__(self):
+            super().__init__(
+                name=ValidSettings.VIEW,
+                ind=0,
+                values=["Off", "On"],
+            )
+
+    class Play(SFunctionality):
+        def __init__(self):
+            super().__init__(
+                name=ValidSettings.PLAY,
+                ind=0,
+                values=["Off", "On"],
+            )
+
+    class Copy(SFunctionality):
+        def __init__(self):
+            super().__init__(
+                name=ValidSettings.COPY,
                 ind=0,
                 values=["Off", "On"],
             )
@@ -224,8 +324,10 @@ def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
         ValidSettings.MODE: Mode(),
         ValidSettings.PART: Part(),
         ValidSettings.STEP: Step(),
-        ValidSettings.SCALE: Scale(),
         ValidSettings.RECORD: Record(),
+        ValidSettings.VIEW: View(),
+        ValidSettings.PLAY: Play(),
+        ValidSettings.COPY: Copy(),
     }
 
 
@@ -234,9 +336,10 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
     class Octave1(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.OCTAVE_1.value,
+                name=ValidModes.OCTAVE_1,
                 ind=2,
                 def_ind=2,
+                first_only=False,
                 values=[
                     i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
                 ],
@@ -245,9 +348,10 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
     class Octave2(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.OCTAVE_2.value,
+                name=ValidModes.OCTAVE_2,
                 ind=2,
                 def_ind=2,
+                first_only=False,
                 values=[
                     i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
                 ],
@@ -256,9 +360,10 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
     class Octave3(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.OCTAVE_3.value,
+                name=ValidModes.OCTAVE_3,
                 ind=2,
                 def_ind=2,
+                first_only=False,
                 values=[
                     i for i in range(-InitConfig().octaves, InitConfig().octaves + 1)
                 ],
@@ -267,55 +372,71 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
     class Voice1(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.VOICE_1.value,
+                name=ValidModes.VOICE_1,
                 ind=0,
                 def_ind=0,
+                first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
             )
 
     class Voice2(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.VOICE_2.value,
+                name=ValidModes.VOICE_2,
                 ind=0,
                 def_ind=0,
+                first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
             )
 
     class Voice3(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.VOICE_3.value,
+                name=ValidModes.VOICE_3,
                 ind=0,
                 def_ind=0,
+                first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
             )
 
     class Motion1(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.MOTION_1.value,
+                name=ValidModes.MOTION_1,
                 ind=0,
                 def_ind=0,
+                first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
             )
 
     class Motion2(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.MOTION_2.value,
+                name=ValidModes.MOTION_2,
                 ind=0,
                 def_ind=0,
+                first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
             )
 
     class Motion3(MFunctionality):
         def __init__(self):
             super().__init__(
-                name=ValidModes.MOTION_3.value,
+                name=ValidModes.MOTION_3,
                 ind=0,
                 def_ind=0,
+                first_only=False,
                 values=[i for i in range(0, InitConfig().n_keys + 1)],
+            )
+
+    class Scale(MFunctionality):
+        def __init__(self):
+            super().__init__(
+                name=ValidModes.SCALE,
+                ind=7,
+                def_ind=7,
+                first_only=True,
+                values=keys.major_keys + keys.minor_keys,
             )
 
     return {
@@ -325,6 +446,7 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
         ValidModes.OCTAVE_2: Octave2(),
         ValidModes.VOICE_3: Voice3(),
         ValidModes.OCTAVE_3: Octave3(),
+        ValidModes.SCALE: Scale(),
         ValidModes.MOTION_1: Motion1(),
         ValidModes.MOTION_2: Motion2(),
         ValidModes.MOTION_3: Motion3(),

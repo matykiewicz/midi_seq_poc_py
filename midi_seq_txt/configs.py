@@ -12,3 +12,4 @@ class InitConfig:
     tempo_max: int = 20
     n_keys: int = 8
     n_channels: int = 1
+    n_buttons: int = 8

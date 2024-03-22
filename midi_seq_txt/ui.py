@@ -1,117 +1,124 @@
 from argparse import Namespace
-from typing import Callable, Dict, Optional, List
+from typing import Callable, Dict, List, Optional, Tuple
 
-import attrs
 from textual.app import App, ComposeResult
 from textual.widgets import Footer, Label, Sparkline, Static
 
 from .configs import InitConfig
+from .engine import Engine
 from .functionalities import (
-    NFunctionality,
     MFunctionality,
     SFunctionality,
+    ValidButtons,
     ValidModes,
     ValidNav,
     ValidSettings,
+    init_nav,
 )
-from .sequencers import MiDi, Sequencers
 
 
 class KeysUI(Static):
 
     def __init__(
         self,
-        sequencers: Sequencers,
+        sequencer: Engine,
     ):
         super().__init__()
         self.internal_config = InitConfig()
-        self.sequencers: Sequencers = sequencers
-        self.data_pos_view = Label("")
-        self.data_vis_view = Sparkline(data=[0] * self.internal_config.steps)
-        self.data_pos_edit = Label("")
-        self.data_vis_edit = Sparkline(data=[0] * self.internal_config.steps)
-        self.update_options: Optional[Callable] = None
-        self.send_option: Optional[Callable] = None
+        self.sequencer = sequencer
+        self.pos_top_label = Label("")
+        self.pos_top_storage = self.sequencer.get_current_pos()
+        self.data_vis_top = Sparkline(data=[0] * self.internal_config.steps)
+        self.pos_bottom_label = Label("")
+        self.pos_bottom_storage = self.sequencer.get_current_pos()
+        self.data_vis_bottom = Sparkline(data=[0] * self.internal_config.steps)
+        self.navigation_ui: Optional[NavigationUI] = None
+        self.update_all()
 
-    def update_edit(self):
-        midi, channel, part, key_type, _ = self.get_current_pos()
-        self.data_vis_edit.data = self.sequences[midi][channel][part][key_type].copy()
+    def update_bottom(self) -> None:
+        show_as = "Edit"
+        if self.sequencer.settings[ValidSettings.RECORD].ind == 1:
+            self.pos_bottom_storage = self.sequencer.get_current_pos()
+        if self.sequencer.settings[ValidSettings.COPY].ind == 1:
+            show_as = "To"
+        midi, channel, part, mode, step = self.pos_bottom_storage
+        self.data_vis_bottom.data = self.sequencer.sequences[midi][channel][part][
+            mode
+        ].copy()
+        pos_label = f"{show_as}|M{midi + 1}|C{channel + 1}|P{(part + 1):02}|{mode}|S{(step + 1):02}|"
+        self.pos_bottom_label.update(pos_label)
 
-    def update_view(self):
-        midi, channel, part, key_type, _ = self.get_current_pos()
-        self.data_vis_view.data = self.sequences[midi][channel][part][key_type].copy()
+    def update_top(self) -> None:
+        show_as = "View"
+        if (
+            self.sequencer.settings[ValidSettings.VIEW].ind == 1
+            or self.sequencer.settings[ValidSettings.COPY].ind == 1
+        ):
+            self.pos_top_storage = self.sequencer.get_current_pos()
+        if self.sequencer.settings[ValidSettings.COPY].ind == 1:
+            show_as = "From"
+        midi, channel, part, mode, step = self.pos_top_storage
+        self.data_vis_top.data = self.sequencer.sequences[midi][channel][part][
+            mode
+        ].copy()
+        pos_label = f"{show_as}|M{midi + 1}|C{channel + 1}|P{(part + 1):02}|{mode}|S{(step + 1):02}|"
+        self.pos_top_label.update(pos_label)
 
     def compose(self) -> ComposeResult:
-        yield self.data_pos_view
-        yield self.data_vis_view
-        yield self.data_pos_edit
-        yield self.data_vis_edit
-
-    def send_key(self, key: MFunctionality) -> None:
-        for midi_id in self.midis.keys():
-            midi: MiDi = self.midis[midi_id]
-            midi.func_queue.put(attrs.asdict(key))
+        yield self.pos_top_label
+        yield self.data_vis_top
+        yield self.pos_bottom_label
+        yield self.data_vis_bottom
 
     def update_all(self) -> None:
-        self.update_edit()
-        if self.update_options is not None:
-            self.update_options()
+        self.update_top()
+        self.update_bottom()
 
-    def config_key(self, key_value: int) -> MFunctionality:
-        key_type_id = self.options[ValidOptions.KEY_TYPE].ind
-        key_type_name = self.options[ValidOptions.KEY_TYPE].values[key_type_id]
-        key_type = ValidKeys(key_type_name)
-        key = self.keys[key_type]
-        key.ind = key.values.index(key_value)
-        return key
+    def config_mode(self, mode_value: int) -> MFunctionality:
+        mode_ind = self.sequencer.settings[ValidSettings.MODE].ind
+        mode = ValidModes(self.sequencer.settings[ValidSettings.MODE].values[mode_ind])
+        mode = self.sequencer.modes[mode]
+        mode.ind = mode.values.index(mode_value)
+        return mode
 
     def key_1(self):
-        # key = 0 is a delete command
-        key = self.config_key(key_value=1)
-        self.send_key(key=key)
-        self.set_step(key_val=key)
+        mode = self.config_mode(mode_value=1)
+        self.sequencer.send_mode(mode=mode)
         self.update_all()
 
     def key_2(self):
-        key = self.config_key(key_value=2)
-        self.send_key(key=key)
-        self.set_step(key_val=key)
+        mode = self.config_mode(mode_value=2)
+        self.sequencer.send_mode(mode=mode)
         self.update_all()
 
     def key_3(self):
-        key = self.config_key(key_value=3)
-        self.send_key(key=key)
-        self.set_step(key_val=key)
+        mode = self.config_mode(mode_value=3)
+        self.sequencer.send_mode(mode=mode)
         self.update_all()
 
     def key_4(self):
-        key = self.config_key(key_value=4)
-        self.send_key(key=key)
-        self.set_step(key_val=key)
+        mode = self.config_mode(mode_value=4)
+        self.sequencer.send_mode(mode=mode)
         self.update_all()
 
     def key_5(self):
-        key = self.config_key(key_value=5)
-        self.send_key(key=key)
-        self.set_step(key_val=key)
+        mode = self.config_mode(mode_value=5)
+        self.sequencer.send_mode(mode=mode)
         self.update_all()
 
     def key_6(self):
-        key = self.config_key(key_value=6)
-        self.send_key(key=key)
-        self.set_step(key_val=key)
+        mode = self.config_mode(mode_value=6)
+        self.sequencer.send_mode(mode=mode)
         self.update_all()
 
     def key_7(self):
-        key = self.config_key(key_value=7)
-        self.send_key(key=key)
-        self.set_step(key_val=key)
+        mode = self.config_mode(mode_value=7)
+        self.sequencer.send_mode(mode=mode)
         self.update_all()
 
     def key_8(self):
-        key = self.config_key(key_value=8)
-        self.send_key(key=key)
-        self.set_step(key_val=key)
+        mode = self.config_mode(mode_value=8)
+        self.sequencer.send_mode(mode=mode)
         self.update_all()
 
 
@@ -119,118 +126,276 @@ class NavigationUI(Static):
 
     def __init__(
         self,
-        sequencers: Sequencers,
+        sequencer: Engine,
     ):
         super().__init__()
         self.internal_config = InitConfig()
-        self.sequencers = sequencers
+        self.sequencer = sequencer
         self.settings_vis = Label("")
-        self.button_vis = Label("")
+        self.nav_vis = Label("")
         self.keys_vis = Label("")
-        self.valid_nav = list(ValidNav)
+        self.valid_nav: List[ValidNav] = [
+            ValidNav.RECORD,
+            ValidNav.COPY,
+            ValidNav.VIEW,
+            ValidNav.PLAY,
+            ValidNav.TEMPO,
+        ]
         self.nav_id = 0
-        # self.update_all()
+        self.navigation = init_nav()
+        self.keys_ui: Optional[KeysUI] = None
+        self.nav_action: Dict[ValidButtons, Callable] = self.create_nav_actions()
+        self.update_all()
 
     def compose(self) -> ComposeResult:
         yield self.settings_vis
-        yield self.button_vis
+        yield self.nav_vis
         yield self.keys_vis
 
-    def update_all(self):
-        current_nav = self.valid_nav[self.nav_id]
-        navigation = self.sequencers.navigation[current_nav]
-        n_name = navigation.name
-        n_index = navigation.ind
+    def create_nav_actions(self) -> Dict[ValidButtons, Callable]:
+        nav_actions: Dict[ValidButtons, Callable] = dict()
+        nav_actions[ValidButtons.EMPTY] = lambda: None
+        nav_actions[ValidButtons.OPT_DOWN] = self.opt_down
+        nav_actions[ValidButtons.OPT_UP] = self.opt_up
+        nav_actions[ValidButtons.REC_ON] = self.record_on
+        nav_actions[ValidButtons.REC_OFF] = self.record_off
+        nav_actions[ValidButtons.VIEW_ON] = self.view_on
+        nav_actions[ValidButtons.VIEW_OFF] = self.view_off
+        nav_actions[ValidButtons.PLAY_ON] = self.play_on
+        nav_actions[ValidButtons.PLAY_OFF] = self.play_off
+        nav_actions[ValidButtons.MIDI] = self.next_midi
+        nav_actions[ValidButtons.CHANNEL] = self.next_channel
+        nav_actions[ValidButtons.PART] = self.next_part
+        nav_actions[ValidButtons.MODE] = self.next_mode
+        nav_actions[ValidButtons.DELETE] = self.delete_note
+        nav_actions[ValidButtons.TEMPO_UP] = self.tempo_up
+        nav_actions[ValidButtons.TEMPO_DOWN] = self.tempo_down
+        nav_actions[ValidButtons.SKIP] = self.skip_step
+        nav_actions[ValidButtons.COPY_ON] = self.copy_on
+        nav_actions[ValidButtons.COPY_OFF] = self.copy_off
+        nav_actions[ValidButtons.C_RANDOM] = self.copy_random
+        nav_actions[ValidButtons.C_REVERSE] = self.copy_reverse
+        nav_actions[ValidButtons.C_AS_IS] = self.copy_as_is
+        return nav_actions
 
-        self.option_vis.update(f"{f_name[0:5]:>5}:{f_value[0:5]:>5}")
-        # - - -
-        buttons = navigation.buttons
-        b_ind = navigation.b_ind
-        button_1 = str(buttons[b_ind * 4 + 0])
-        button_2 = str(buttons[b_ind * 4 + 1])
-        button_3 = str(buttons[b_ind * 4 + 2])
-        button_4 = str(buttons[b_ind * 4 + 3])
-        self.button_vis.update(
-            f"{button_1[0:5]:>5}|{button_2[0:5]:>5}|{button_3[0:5]:>5}|{button_4[0:5]:>5}"
+    def opt_up(self):
+        self.nav_id += 1
+        if self.nav_id >= len(self.valid_nav):
+            self.nav_id = 0
+
+    def opt_down(self):
+        self.nav_id -= 1
+        if self.nav_id < 0:
+            self.nav_id = len(self.valid_nav) - 1
+
+    def tempo_up(self):
+        self.change_setting(valid_setting=ValidSettings.TEMPO, direction=1)
+        self.sequencer.send_setting(
+            setting=self.sequencer.settings[ValidSettings.TEMPO]
         )
 
-    def nav_1(self):
-        set_index = self.current_option
-        b_ind = self.option_list[set_index].b_ind
-        button = self.option_list[set_index].buttons[b_ind * 4 + 0]
-        if button == ValidNav.OPT_DOWN:
-            set_index = self.current_option
-            set_index -= 1
-            if set_index < 0:
-                set_index = len(self.option_list) - 1
-            self.current_option = set_index
-        elif button == ValidNav.BACK:
-            self.option_list[set_index].b_ind = 0
-            self.option_list[self.current_option].ind = 0
+    def tempo_down(self):
+        self.change_setting(valid_setting=ValidSettings.TEMPO, direction=-1)
+        self.sequencer.send_setting(
+            setting=self.sequencer.settings[ValidSettings.TEMPO]
+        )
+
+    def delete_note(self):
+        self.sequencer.send_delete()
+
+    def skip_step(self):
+        self.sequencer.send_next_step()
+
+    def next_midi(self):
+        setting = self.next_any(ValidSettings.MIDI)
+        self.sequencer.send_setting(setting=setting)
+        self.sequencer.send_reset_step()
+
+    def next_channel(self):
+        setting = self.next_any(ValidSettings.CHANNEL)
+        self.sequencer.send_setting(setting=setting)
+        self.sequencer.send_reset_step()
+
+    def next_part(self):
+        setting = self.next_any(ValidSettings.PART)
+        self.sequencer.send_setting(setting=setting)
+        self.sequencer.send_reset_step()
+
+    def next_mode(self):
+        setting = self.next_any(ValidSettings.MODE)
+        self.sequencer.send_setting(setting=setting)
+        self.sequencer.send_reset_step()
+
+    def record_on(self):
+        self.navigate(direction=1)
+        record = self.config_setting(ValidSettings.RECORD, "On")
+        self.sequencer.send_setting(record)
+
+    def record_off(self):
+        self.navigate(direction=-1)
+        record = self.config_setting(ValidSettings.RECORD, "Off")
+        self.sequencer.send_setting(record)
+
+    def view_on(self):
+        self.navigate(direction=1)
+        view = self.config_setting(ValidSettings.VIEW, "On")
+        self.sequencer.send_setting(view)
+        midi, channel, part, mode, step = self.keys_ui.pos_top_storage
+        self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)
+
+    def view_off(self):
+        self.navigate(direction=-1)
+        view = self.config_setting(ValidSettings.VIEW, "Off")
+        self.sequencer.send_setting(view)
+        midi, channel, part, mode, step = self.keys_ui.pos_top_storage
+        self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)
+
+    def copy_on(self):
+        self.navigate(direction=1)
+        view = self.config_setting(ValidSettings.COPY, "On")
+        self.sequencer.send_setting(view)
+        midi, channel, part, mode, step = self.keys_ui.pos_top_storage
+        self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)
+
+    def copy_off(self):
+        self.navigate(direction=-1)
+        view = self.config_setting(ValidSettings.COPY, "Off")
+        self.sequencer.send_setting(view)
+        midi, channel, part, mode, step = self.keys_ui.pos_bottom_storage
+        self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)
+
+    def copy_random(self) -> None:
+        pass
+
+    def copy_reverse(self) -> None:
+        pass
+
+    def copy_as_is(self) -> None:
+        pass
+
+    def play_on(self) -> None:
+        self.navigate(direction=1)
+        play = self.config_setting(ValidSettings.PLAY, "On")
+        self.sequencer.send_setting(play)
+
+    def play_off(self) -> None:
+        self.navigate(direction=-1)
+        play = self.config_setting(ValidSettings.PLAY, "Off")
+        self.sequencer.send_setting(play)
+
+    def next_any(self, valid_setting: ValidSettings) -> SFunctionality:
+        setting_ind = self.sequencer.settings[valid_setting].ind
+        setting_ind += 1
+        if setting_ind >= len(self.sequencer.settings[valid_setting].values):
+            setting_ind = 0
+        self.sequencer.settings[valid_setting].ind = setting_ind
+        return self.sequencer.settings[valid_setting]
+
+    def config_setting(
+        self, valid_setting: ValidSettings, setting_value: str
+    ) -> SFunctionality:
+        setting = self.sequencer.settings[valid_setting]
+        setting_ind = setting.values.index(setting_value)
+        setting.ind = setting_ind
+        return setting
+
+    def update_all(self):
+        self.update_settings_vis()
+        self.update_nav_vis()
+        self.update_keys_vis()
+
+    def update_nav_vis(self):
+        name, buttons = self.get_current_nav()
+        text = "|"
+        for button in buttons:
+            text += f"{button[0:5]:>5}|"
+        self.nav_vis.update(text)
+
+    def update_keys_vis(self):
+        pass
+
+    def update_settings_vis(self):
+        tempo_ind = self.sequencer.settings[ValidSettings.TEMPO].ind
+        tempo_val = self.sequencer.settings[ValidSettings.TEMPO].values[tempo_ind]
+        text = f"T:{tempo_val:03}"
+        self.settings_vis.update(text)
+
+    def navigate(self, direction: int) -> None:
+        current_nav = self.valid_nav[self.nav_id]
+        navigation = self.navigation[current_nav]
+        navigation.ind += direction
+
+    def change_setting(
+        self, valid_setting: ValidSettings, direction: int
+    ) -> SFunctionality:
+        setting = self.sequencer.settings[valid_setting]
+        setting_ind = setting.ind
+        setting_ind += direction
+        if setting_ind >= len(setting.values):
+            setting_ind = 0
+        elif setting_ind < 0:
+            setting_ind = len(setting.values) - 1
+        return setting
+
+    def get_current_nav(self) -> Tuple[str, List[ValidButtons]]:
+        current_nav = self.valid_nav[self.nav_id]
+        navigation = self.navigation[current_nav]
+        nav_ind = navigation.ind
+        buttons = list()
+        for i in range(
+            nav_ind * self.internal_config.n_buttons,
+            (nav_ind + 1) * self.internal_config.n_buttons,
+        ):
+            buttons.append(navigation.buttons[i])
+        return navigation.name, buttons
+
+    def nav_1(self) -> None:
+        button = self.get_current_nav()[1][0]
+        self.nav_action[button]()
         self.update_all()
+        self.keys_ui.update_all()
 
     def nav_2(self):
-        set_index = self.current_option
-        b_ind = self.option_list[set_index].b_ind
-        button = self.option_list[set_index].buttons[b_ind * 4 + 1]
-        if button == ValidNav.OPT_UP:
-            set_index += 1
-            if set_index >= len(self.option_list):
-                set_index = 0
-            self.current_option = set_index
-        elif button == ValidNav.PREVIOUS:
-            options = self.move_pos(direction=-1)
-            for option in options:
-                self.send_option(option)
-            self.update_edit()
+        button = self.get_current_nav()[1][1]
+        self.nav_action[button]()
         self.update_all()
+        self.keys_ui.update_all()
 
     def nav_3(self):
-        set_index = self.current_option
-        b_ind = self.option_list[set_index].b_ind
-        button = self.option_list[set_index].buttons[b_ind * 4 + 2]
-        if button == ValidNav.SET_DOWN:
-            val_index = self.option_list[self.current_option].ind
-            val_index -= 1
-            if val_index < 0:
-                val_index = len(self.option_list[self.current_option].values) - 1
-            self.option_list[self.current_option].ind = val_index
-            self.send_option(self.option_list[self.current_option])
-        elif button == ValidNav.ENTER:
-            self.option_list[set_index].b_ind = 1
-            self.option_list[self.current_option].ind = 1
-            self.send_option(self.option_list[self.current_option])
-        elif button == ValidNav.NEXT:
-            options = self.move_pos(direction=1)
-            for option in options:
-                self.send_option(option)
-            self.update_edit()
+        button = self.get_current_nav()[1][2]
+        self.nav_action[button]()
         self.update_all()
+        self.keys_ui.update_all()
 
     def nav_4(self):
-        set_index = self.current_option
-        b_ind = self.option_list[set_index].b_ind
-        button = self.option_list[set_index].buttons[b_ind * 4 + 3]
-        if button == ValidNav.SET_UP:
-            val_index = self.option_list[self.current_option].ind
-            val_index += 1
-            if val_index >= len(self.option_list[self.current_option].values):
-                val_index = 0
-            self.option_list[self.current_option].ind = val_index
-            self.send_option(self.option_list[self.current_option])
-        elif button == ValidNav.DELETE:
-            key = self.delete_step()
-            self.send_key(key=key)
-            self.update_edit()
-        elif button == ValidNav.VIEW:
-            if self.update_view is not None:
-                self.update_view()
-        elif button == ValidNav.PLAY:
-            pass
+        button = self.get_current_nav()[1][3]
+        self.nav_action[button]()
         self.update_all()
+        self.keys_ui.update_all()
 
-    def send_setting(self, setting: SFunctionality) -> None:
-        self.sequencers.send_setting(setting=setting)
+    def nav_5(self) -> None:
+        button = self.get_current_nav()[1][4]
+        self.nav_action[button]()
+        self.update_all()
+        self.keys_ui.update_all()
+
+    def nav_6(self):
+        button = self.get_current_nav()[1][5]
+        self.nav_action[button]()
+        self.update_all()
+        self.keys_ui.update_all()
+
+    def nav_7(self):
+        button = self.get_current_nav()[1][6]
+        self.nav_action[button]()
+        self.update_all()
+        self.keys_ui.update_all()
+
+    def nav_8(self):
+        button = self.get_current_nav()[1][7]
+        self.nav_action[button]()
+        self.update_all()
+        self.keys_ui.update_all()
 
 
 class UI(App):
@@ -257,11 +422,13 @@ class UI(App):
 
     def __init__(self, args: Namespace):
         super().__init__()
-        self.sequencers = Sequencers()
-        self.keys_ui = KeysUI(sequencers=self.sequencers)
-        self.navigation_ui = NavigationUI(sequencers=self.sequencers)
-        for midi in self.sequencers.midis.values():
-            midi.detach()
+        self.sequencer = Engine()
+        self.sequencer.detach()
+        self.sequencer.init_data()
+        self.keys_ui = KeysUI(sequencer=self.sequencer)
+        self.navigation_ui = NavigationUI(sequencer=self.sequencer)
+        self.navigation_ui.keys_ui = self.keys_ui
+        self.keys_ui.navigation_ui = self.navigation_ui
 
     def compose(self) -> ComposeResult:
         yield self.keys_ui
@@ -274,7 +441,7 @@ class UI(App):
     def action_nav_2(self) -> None:
         self.navigation_ui.nav_2()
 
-    def action_set_3(self) -> None:
+    def action_nav_3(self) -> None:
         self.navigation_ui.nav_3()
 
     def action_nav_4(self) -> None:
