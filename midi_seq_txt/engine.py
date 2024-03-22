@@ -1,8 +1,8 @@
-import time
 import random
+import time
 from collections import defaultdict
 from multiprocessing import Process, Queue
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import attrs
 import mingus.core.scales as scales
@@ -12,8 +12,8 @@ from .configs import InitConfig
 from .functionalities import (
     MFunctionality,
     SFunctionality,
-    ValidModes,
     ValidButtons,
+    ValidModes,
     ValidSettings,
     init_modes,
     init_settings,
@@ -139,8 +139,9 @@ class MiDi:
         super().__init__()
         self.port_id = port_id
         self.internal_config = InitConfig()
+        self.sequencer: Optional[Sequencer] = None
 
-    def play_note(self, key_enum: ValidModes, key_fun: "MFunctionality") -> None:
+    def play_note(self, note: "MFunctionality") -> None:
         midi_out: rtmidi.MidiOut = rtmidi.MidiOut()
         midi_out.open_port(self.port_id)
         note_on = [0x90, 60, 255]  # channel 1, middle C, velocity 112
@@ -150,6 +151,10 @@ class MiDi:
             time.sleep(0.5)
             midi_out.send_message(note_off)
             pass
+
+    def play(self) -> None:
+        midi_out: rtmidi.MidiOut = rtmidi.MidiOut()
+        midi_out.open_port(self.port_id)
 
 
 class Engine(Sequencer):
@@ -183,6 +188,8 @@ class Engine(Sequencer):
 
     def start(self) -> None:
         self.init_data()
+        for midi_id in self.midis.keys():
+            self.midis[midi_id].sequencer = self
         self.run_schedule()
 
     def run_schedule(self) -> None:
@@ -195,6 +202,9 @@ class Engine(Sequencer):
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
+            for midi_id in self.midis.keys():
+                self.midis[midi_id].play()
+            time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:
         valid_setting = ValidSettings(setting_dict["name"])
@@ -211,6 +221,8 @@ class Engine(Sequencer):
     def send_mode(self, mode: MFunctionality) -> None:
         self.set_step(key=mode)
         self.func_queue.put(attrs.asdict(mode))
+        for midi_id in self.midis.keys():
+            self.midis[midi_id].play_note(note=mode)
 
     def send_setting(self, setting: SFunctionality) -> None:
         self.set_option(option=setting)
@@ -235,11 +247,11 @@ class Engine(Sequencer):
         self.send_setting(self.settings[ValidSettings.MODE])
         self.send_reset_step()
 
-    def send_reset_step(self):
+    def send_reset_step(self) -> None:
         self.settings[ValidSettings.STEP].ind = 0
         self.send_setting(setting=self.settings[ValidSettings.STEP])
 
-    def send_next_step(self):
+    def send_next_step(self) -> None:
         step_ind = self.settings[ValidSettings.STEP].ind
         step_ind += 1
         if step_ind >= len(self.settings[ValidSettings.STEP].values):
@@ -254,7 +266,7 @@ class Engine(Sequencer):
         f_part: int,
         f_mode: ValidModes,
         button: ValidButtons,
-    ):
+    ) -> None:
         f_sequence = self.sequences[f_midi][f_channel][f_part][f_mode]
         t_mode = self.get_current_mode()
         shuffle = list(range(len(f_sequence)))

@@ -1,9 +1,9 @@
 from enum import StrEnum
 from typing import Dict, List, Tuple, Union
 
+import mingus.core.scales as scales
 from attrs import AttrsInstance, define
 from mingus.core import keys
-import mingus.core.scales as scales
 
 from .configs import InitConfig
 
@@ -180,48 +180,52 @@ class MFunctionality(AttrsInstance):
     codes: List[int] = [0]
 
 
+class PlayN(NFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidNav.PLAY,
+            buttons=BUT_PLAY,
+            ind=0,
+        )
+
+
+class RecordN(NFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidNav.RECORD,
+            buttons=BUT_REC,
+            ind=0,
+        )
+
+
+class ViewN(NFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidNav.VIEW,
+            buttons=BUT_VIEW,
+            ind=0,
+        )
+
+
+class TempoN(NFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidNav.TEMPO,
+            buttons=BUT_TEMPO,
+            ind=0,
+        )
+
+
+class CopyN(NFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidNav.COPY,
+            buttons=BUT_COPY,
+            ind=0,
+        )
+
+
 def init_nav() -> Dict[ValidNav, NFunctionality]:
-
-    class PlayN(NFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidNav.PLAY,
-                buttons=BUT_PLAY,
-                ind=0,
-            )
-
-    class RecordN(NFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidNav.RECORD,
-                buttons=BUT_REC,
-                ind=0,
-            )
-
-    class ViewN(NFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidNav.VIEW,
-                buttons=BUT_VIEW,
-                ind=0,
-            )
-
-    class TempoN(NFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidNav.TEMPO,
-                buttons=BUT_TEMPO,
-                ind=0,
-            )
-
-    class CopyN(NFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidNav.COPY,
-                buttons=BUT_COPY,
-                ind=0,
-            )
-
     return {
         ValidNav.RECORD: RecordN(),
         ValidNav.VIEW: ViewN(),
