@@ -409,7 +409,7 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
             super().__init__(
                 name=ValidModes.SCALE,
                 ind=0,
-                offset=1,
+                offset=9,
                 first_only=True,
                 values=create_scales(),
             )

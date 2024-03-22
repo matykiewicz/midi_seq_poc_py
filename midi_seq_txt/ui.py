@@ -106,31 +106,43 @@ class KeysUI(Static):
         mode = self.config_mode(key_ind=2)
         self.sequencer.send_mode(mode=mode)
         self.update_all()
+        if self.navigation_ui is not None:
+            self.navigation_ui.update_all()
 
     def key_3(self):
         mode = self.config_mode(key_ind=3)
         self.sequencer.send_mode(mode=mode)
         self.update_all()
+        if self.navigation_ui is not None:
+            self.navigation_ui.update_all()
 
     def key_4(self):
         mode = self.config_mode(key_ind=4)
         self.sequencer.send_mode(mode=mode)
         self.update_all()
+        if self.navigation_ui is not None:
+            self.navigation_ui.update_all()
 
     def key_5(self):
         mode = self.config_mode(key_ind=5)
         self.sequencer.send_mode(mode=mode)
         self.update_all()
+        if self.navigation_ui is not None:
+            self.navigation_ui.update_all()
 
     def key_6(self):
         mode = self.config_mode(key_ind=6)
         self.sequencer.send_mode(mode=mode)
         self.update_all()
+        if self.navigation_ui is not None:
+            self.navigation_ui.update_all()
 
     def key_7(self):
         mode = self.config_mode(key_ind=7)
         self.sequencer.send_mode(mode=mode)
         self.update_all()
+        if self.navigation_ui is not None:
+            self.navigation_ui.update_all()
 
     def key_8(self):
         mode = self.config_mode(key_ind=8)
@@ -143,6 +155,8 @@ class KeysUI(Static):
             if self.navigation_ui is not None:
                 self.navigation_ui.update_all()
         self.update_all()
+        if self.navigation_ui is not None:
+            self.navigation_ui.update_all()
 
 
 class NavigationUI(Static):

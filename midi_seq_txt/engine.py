@@ -19,6 +19,8 @@ from .functionalities import (
     init_settings,
 )
 
+DEBUG = True
+
 
 class Sequencer:
     def __init__(self):
@@ -114,13 +116,18 @@ class Sequencer:
             or self.settings[ValidSettings.COPY].ind == 1
         ) and key_value != ValidButtons.NEXT:
             midi, channel, part, mode, step = self.get_current_pos()
+            if key.first_only:
+                step = 0
             self.sequences[midi][channel][part][mode][step] = key.ind
-            ind = self.settings[ValidSettings.STEP].ind
-            ind += 1
-            if ind >= self.internal_config.steps:
-                ind = 0
-            self.settings[ValidSettings.STEP].ind = ind
-        self.debug()
+            if not key.first_only:
+                ind = self.settings[ValidSettings.STEP].ind
+                ind += 1
+                if ind >= self.internal_config.steps:
+                    ind = 0
+                self.settings[ValidSettings.STEP].ind = ind
+            else:
+                self.settings[ValidSettings.STEP].ind = 0
+        self.debug() if DEBUG else None
 
     def set_option(self, option: SFunctionality) -> None:
         valid_setting = ValidSettings(option.name)
