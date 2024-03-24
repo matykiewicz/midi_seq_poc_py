@@ -1,11 +1,18 @@
-from enum import StrEnum
-from typing import Dict, List, Tuple, Union
+from enum import Enum, StrEnum
+from typing import Dict, List, Optional, Tuple, Union
 
 import mingus.core.scales as scales
 from attrs import AttrsInstance, define
 from mingus.core import keys
 
 from .configs import InitConfig
+
+
+class ValidLengths(Enum):
+    FULL = 1.0
+    HALF = 0.5
+    QUARTER = 0.25
+    ZERO = 0.0
 
 
 class ValidButtons(StrEnum):
@@ -32,6 +39,9 @@ class ValidButtons(StrEnum):
     TEMPO_UP = "Temp+"
     TEMPO_DOWN = "Temp-"
     NEXT = "Next"
+    NA = "NA"
+    LENGTH = "Length"
+    ZERO = "0"
 
 
 BUT_TEMPO = (
@@ -55,7 +65,7 @@ BUT_REC = (
     ValidButtons.PART,
     ValidButtons.MODE,
     ValidButtons.REC_OFF,
-    ValidButtons.EMPTY,
+    ValidButtons.LENGTH,
     ValidButtons.SKIP,
     ValidButtons.DELETE,
     ValidButtons.MIDI,
@@ -160,6 +170,22 @@ class NFunctionality(AttrsInstance):
     ind: int
     buttons: Tuple[ValidButtons, ...]
 
+    def change(self, direction: int) -> "NFunctionality":
+        ind = self.ind
+        ind += direction
+        if ind >= len(self.buttons):
+            ind = 0
+        if ind < 0:
+            ind = len(self.buttons) - 1
+        self.ind = ind
+        return self
+
+    def get_buttons(self, interval: int) -> List[ValidButtons]:
+        buttons = list()
+        for i in range(self.ind * interval, (self.ind + 1) * interval):
+            buttons.append(self.buttons[i])
+        return buttons
+
 
 @define
 class SFunctionality(AttrsInstance):
@@ -167,6 +193,39 @@ class SFunctionality(AttrsInstance):
     name: str
     ind: int
     values: List[Union[str, int]]
+
+    def update(self, ind: int) -> "SFunctionality":
+        self.ind = ind
+        return self
+
+    def change(self, direction: int) -> "SFunctionality":
+        ind = self.ind
+        ind += direction
+        if ind >= len(self.values):
+            ind = 0
+        if ind < 0:
+            ind = len(self.values) - 1
+        self.ind = ind
+        return self
+
+    def get(self) -> int:
+        return self.ind
+
+    def set_value(self, value: str) -> "SFunctionality":
+        ind = self.values.index(value)
+        self.ind = ind
+        return self
+
+    def get_value(self) -> Union[str, int]:
+        return self.values[self.ind]
+
+    def next(self) -> "SFunctionality":
+        ind = self.ind
+        ind += 1
+        if ind >= len(self.values):
+            ind = 0
+        self.ind = ind
+        return self
 
 
 @define
@@ -177,7 +236,58 @@ class MFunctionality(AttrsInstance):
     offset: int
     first_only: bool
     values: List[str]
+    lengths: List[float] = [0.0]
     codes: List[int] = [0]
+
+    def set_offset(self, offset: int) -> "MFunctionality":
+        if offset >= len(self.values):
+            offset = 1
+        self.offset = offset
+        return self
+
+    def update(self, length: float, ind: int) -> "MFunctionality":
+        self.lengths[0] = length
+        self.ind = ind
+        return self
+
+    def get(self) -> Tuple[float, int]:
+        return self.lengths[0], self.ind
+
+    def get_offset(self) -> int:
+        return self.offset
+
+    def get_value(self, ind: Optional[int] = None) -> str:
+        if ind is None:
+            return self.values[self.ind]
+        else:
+            return self.values[ind]
+
+    def get_first_length(self) -> float:
+        return self.lengths[0]
+
+    def get_length_and_code(self) -> Tuple[float, int]:
+        length = self.lengths[0]
+        self.lengths += [self.lengths.pop(0)]
+        code = self.codes[0]
+        self.codes += [self.codes.pop(0)]
+        return length, code
+
+    def next_length(self) -> "MFunctionality":
+        lengths = [v.value for v in ValidLengths]
+        ind = lengths.index(self.lengths[0])
+        ind += 1
+        if ind >= len(lengths):
+            ind = 0
+        self.lengths[0] = lengths[ind]
+        return self
+
+    def update_with_key_ind(self, key_ind) -> "MFunctionality":
+        ind = key_ind - 1 + self.offset
+        if ind < len(self.values):
+            self.ind = ind
+        else:
+            self.ind = 0
+        return self
 
 
 class PlayN(NFunctionality):
@@ -343,81 +453,90 @@ def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
     }
 
 
+class Voice1(MFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidModes.VOICE_1,
+            ind=0,
+            offset=1 + 8 * 2,
+            first_only=False,
+            lengths=[1.0, 0.0],
+            codes=[0x90, 0x80],
+            values=create_notes(scale="C"),
+        )
+
+
+class Voice2(MFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidModes.VOICE_2,
+            ind=0,
+            offset=1 + 8 * 2,
+            first_only=False,
+            lengths=[1.0, 0.0],
+            codes=[0x90, 0x80],
+            values=create_notes(scale="C"),
+        )
+
+
+class Voice3(MFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidModes.VOICE_3,
+            ind=0,
+            offset=1 + 8 * 2,
+            first_only=False,
+            lengths=[1.0, 0.0],
+            codes=[0x90, 0x80],
+            values=create_notes(scale="C"),
+        )
+
+
+class Motion1(MFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidModes.MOTION_1,
+            ind=0,
+            offset=1,
+            first_only=False,
+            values=create_motions(),
+        )
+
+
+class Motion2(MFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidModes.MOTION_2,
+            ind=0,
+            offset=1,
+            first_only=False,
+            values=create_motions(),
+        )
+
+
+class Motion3(MFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidModes.MOTION_3,
+            ind=0,
+            offset=1,
+            first_only=False,
+            values=create_motions(),
+        )
+
+
+class Scale(MFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidModes.SCALE,
+            ind=0,
+            offset=9,
+            first_only=True,
+            values=create_scales(),
+        )
+
+
 def init_modes() -> Dict[ValidModes, MFunctionality]:
-
-    class Voice1(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.VOICE_1,
-                ind=0,
-                offset=1 + 8 * 2,
-                first_only=False,
-                codes=[0x90, 0x80],
-                values=create_notes("C"),
-            )
-
-    class Voice2(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.VOICE_2,
-                ind=0,
-                offset=1 + 8 * 2,
-                first_only=False,
-                codes=[0x90, 0x80],
-                values=create_notes("C"),
-            )
-
-    class Voice3(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.VOICE_3,
-                ind=0,
-                offset=1 + 8 * 2,
-                first_only=False,
-                codes=[0x90, 0x80],
-                values=create_notes("C"),
-            )
-
-    class Motion1(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.MOTION_1,
-                ind=0,
-                offset=1,
-                first_only=False,
-                values=create_motions(),
-            )
-
-    class Motion2(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.MOTION_2,
-                ind=0,
-                offset=1,
-                first_only=False,
-                values=create_motions(),
-            )
-
-    class Motion3(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.MOTION_3,
-                ind=0,
-                offset=1,
-                first_only=False,
-                values=create_motions(),
-            )
-
-    class Scale(MFunctionality):
-        def __init__(self):
-            super().__init__(
-                name=ValidModes.SCALE,
-                ind=0,
-                offset=9,
-                first_only=True,
-                values=create_scales(),
-            )
-
     return {
         ValidModes.VOICE_1: Voice1(),
         ValidModes.VOICE_2: Voice2(),
@@ -445,15 +564,15 @@ def create_scales() -> List[str]:
 def create_notes(scale: str) -> List[str]:
     notes = scales.get_notes(key=scale)
     no_button_notes = list()
-    button_notes = ["NA"]
+    button_notes = [ValidButtons.NA.value]
     for octave in range(1, InitConfig().octaves + 1):
         for note in notes:
-            no_button_notes.append(f"{note}{octave}")
+            no_button_notes.append(f"{note}-{octave}")
     n_keys = InitConfig().n_keys
     for i in range(len(no_button_notes)):
         if (i + 1) % (n_keys - 1) == 0:
             button_notes.append(no_button_notes[i])
-            button_notes.append(ValidButtons.NEXT)
+            button_notes.append(ValidButtons.NEXT.value)
         else:
             button_notes.append(no_button_notes[i])
     return button_notes
@@ -461,7 +580,7 @@ def create_notes(scale: str) -> List[str]:
 
 def create_motions() -> List[str]:
     no_button_motions = list()
-    button_motions = ["0"]
+    button_motions = [ValidButtons.ZERO.value]
     for i in range(1, InitConfig().n_motions):
         motion = round((i / InitConfig().n_motions) * 127)
         no_button_motions.append(motion)
@@ -469,7 +588,7 @@ def create_motions() -> List[str]:
     for i in range(len(no_button_motions)):
         if (i + 1) % (n_keys - 1) == 0:
             button_motions.append(str(no_button_motions[i]))
-            button_motions.append(ValidButtons.NEXT)
+            button_motions.append(ValidButtons.NEXT.value)
         else:
             button_motions.append(str(no_button_motions[i]))
     return button_motions

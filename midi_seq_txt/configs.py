@@ -3,7 +3,7 @@ from attrs import define
 
 @define
 class InitConfig:
-    sleep: float = 0.01
+    sleep: float = 0.0001
     steps: int = 16
     parts: int = 16
     octaves: int = 5

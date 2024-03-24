@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import attrs
 import mingus.core.scales as scales
 import rtmidi
+from mingus.containers import Note
 
 from .configs import InitConfig
 from .functionalities import (
@@ -28,9 +29,9 @@ class Sequencer:
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.modes: Dict[ValidModes, MFunctionality] = dict()
         self.n_midis = 0
-        self.sequences: Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[int]]]]] = (
-            dict()
-        )
+        self.sequences: Dict[
+            int, Dict[int, Dict[int, Dict[ValidModes, List[Tuple[float, int]]]]]
+        ] = dict()
 
     def debug(self) -> None:
         import json
@@ -43,10 +44,10 @@ class Sequencer:
     def init_data(self) -> None:
         self.settings = init_settings(self.n_midis)
         self.modes = init_modes()
-        sequences: Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[int]]]]] = (
-            defaultdict(
-                lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-            )
+        sequences: Dict[
+            int, Dict[int, Dict[int, Dict[ValidModes, List[Tuple[float, int]]]]]
+        ] = defaultdict(
+            lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
         )
         steps = self.internal_config.steps
         for midi in range(len(self.settings[ValidSettings.MIDI].values)):
@@ -54,41 +55,46 @@ class Sequencer:
                 for part in range(len(self.settings[ValidSettings.PART].values)):
                     for mode_str in list(ValidModes):
                         valid_mode = ValidModes(mode_str)
-                        sequences[midi][channel][part][valid_mode] = [0] * steps
+                        sequences[midi][channel][part][valid_mode] = [(0.0, 0)] * steps
         self.sequences = sequences
 
     def get_current_pos(self) -> Tuple[int, int, int, ValidModes, int]:
-        midi_ind = self.settings[ValidSettings.MIDI].ind
-        channel_ind = self.settings[ValidSettings.CHANNEL].ind
-        part_ind = self.settings[ValidSettings.PART].ind
-        mode_ind = self.settings[ValidSettings.MODE].ind
-        mode = ValidModes(str(self.settings[ValidSettings.MODE].values[mode_ind]))
-        step_ind = self.settings[ValidSettings.STEP].ind
+        midi_ind = self.settings[ValidSettings.MIDI].get()
+        channel_ind = self.settings[ValidSettings.CHANNEL].get()
+        part_ind = self.settings[ValidSettings.PART].get()
+        mode = ValidModes(str(self.settings[ValidSettings.MODE].get_value()))
+        step_ind = self.settings[ValidSettings.STEP].get()
         return midi_ind, channel_ind, part_ind, mode, step_ind
 
-    def get_first_mode_value(self, valid_mode: ValidModes) -> MFunctionality:
-        midi, channel, part, _, _ = self.get_current_pos()
-        mode_ind = self.sequences[midi][channel][part][valid_mode][0]
-        mode = self.modes[valid_mode]
-        mode.ind = mode_ind
-        return mode
+    def get_first_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
+        midi, channel, part, mode, _ = self.get_current_pos()
+        if valid_mode is None:
+            valid_mode = mode
+        length, mode_ind = self.sequences[midi][channel][part][valid_mode][0]
+        first_mode = self.modes[valid_mode].update(length, mode_ind)
+        return first_mode
 
-    def get_current_mode_value(self, valid_mode: ValidModes) -> MFunctionality:
-        midi, channel, part, _, step = self.get_current_pos()
-        mode_ind = self.sequences[midi][channel][part][valid_mode][step]
-        mode = self.modes[valid_mode]
-        mode.ind = mode_ind
-        return mode
+    def get_current_mode(
+        self, valid_mode: Optional[ValidModes] = None
+    ) -> MFunctionality:
+        midi, channel, part, mode, step = self.get_current_pos()
+        if valid_mode is None:
+            valid_mode = mode
+        length, mode_ind = self.sequences[midi][channel][part][valid_mode][step]
+        current_mode = self.modes[valid_mode].update(length, mode_ind)
+        return current_mode
 
-    def get_sound_properties(self) -> Tuple[str, str, str]:
+    def get_sound_properties(self) -> Tuple[str, str, str, float]:
         midi, channel, part, valid_mode, step = self.get_current_pos()
-        current_mode = self.get_current_mode_value(valid_mode)
-        mode_value = current_mode.values[current_mode.ind]
+        current_mode = self.get_current_mode(valid_mode)
+        mode_value = current_mode.get_value()
+        mode_length = current_mode.get_first_length()
         scale_value = self.get_current_scale()
         return (
             scale_value,
             current_mode.name,
             mode_value,
+            mode_length,
         )
 
     def get_current_notes(self) -> List[str]:
@@ -98,40 +104,32 @@ class Sequencer:
         return notes
 
     def get_current_scale(self) -> str:
-        scale = self.get_first_mode_value(ValidModes.SCALE)
-        scale_value = scale.values[scale.ind]
+        scale = self.get_first_mode(ValidModes.SCALE)
+        scale_value = scale.get_value()
         return scale_value
 
-    def get_current_mode(self) -> MFunctionality:
-        midi, channel, part, valid_mode, step = self.get_current_pos()
-        mode_ind = self.sequences[midi][channel][part][valid_mode][step]
-        mode = self.modes[valid_mode]
-        mode.ind = mode_ind
-        return mode
-
     def set_step(self, key: MFunctionality) -> None:
-        key_value = key.values[key.ind]
         if (
-            self.settings[ValidSettings.RECORD].ind == 1
-            or self.settings[ValidSettings.COPY].ind == 1
-        ) and key_value != ValidButtons.NEXT:
+            self.settings[ValidSettings.RECORD].get() == 1
+            or self.settings[ValidSettings.COPY].get() == 1
+        ) and key.get_value() != ValidButtons.NEXT:
             midi, channel, part, mode, step = self.get_current_pos()
             if key.first_only:
                 step = 0
-            self.sequences[midi][channel][part][mode][step] = key.ind
+            self.sequences[midi][channel][part][mode][step] = key.get()
             if not key.first_only:
-                ind = self.settings[ValidSettings.STEP].ind
+                ind = self.settings[ValidSettings.STEP].get()
                 ind += 1
                 if ind >= self.internal_config.steps:
                     ind = 0
-                self.settings[ValidSettings.STEP].ind = ind
+                self.settings[ValidSettings.STEP].update(ind)
             else:
-                self.settings[ValidSettings.STEP].ind = 0
+                self.settings[ValidSettings.STEP].update(0)
         self.debug() if DEBUG else None
 
     def set_option(self, option: SFunctionality) -> None:
         valid_setting = ValidSettings(option.name)
-        self.settings[valid_setting].ind = option.ind
+        self.settings[valid_setting].update(option.get())
 
 
 class MiDi:
@@ -142,8 +140,13 @@ class MiDi:
         self.sequencer: Optional[Sequencer] = None
 
     def play_note(self, note: "MFunctionality") -> None:
+        if self.sequencer is not None:
+            tempo = int(self.sequencer.settings[ValidSettings.TEMPO].get_value())
+
         midi_out: rtmidi.MidiOut = rtmidi.MidiOut()
         midi_out.open_port(self.port_id)
+        note_int = int(Note(note.get_value()))
+
         note_on = [0x90, 60, 255]  # channel 1, middle C, velocity 112
         note_off = [0x80, 60, 0]
         with midi_out:
@@ -152,9 +155,16 @@ class MiDi:
             midi_out.send_message(note_off)
             pass
 
-    def play(self) -> None:
+    def play(self, note: Optional[MFunctionality]) -> None:
         midi_out: rtmidi.MidiOut = rtmidi.MidiOut()
         midi_out.open_port(self.port_id)
+        if (
+            note is not None
+            and note.get_value() != ValidButtons.NEXT
+            and note.get_value() != ValidButtons.NA
+        ):
+            note_int = int(Note(note.get_value())) + 12
+            pass
 
 
 class Engine(Sequencer):
@@ -171,6 +181,7 @@ class Engine(Sequencer):
         self.n_midis = len(self.midis)
         self.process = Process(target=self.start)
         self.func_queue: Queue[Dict[str, Any]] = Queue()
+        self.detached = False
 
     @staticmethod
     def init_midis() -> Dict[int, MiDi]:
@@ -187,6 +198,7 @@ class Engine(Sequencer):
         self.process.start()
 
     def start(self) -> None:
+        self.detached = True
         self.init_data()
         for midi_id in self.midis.keys():
             self.midis[midi_id].sequencer = self
@@ -194,6 +206,7 @@ class Engine(Sequencer):
 
     def run_schedule(self) -> None:
         while True:
+            mode = None
             if not self.func_queue.empty():
                 func_dict: Dict[str, Any] = self.func_queue.get()
                 if "codes" in func_dict:
@@ -203,26 +216,30 @@ class Engine(Sequencer):
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
             for midi_id in self.midis.keys():
-                self.midis[midi_id].play()
+                self.midis[midi_id].play(note=mode)
             time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:
         valid_setting = ValidSettings(setting_dict["name"])
         setting_value = self.settings[valid_setting]
-        setting_value.ind = setting_dict["ind"]
+        setting_value.update(setting_dict["ind"])
+        setting_value.values = setting_dict["values"]
         return setting_value
 
     def convert_to_mode(self, mode_dict: Dict[str, Any]) -> MFunctionality:
         valid_mode = ValidModes(mode_dict["name"])
         mode_value = self.modes[valid_mode]
-        mode_value.ind = mode_dict["ind"]
+        mode_value.update(mode_dict["lengths"][0], mode_dict["ind"])
+        mode_value.offset = mode_dict["offset"]
+        mode_value.first_only = mode_dict["first_only"]
+        mode_value.lengths = mode_dict["lengths"]
+        mode_value.codes = mode_dict["codes"]
+        mode_value.values = mode_dict["values"]
         return mode_value
 
     def send_mode(self, mode: MFunctionality) -> None:
         self.set_step(key=mode)
         self.func_queue.put(attrs.asdict(mode))
-        for midi_id in self.midis.keys():
-            self.midis[midi_id].play_note(note=mode)
 
     def send_setting(self, setting: SFunctionality) -> None:
         self.set_option(option=setting)
@@ -231,16 +248,16 @@ class Engine(Sequencer):
     def send_delete(self) -> None:
         midi, channel, part, mode, step = self.get_current_pos()
         key = self.modes[mode]
-        key.ind = 0
+        key.update(1.0, 0)
         self.send_mode(mode=key)
 
     def send_pos(self, midi: int, channel: int, part: int, mode: ValidModes) -> None:
-        self.settings[ValidSettings.MIDI].ind = midi
-        self.settings[ValidSettings.CHANNEL].ind = channel
-        self.settings[ValidSettings.PART].ind = part
-        self.settings[ValidSettings.MODE].ind = self.settings[
-            ValidSettings.MODE
-        ].values.index(mode)
+        self.settings[ValidSettings.MIDI].update(midi)
+        self.settings[ValidSettings.CHANNEL].update(channel)
+        self.settings[ValidSettings.PART].update(part)
+        self.settings[ValidSettings.MODE].update(
+            self.settings[ValidSettings.MODE].values.index(mode)
+        )
         self.send_setting(self.settings[ValidSettings.MIDI])
         self.send_setting(self.settings[ValidSettings.CHANNEL])
         self.send_setting(self.settings[ValidSettings.PART])
@@ -248,15 +265,15 @@ class Engine(Sequencer):
         self.send_reset_step()
 
     def send_reset_step(self) -> None:
-        self.settings[ValidSettings.STEP].ind = 0
+        self.settings[ValidSettings.STEP].update(0)
         self.send_setting(setting=self.settings[ValidSettings.STEP])
 
     def send_next_step(self) -> None:
-        step_ind = self.settings[ValidSettings.STEP].ind
+        step_ind = self.settings[ValidSettings.STEP].get()
         step_ind += 1
         if step_ind >= len(self.settings[ValidSettings.STEP].values):
             step_ind = 0
-        self.settings[ValidSettings.STEP].ind = step_ind
+        self.settings[ValidSettings.STEP].update(step_ind)
         self.send_setting(setting=self.settings[ValidSettings.STEP])
 
     def send_copy(
@@ -273,9 +290,9 @@ class Engine(Sequencer):
         random.shuffle(shuffle)
         for i in range(len(f_sequence)):
             if button == ValidButtons.C_AS_IS:
-                t_mode.ind = f_sequence[i]
+                t_mode.update(*f_sequence[i])
             elif button == ValidButtons.C_REVERSE:
-                t_mode.ind = f_sequence[self.internal_config.steps - i - 1]
+                t_mode.update(*f_sequence[self.internal_config.steps - i - 1])
             elif button == ValidButtons.C_RANDOM:
-                t_mode.ind = f_sequence[shuffle[i]]
+                t_mode.update(*f_sequence[shuffle[i]])
             self.send_mode(t_mode)
