@@ -21,6 +21,8 @@ async def test_ui(command_line_args):
         time.sleep(1)
         await pilot.press("7")  # part +
         time.sleep(1)
+        await pilot.press("b")  # next length
+        time.sleep(1)
         await pilot.press("e")  # key 1
         time.sleep(1)
         await pilot.press("f")  # key 2

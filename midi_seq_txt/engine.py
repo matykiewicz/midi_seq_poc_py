@@ -20,7 +20,8 @@ from .functionalities import (
     init_settings,
 )
 
-DEBUG = True
+DEBUG: bool = True
+DEFAULT_STEP: Tuple[float, int] = (1.0, 0)
 
 
 class Sequencer:
@@ -55,7 +56,9 @@ class Sequencer:
                 for part in range(len(self.settings[ValidSettings.PART].values)):
                     for mode_str in list(ValidModes):
                         valid_mode = ValidModes(mode_str)
-                        sequences[midi][channel][part][valid_mode] = [(0.0, 0)] * steps
+                        sequences[midi][channel][part][valid_mode] = [
+                            DEFAULT_STEP
+                        ] * steps
         self.sequences = sequences
 
     def get_current_pos(self) -> Tuple[int, int, int, ValidModes, int]:
@@ -74,7 +77,7 @@ class Sequencer:
         first_mode = self.modes[valid_mode].update(length, mode_ind)
         return first_mode
 
-    def get_current_mode(
+    def get_current_step_mode(
         self, valid_mode: Optional[ValidModes] = None
     ) -> MFunctionality:
         midi, channel, part, mode, step = self.get_current_pos()
@@ -84,9 +87,17 @@ class Sequencer:
         current_mode = self.modes[valid_mode].update(length, mode_ind)
         return current_mode
 
+    def get_current_new_mode(
+        self, valid_mode: Optional[ValidModes] = None
+    ) -> MFunctionality:
+        midi, channel, part, mode, step = self.get_current_pos()
+        if valid_mode is None:
+            valid_mode = mode
+        current_mode = self.modes[valid_mode]
+        return current_mode
+
     def get_sound_properties(self) -> Tuple[str, str, str, float]:
-        midi, channel, part, valid_mode, step = self.get_current_pos()
-        current_mode = self.get_current_mode(valid_mode)
+        current_mode = self.get_current_step_mode()
         mode_value = current_mode.get_value()
         mode_length = current_mode.get_first_length()
         scale_value = self.get_current_scale()
@@ -285,14 +296,14 @@ class Engine(Sequencer):
         button: ValidButtons,
     ) -> None:
         f_sequence = self.sequences[f_midi][f_channel][f_part][f_mode]
-        t_mode = self.get_current_mode()
+        t_mode = self.get_current_new_mode()
         shuffle = list(range(len(f_sequence)))
         random.shuffle(shuffle)
         for i in range(len(f_sequence)):
             if button == ValidButtons.C_AS_IS:
-                t_mode.update(*f_sequence[i])
+                t_mode = t_mode.update(*f_sequence[i])
             elif button == ValidButtons.C_REVERSE:
-                t_mode.update(*f_sequence[self.internal_config.steps - i - 1])
+                t_mode = t_mode.update(*f_sequence[self.internal_config.steps - i - 1])
             elif button == ValidButtons.C_RANDOM:
-                t_mode.update(*f_sequence[shuffle[i]])
+                t_mode = t_mode.update(*f_sequence[shuffle[i]])
             self.send_mode(t_mode)

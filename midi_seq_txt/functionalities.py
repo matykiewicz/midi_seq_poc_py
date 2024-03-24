@@ -1,3 +1,4 @@
+from copy import deepcopy
 from enum import Enum, StrEnum
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -245,10 +246,15 @@ class MFunctionality(AttrsInstance):
         self.offset = offset
         return self
 
-    def update(self, length: float, ind: int) -> "MFunctionality":
-        self.lengths[0] = length
-        self.ind = ind
-        return self
+    def update(self, length: float, ind: int, new: bool = True) -> "MFunctionality":
+        mode = self
+        if new:
+            mode = deepcopy(mode)
+        else:
+            mode = self
+        mode.lengths[0] = length
+        mode.ind = ind
+        return mode
 
     def get(self) -> Tuple[float, int]:
         return self.lengths[0], self.ind
@@ -273,11 +279,13 @@ class MFunctionality(AttrsInstance):
         return length, code
 
     def next_length(self) -> "MFunctionality":
-        lengths = [v.value for v in ValidLengths]
+        lengths = [v.value for v in list(ValidLengths)[:-1]]
         ind = lengths.index(self.lengths[0])
         ind += 1
         if ind >= len(lengths):
             ind = 0
+        elif ind < 0:
+            ind = len(lengths) - 1
         self.lengths[0] = lengths[ind]
         return self
 

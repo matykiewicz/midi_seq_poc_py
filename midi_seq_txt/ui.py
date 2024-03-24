@@ -257,7 +257,7 @@ class NavigationUI(Static):
         self.sequencer.send_reset_step()
 
     def next_length(self) -> MFunctionality:
-        return self.sequencer.get_current_mode().next_length()
+        return self.sequencer.get_current_new_mode().next_length()
 
     def record_on(self) -> None:
         self.sequencer.send_reset_step()
@@ -374,9 +374,9 @@ class NavigationUI(Static):
         self.nav_vis.update(text)
 
     def update_keys_vis(self) -> None:
-        mode = self.sequencer.get_current_mode()
+        mode = self.sequencer.get_current_new_mode()
         offset = mode.get_offset()
-        text = "|"
+        text = f"{mode.get_first_length()}|"
         for j in range(self.internal_config.n_buttons):
             text += f"{mode.get_value(offset + j)}|"
         self.keys_vis.update(text)
