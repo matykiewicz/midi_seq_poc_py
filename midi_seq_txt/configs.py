@@ -4,6 +4,7 @@ from attrs import define
 @define
 class InitConfig:
     sleep: float = 0.0001
+    init_tempo: int = 60
     steps: int = 16
     parts: int = 16
     octaves: int = 5
@@ -14,3 +15,9 @@ class InitConfig:
     n_keys: int = 8
     n_channels: int = 1
     n_buttons: int = 8
+    midi_workers: int = 10
+    init_time: float = 2.0
+    n_quarters: int = 4
+    velocity_min: int = 0
+    velocity_step: int = 20
+    velocity_max: int = 6
