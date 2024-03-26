@@ -5,8 +5,8 @@ from attrs import define
 class InitConfig:
     sleep: float = 0.0001
     init_tempo: int = 60
-    steps: int = 16
-    parts: int = 16
+    n_steps: int = 16
+    n_parts: int = 16
     octaves: int = 5
     n_motions: int = 21
     tempo_step: int = 10
@@ -17,7 +17,7 @@ class InitConfig:
     n_buttons: int = 8
     midi_workers: int = 10
     init_time: float = 2.0
-    n_quarters: int = 4
+    n_quants: int = 4
     velocity_min: int = 0
     velocity_step: int = 20
     velocity_max: int = 6
