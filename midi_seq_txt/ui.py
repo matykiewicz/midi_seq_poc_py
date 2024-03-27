@@ -45,18 +45,32 @@ class KeysUI(Static):
             self.pos_bottom_storage = self.sequencer.get_current_pos()
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "From"
-        midi, part, step, channel, mode = self.pos_bottom_storage
+        midi, part, step, channel, valid_mode = self.pos_bottom_storage
         data = []
         for step in range(1, self.internal_config.n_steps + 1):
+            if self.vis_index[0] > len(
+                self.sequencer.sequences[midi][part][step][channel][valid_mode]
+            ):
+                vis_index_1 = 0
+            else:
+                vis_index_1 = self.vis_index[0]
+            if self.vis_index[1] > len(
+                self.sequencer.sequences[midi][part][step][channel][valid_mode][
+                    vis_index_1
+                ]
+            ):
+                vis_index_2 = 0
+            else:
+                vis_index_2 = self.vis_index[1]
             data.append(
-                self.sequencer.sequences[midi][part][step][channel][mode][
-                    self.vis_index[0]
-                ][self.vis_index[1]]
+                self.sequencer.sequences[midi][part][step][channel][valid_mode][
+                    vis_index_1
+                ][vis_index_2]
             )
         self.data_vis_bottom.data = data
         pos_label = (
-            f"{show_as}|M{midi + 1}|C{channel + 1}|"
-            f"P{(part + 1):02}|{mode}|S{(step + 1):02}|"
+            f"{show_as}|M{midi}|C{channel}|"
+            f"P{part:02}|{valid_mode.value}|S{step:02}|"
         )
         self.pos_bottom_label.update(pos_label)
 
@@ -69,18 +83,32 @@ class KeysUI(Static):
             self.pos_top_storage = self.sequencer.get_current_pos()
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "To"
-        midi, part, step, channel, mode = self.pos_top_storage
+        midi, part, step, channel, valid_mode = self.pos_top_storage
         data = []
         for step in range(1, self.internal_config.n_steps + 1):
+            if self.vis_index[0] > len(
+                self.sequencer.sequences[midi][part][step][channel][valid_mode]
+            ):
+                vis_index_1 = 0
+            else:
+                vis_index_1 = self.vis_index[0]
+            if self.vis_index[1] > len(
+                self.sequencer.sequences[midi][part][step][channel][valid_mode][
+                    vis_index_1
+                ]
+            ):
+                vis_index_2 = 0
+            else:
+                vis_index_2 = self.vis_index[1]
             data.append(
-                self.sequencer.sequences[midi][part][step][channel][mode][
-                    self.vis_index[0]
-                ][self.vis_index[1]]
+                self.sequencer.sequences[midi][part][step][channel][valid_mode][
+                    vis_index_1
+                ][vis_index_2]
             )
         self.data_vis_top.data = data
         pos_label = (
-            f"{show_as}|M{midi + 1}|C{channel + 1}|"
-            f"P{(part + 1):02}|{mode}|S{(step + 1):02}|"
+            f"{show_as}|M{midi}|C{channel}|"
+            f"P{part:02}|{valid_mode.value}|S{step:02}|"
         )
         self.pos_top_label.update(pos_label)
 

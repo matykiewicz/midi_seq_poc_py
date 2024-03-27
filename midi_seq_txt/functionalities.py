@@ -1,9 +1,10 @@
 from copy import deepcopy
 from enum import Enum, StrEnum
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import mingus.core.scales as scales
 from attrs import AttrsInstance, define
+from mingus.containers import Note
 from mingus.core import keys
 
 from .configs import InitConfig
@@ -327,8 +328,9 @@ class MFunctionality(AttrsInstance):
         ind = self.offsets[off_int] + ind
         if off_int < len(self.data):
             for i in range(len(self.indexes)):
-                if ind < len(self.data[off_int]):
-                    self.indexes[i][off_int] = ind
+                if exe is None or exe == i:
+                    if ind < len(self.data[off_int]):
+                        self.indexes[i][off_int] = ind
         return self
 
     def set_indexes(self, indexes: List[List[int]]) -> "MFunctionality":
@@ -341,20 +343,27 @@ class MFunctionality(AttrsInstance):
                         self.indexes[i][j] = indexes[i][j]
         return self
 
-    def set_schedule(self, clock: float) -> "MFunctionality":
-        pass
+    def get_message(self) -> List[int]:
+        def convert_value_to_int(lab: str, value: str) -> int:
+            value_int = 0
+            if lab == "Note":
+                value_int = int(Note(value)) + 12
+            elif lab == "Scale":
+                value_int = 0
+            else:
+                value_int = int(value)
+            return value_int
 
-    def get_schedule(self) -> float:
-        pass
-
-    def execute(self, types: List[Type]) -> List[Any]:
-        values_any: List[Any] = list()
+        values_int: List[int] = list()
         if self._exe_ < len(self.indexes):
             values_str = self.get_row_values(exe=self._exe_)
-            for i, cast in enumerate(types):
-                values_any.append(cast(values_str[i]))
+            labels_str = self.get_labels()
+            for i, value_str in enumerate(values_str):
+                values_int.append(
+                    convert_value_to_int(lab=labels_str[i], value=value_str)
+                )
         self._exe_ += 1
-        return values_any
+        return values_int
 
 
 class PlayN(NFunctionality):
