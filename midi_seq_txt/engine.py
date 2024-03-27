@@ -192,9 +192,9 @@ class MiDi:
             and new_mode.get_single_value_by_lab(0, "Note") != ValidButtons.NA
             and new_mode.get_single_value_by_lab(0, "Note") != ValidButtons.NEXT
         ):
-            self.add_to_schedule(next_tick=self.next_tick, mode=new_mode)
+            self.add_to_schedule(next_tick=time.time(), mode=new_mode)
+        self.play_scheduled()
         if time.time() >= self.next_tick:
-            self.play_scheduled()
             self.i_quant += 1
             if self.i_quant > self.internal_config.n_quants:
                 self.i_quant = 1
@@ -375,34 +375,27 @@ class Engine(Sequencer):
         f_midi: int,
         f_channel: int,
         f_part: int,
-        f_mode: Optional[ValidModes],
+        f_mode: ValidModes,
         button: ValidButtons,
     ) -> None:
         t_mode = self.get_current_new_mode()
         shuffle = list(range(1, self.internal_config.n_steps + 1))
         random.shuffle(shuffle)
         for f_step in self.settings[ValidSettings.STEP].values:
-            for valid_mode_str in [str(x) for x in list(ValidModes)]:
-                valid_mode = ValidModes(valid_mode_str)
-                if f_mode is None or f_mode == valid_mode:
-                    mode_setting = self.settings[ValidSettings.MODE].update_with_value(
-                        valid_mode
-                    )
-                    f_sequence = self.sequences[f_midi][f_part][int(f_step)][f_channel][
-                        valid_mode
-                    ]
-                    t_step: int = -1
-                    if button == ValidButtons.C_AS_IS:
-                        t_step = int(f_step)
-                    elif button == ValidButtons.C_REVERSE:
-                        t_step = self.internal_config.n_steps - int(f_step) + 1
-                    elif button == ValidButtons.C_RANDOM:
-                        t_step = shuffle[int(f_step) - 1]
-                    if t_step > 0:
-                        step_setting = self.settings[
-                            ValidSettings.STEP
-                        ].update_with_value(t_step)
-                        t_mode = t_mode.set_indexes(f_sequence)
-                        self.send_setting(mode_setting)
-                        self.send_setting(step_setting)
-                        self.send_mode(t_mode)
+            f_sequence = self.sequences[f_midi][f_part][int(f_step)][f_channel][f_mode]
+            t_step: int = -1
+            if button == ValidButtons.C_AS_IS:
+                t_step = int(f_step)
+            elif button == ValidButtons.C_REVERSE:
+                t_step = self.internal_config.n_steps - int(f_step) + 1
+            elif button == ValidButtons.C_RANDOM:
+                t_step = shuffle[int(f_step) - 1]
+            if t_step > 0:
+                step_setting = self.settings[ValidSettings.STEP].update_with_value(
+                    t_step
+                )
+                t_mode = t_mode.set_indexes(f_sequence)
+                self.send_setting(step_setting)
+                self.send_mode(t_mode)
+        step_setting = self.settings[ValidSettings.STEP].update_with_value(1)
+        self.send_setting(step_setting)

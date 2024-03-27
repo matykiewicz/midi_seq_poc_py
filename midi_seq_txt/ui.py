@@ -39,7 +39,7 @@ class KeysUI(Static):
     def update_bottom(self) -> None:
         show_as = "Edit"
         if (
-            self.sequencer.settings[ValidSettings.VIEW].get_ind() == 0
+            self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 0
             and self.sequencer.settings[ValidSettings.COPY].get_ind() == 0
         ):
             self.pos_bottom_storage = self.sequencer.get_current_pos()
@@ -68,6 +68,7 @@ class KeysUI(Static):
                 ][vis_index_2]
             )
         self.data_vis_bottom.data = data
+        step = int(self.sequencer.settings[ValidSettings.STEP].get_value())
         pos_label = (
             f"{show_as}|M{midi}|C{channel}|"
             f"P{part:02}|{valid_mode.value}|S{step:02}|"
@@ -75,9 +76,9 @@ class KeysUI(Static):
         self.pos_bottom_label.update(pos_label)
 
     def update_top(self) -> None:
-        show_as = "View"
+        show_as = self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
         if (
-            self.sequencer.settings[ValidSettings.VIEW].get_ind() == 1
+            self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
             or self.sequencer.settings[ValidSettings.COPY].get_ind() == 1
         ):
             self.pos_top_storage = self.sequencer.get_current_pos()
@@ -106,6 +107,7 @@ class KeysUI(Static):
                 ][vis_index_2]
             )
         self.data_vis_top.data = data
+        step = int(self.sequencer.settings[ValidSettings.STEP].get_value())
         pos_label = (
             f"{show_as}|M{midi}|C{channel}|"
             f"P{part:02}|{valid_mode.value}|S{step:02}|"
@@ -233,6 +235,9 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.REC_ON] = self.record_on
         nav_actions[ValidButtons.REC_OFF] = self.record_off
         nav_actions[ValidButtons.VIEW_ON] = self.view_on
+        nav_actions[ValidButtons.VIEW_ONLY] = self.view_only
+        nav_actions[ValidButtons.VIEW_REC] = self.view_rec
+        nav_actions[ValidButtons.VIEW_PLAY] = self.view_play
         nav_actions[ValidButtons.VIEW_OFF] = self.view_off
         nav_actions[ValidButtons.PLAY_ON] = self.play_on
         nav_actions[ValidButtons.PLAY_OFF] = self.play_off
@@ -326,8 +331,38 @@ class NavigationUI(Static):
     def view_on(self) -> None:
         self.sequencer.send_reset_step()
         self.navigate(direction=1)
-        view = self.config_setting(ValidSettings.VIEW, "On")
+        view = self.config_setting(ValidSettings.VIEW_SHOW, "On")
         self.sequencer.send_setting(view)
+        if self.keys_ui is not None:
+            midi, part, step, channel, mode = self.keys_ui.pos_top_storage
+            self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)
+
+    def view_only(self) -> None:
+        self.sequencer.send_reset_step()
+        view = self.config_setting(
+            ValidSettings.VIEW_FUNCTION, str(ValidButtons.VIEW_ONLY.value)
+        )
+        self.sequencer.send_setting(view)
+        if self.keys_ui is not None:
+            midi, part, step, channel, mode = self.keys_ui.pos_top_storage
+            self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)
+
+    def view_rec(self) -> None:
+        self.sequencer.send_reset_step()
+        view = self.config_setting(
+            ValidSettings.VIEW_FUNCTION, str(ValidButtons.VIEW_REC.value)
+        )
+        self.sequencer.send_setting(view)
+        if self.keys_ui is not None:
+            midi, part, step, channel, mode = self.keys_ui.pos_top_storage
+            self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)
+
+    def view_play(self) -> None:
+        self.sequencer.send_reset_step()
+        view_fun = self.config_setting(
+            ValidSettings.VIEW_FUNCTION, str(ValidButtons.VIEW_PLAY.value)
+        )
+        self.sequencer.send_setting(view_fun)
         if self.keys_ui is not None:
             midi, part, step, channel, mode = self.keys_ui.pos_top_storage
             self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)
@@ -335,8 +370,8 @@ class NavigationUI(Static):
     def view_off(self) -> None:
         self.sequencer.send_reset_step()
         self.navigate(direction=-1)
-        view = self.config_setting(ValidSettings.VIEW, "Off")
-        self.sequencer.send_setting(view)
+        view_show = self.config_setting(ValidSettings.VIEW_SHOW, "Off")
+        self.sequencer.send_setting(view_show)
         if self.keys_ui is not None:
             midi, part, step, channel, mode = self.keys_ui.pos_top_storage
             self.sequencer.send_pos(midi=midi, channel=channel, part=part, mode=mode)

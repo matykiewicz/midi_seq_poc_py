@@ -17,13 +17,6 @@ class ValidLengths(Enum):
     QUARTER = InitConfig().n_quants // 4
 
 
-INTERVAL_MATCHES: Dict[int, ValidLengths] = {
-    4: ValidLengths.FULL,
-    2: ValidLengths.HALF,
-    1: ValidLengths.QUARTER,
-}
-
-
 class ValidButtons(StrEnum):
     OPT_UP = "Opt+"
     OPT_DOWN = "Opt-"
@@ -52,6 +45,12 @@ class ValidButtons(StrEnum):
     LENGTH = "Length"
     ZERO = "0"
     VELOCITY = "Velocity"
+    PLAY_PART = "PPrt"
+    PLAY_PARTS = "PPrts"
+    PLAY_ALL = "PAll"
+    VIEW_ONLY = "VOnly"
+    VIEW_REC = "VRec"
+    VIEW_PLAY = "VPlay"
 
 
 BUT_TEMPO = (
@@ -94,9 +93,9 @@ BUT_PLAY = (
     ValidButtons.PART,
     ValidButtons.MODE,
     ValidButtons.PLAY_OFF,
-    ValidButtons.EMPTY,
-    ValidButtons.EMPTY,
-    ValidButtons.EMPTY,
+    ValidButtons.PLAY_PART,
+    ValidButtons.PLAY_PARTS,
+    ValidButtons.PLAY_ALL,
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
@@ -113,9 +112,9 @@ BUT_VIEW = (
     ValidButtons.PART,
     ValidButtons.MODE,
     ValidButtons.VIEW_OFF,
-    ValidButtons.EMPTY,
-    ValidButtons.EMPTY,
-    ValidButtons.EMPTY,
+    ValidButtons.VIEW_ONLY,
+    ValidButtons.VIEW_REC,
+    ValidButtons.VIEW_PLAY,
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
@@ -159,7 +158,8 @@ class ValidSettings(StrEnum):
     CHANNEL = "Channel"
     RECORD = "Record"
     PLAY = "Play"
-    VIEW = "View"
+    VIEW_SHOW = "ViewS"
+    VIEW_FUNCTION = "ViewF"
     COPY = "COPY"
 
 
@@ -262,13 +262,13 @@ class MFunctionality(AttrsInstance):
         return self
 
     def get_indexes(self) -> List[List[int]]:
-        return self.indexes
+        return deepcopy(self.indexes)
 
     def get_offsets(self) -> List[int]:
-        return self.offsets
+        return deepcopy(self.offsets)
 
     def get_labels(self) -> List[str]:
-        return self.labels
+        return deepcopy(self.labels)
 
     def get_values(self, indexes: Optional[List[List[int]]] = None) -> List[List[str]]:
         values: List[List[str]] = list()
@@ -277,7 +277,7 @@ class MFunctionality(AttrsInstance):
         for i in range(len(indexes)):
             value = list()
             for j, index in enumerate(indexes[i]):
-                value.append(self.data[j][index])
+                value.append(deepcopy(self.data[j][index]))
             values.append(value)
         return values
 
@@ -286,7 +286,7 @@ class MFunctionality(AttrsInstance):
         if off_int < len(self.data):
             ind = self.offsets[off_int] + ind
             if ind < len(self.data[off_int]):
-                return self.data[off_int][ind]
+                return deepcopy(self.data[off_int][ind])
         return ValidButtons.NA
 
     def get_single_value_by_lab(self, exe: int, lab: str) -> str:
@@ -294,14 +294,14 @@ class MFunctionality(AttrsInstance):
             if lab in self.labels:
                 ind = self.labels.index(lab)
                 if ind < len(self.indexes[exe]):
-                    return self.data[ind][self.indexes[exe][ind]]
+                    return deepcopy(self.data[ind][self.indexes[exe][ind]])
         return ValidButtons.NA
 
     def get_row_values(self, exe: int) -> List[str]:
         values: List[str] = list()
         if exe < len(self.indexes):
             for j in range(len(self.indexes[exe])):
-                values.append(self.data[j][self.indexes[exe][j]])
+                values.append(deepcopy(self.data[j][self.indexes[exe][j]]))
         return values
 
     def new(self, lock: bool) -> "MFunctionality":
@@ -369,7 +369,7 @@ class MFunctionality(AttrsInstance):
 class PlayN(NFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidNav.PLAY,
+            name=ValidNav.PLAY.value,
             buttons=BUT_PLAY,
             ind=0,
         )
@@ -378,7 +378,7 @@ class PlayN(NFunctionality):
 class RecordN(NFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidNav.RECORD,
+            name=ValidNav.RECORD.value,
             buttons=BUT_REC,
             ind=0,
         )
@@ -387,7 +387,7 @@ class RecordN(NFunctionality):
 class ViewN(NFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidNav.VIEW,
+            name=ValidNav.VIEW.value,
             buttons=BUT_VIEW,
             ind=0,
         )
@@ -396,7 +396,7 @@ class ViewN(NFunctionality):
 class TempoN(NFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidNav.TEMPO,
+            name=ValidNav.TEMPO.value,
             buttons=BUT_TEMPO,
             ind=0,
         )
@@ -405,7 +405,7 @@ class TempoN(NFunctionality):
 class CopyN(NFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidNav.COPY,
+            name=ValidNav.COPY.value,
             buttons=BUT_COPY,
             ind=0,
         )
@@ -489,12 +489,25 @@ class RecordS(SFunctionality):
         )
 
 
-class ViewS(SFunctionality):
+class ViewSS(SFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidSettings.VIEW.value,
+            name=ValidSettings.VIEW_SHOW.value,
             ind=0,
             values=["Off", "On"],
+        )
+
+
+class ViewSF(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.VIEW_FUNCTION.value,
+            ind=0,
+            values=[
+                ValidButtons.VIEW_ONLY,
+                ValidButtons.VIEW_PLAY,
+                ValidButtons.VIEW_REC,
+            ],
         )
 
 
@@ -525,7 +538,8 @@ def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
         ValidSettings.PART: PartS(),
         ValidSettings.STEP: StepS(),
         ValidSettings.RECORD: RecordS(),
-        ValidSettings.VIEW: ViewS(),
+        ValidSettings.VIEW_SHOW: ViewSS(),
+        ValidSettings.VIEW_FUNCTION: ViewSF(),
         ValidSettings.PLAY: PlayS(),
         ValidSettings.COPY: CopyS(),
     }
@@ -556,7 +570,7 @@ class Voice1(MFunctionality):
 class Voice2(MFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidModes.VOICE_1.value,
+            name=ValidModes.VOICE_2.value,
             first_only=False,
             indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
             offsets=[1, 1 + 8 * 2, 1, 6],
@@ -570,7 +584,7 @@ class Voice2(MFunctionality):
                         InitConfig().velocity_min, InitConfig().velocity_max + 1
                     )
                 ],
-                [str(x) for x in list(ValidLengths)],
+                [str(x.value) for x in list(ValidLengths)],
             ],
         )
 

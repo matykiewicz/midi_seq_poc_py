@@ -38,9 +38,7 @@ async def test_ui(command_line_args):
         await pilot.press("9")  # next mode
         time.sleep(1)
         await pilot.press("d")  # copy as is
-
         time.sleep(1)
-
         await pilot.press("b")  # view
         time.sleep(1)
         await pilot.press("b")  # play
