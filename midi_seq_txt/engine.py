@@ -21,7 +21,7 @@ from .sequencer import MiDi, Sequencer
 class Engine(Sequencer):
     """
     This class spawns sequencer as a separate process.
-    It maintains communication between UI and all MIDIs.
+    It maintains communication between MSApp and all MIDIs.
     """
 
     def __init__(self):

@@ -4,14 +4,14 @@ import pytest
 from textual.pilot import Pilot
 
 from midi_seq_txt.cli import main
-from midi_seq_txt.ui import UI
+from midi_seq_txt.app import MSApp
 
 
 @pytest.mark.asyncio
 async def test_record_and_copy(command_line_args):
-    ui: UI = main(blocking=False)
+    ms_app: MSApp = main(blocking=False)
     pilot: Pilot
-    async with ui.run_test() as pilot:
+    async with ms_app.run_test() as pilot:
         time.sleep(1)
         await pilot.press("l")  # next keys
         time.sleep(1)

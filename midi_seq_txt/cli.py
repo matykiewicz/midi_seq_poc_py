@@ -1,12 +1,12 @@
 import argparse
 
-from midi_seq_txt.ui import UI
+from midi_seq_txt.app import MSApp
 
 
-def main(blocking: bool = False) -> UI:
+def main(blocking: bool = False) -> MSApp:
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
-    ui = UI(args)
+    ui = MSApp(args)
     if blocking:
         ui.run()
     return ui
