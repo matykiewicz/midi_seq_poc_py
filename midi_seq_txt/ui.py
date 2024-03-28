@@ -353,7 +353,6 @@ class NavigationUI(Static):
         return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Velocity", by=1)
 
     def record_on(self) -> None:
-        self.sequencer.send_reset_step()
         self.navigate(direction=1)
         record = self.config_setting(ValidSettings.RECORD, "On")
         self.sequencer.send_setting(record)

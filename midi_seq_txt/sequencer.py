@@ -20,6 +20,7 @@ class Sequencer:
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.modes: Dict[ValidModes, MFunctionality] = dict()
         self.n_midis = 0
+        self.detached = False
         self.sequences: Dict[
             int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]
         ] = dict()
@@ -28,7 +29,7 @@ class Sequencer:
         import json
         import os
 
-        fh = open(f"{self.__class__.__name__}.{os.getpid()}.json", "w")
+        fh = open(f"{self.__class__.__name__}.{os.getpid()}.{self.detached}.json", "w")
         json.dump(self.sequences, indent=2, sort_keys=True, fp=fh)
         fh.close()
 

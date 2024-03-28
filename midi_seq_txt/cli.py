@@ -10,7 +10,3 @@ def main(blocking: bool = True) -> MSApp:
     if blocking:
         ui.run()
     return ui
-
-
-if __name__ == "__main__":
-    main(blocking=True)

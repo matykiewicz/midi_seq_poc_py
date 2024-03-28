@@ -67,7 +67,7 @@ BUT_REC = (
     ValidButtons.OPT_DOWN,
     ValidButtons.OPT_UP,
     ValidButtons.REC_ON,
-    ValidButtons.EMPTY,
+    ValidButtons.SKIP,
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,

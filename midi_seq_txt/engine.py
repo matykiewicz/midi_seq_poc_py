@@ -24,9 +24,10 @@ class Engine(Sequencer):
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.midis: Dict[int, MiDi] = self.init_midis()
         self.n_midis = len(self.midis)
-        self.process = Process(target=self.start)
+        from midi_seq_txt.sequencer import DEBUG
+
+        self.process = Process(target=self.start, args=(DEBUG,))
         self.func_queue: Queue[Dict[str, Any]] = Queue()
-        self.detached = False
 
     @staticmethod
     def init_midis() -> Dict[int, MiDi]:
@@ -43,8 +44,11 @@ class Engine(Sequencer):
     def detach(self) -> None:
         self.process.start()
 
-    def start(self) -> None:
+    def start(self, debug: bool = False) -> None:
         self.detached = True
+        import midi_seq_txt.sequencer
+
+        setattr(midi_seq_txt.sequencer, "DEBUG", debug)
         self.init_data()
         for midi_id in self.midis.keys():
             self.midis[midi_id].attach(sequencer=self)
