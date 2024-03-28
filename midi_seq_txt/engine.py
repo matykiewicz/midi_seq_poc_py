@@ -14,6 +14,7 @@ from .configs import InitConfig
 from .functionalities import (
     MFunctionality,
     SFunctionality,
+    ValidIndexes,
     ValidButtons,
     ValidModes,
     ValidSettings,
@@ -399,3 +400,35 @@ class Engine(Sequencer):
                 self.send_mode(t_mode)
         step_setting = self.settings[ValidSettings.STEP].update_with_value(1)
         self.send_setting(step_setting)
+
+    def find_positions_with_music(self) -> List[Tuple[int, int, int, int, ValidModes]]:
+        positions_with_music = list()
+        for midi in self.sequences.keys():
+            for part in self.sequences[midi].keys():
+                for step in self.sequences[midi][part].keys():
+                    for channel in self.sequences[midi][part][step].keys():
+                        for valid_mode in self.sequences[midi][part][step][
+                            channel
+                        ].keys():
+                            indexes = self.sequences[midi][part][step][channel][
+                                valid_mode
+                            ]
+                            has_note = indexes[ValidIndexes.VIS_INDEX_1.value][
+                                ValidIndexes.VIS_INDEX_2.value
+                            ]
+                            if has_note > 0:
+                                positions_with_music.append(
+                                    (midi, part, step, channel, valid_mode)
+                                )
+        return positions_with_music
+
+    def schedule_parts_to_play(
+        self,
+        positions_to_play: List[Tuple[int, int, int, int, ValidModes]],
+        playback_type: ValidButtons,
+    ) -> None:
+        self.stop_play()
+        pass
+
+    def stop_play(self) -> None:
+        pass

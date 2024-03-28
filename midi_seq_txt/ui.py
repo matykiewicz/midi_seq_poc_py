@@ -10,6 +10,7 @@ from .functionalities import (
     MFunctionality,
     SFunctionality,
     ValidButtons,
+    ValidIndexes,
     ValidModes,
     ValidNav,
     ValidSettings,
@@ -28,8 +29,11 @@ class KeysUI(Static):
         self.sequencer = sequencer
         self.pos_top_label = Label("")
         self.pos_top_storage = self.sequencer.get_current_pos()
-        self.vis_index = (0, 1)
         self.data_vis_top = Sparkline(data=[0] * self.internal_config.n_steps)
+        self.vis_index = (
+            ValidIndexes.VIS_INDEX_1.value,
+            ValidIndexes.VIS_INDEX_2.value,
+        )
         self.pos_bottom_label = Label("")
         self.pos_bottom_storage = self.sequencer.get_current_pos()
         self.data_vis_bottom = Sparkline(data=[0] * self.internal_config.n_steps)
@@ -256,7 +260,72 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.C_AS_IS] = self.copy_as_is
         nav_actions[ValidButtons.LENGTH] = self.next_length
         nav_actions[ValidButtons.VELOCITY] = self.next_velocity
+        nav_actions[ValidButtons.PLAY_PART] = self.play_part
+        nav_actions[ValidButtons.PLAY_PARTS] = self.play_parts
+        nav_actions[ValidButtons.PLAY_ALL] = self.play_all
         return nav_actions
+
+    def play_part(self) -> None:
+        positions: List[Tuple[int, int, int, int, ValidModes]] = list()
+        if self.keys_ui is not None:
+            midi_bottom, part_bottom, step_bottom, channel_bottom, valid_mode_bottom = (
+                self.keys_ui.pos_bottom_storage
+            )
+            positions += [
+                (
+                    midi_bottom,
+                    part_bottom,
+                    step_bottom,
+                    channel_bottom,
+                    valid_mode_bottom,
+                )
+            ]
+        if (
+            self.keys_ui is not None
+            and self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
+            == ValidButtons.VIEW_PLAY
+        ):
+            midi_top, part_top, step_top, channel_top, valid_mode_top = (
+                self.keys_ui.pos_top_storage
+            )
+            positions += [(midi_top, part_top, step_top, channel_top, valid_mode_top)]
+        self.sequencer.schedule_parts_to_play(
+            positions_to_play=positions, playback_type=ValidButtons.PLAY_PART
+        )
+
+    def play_parts(self) -> None:
+        positions: List[Tuple[int, int, int, int, ValidModes]] = list()
+        if self.keys_ui is not None:
+            midi_bottom, part_bottom, step_bottom, channel_bottom, valid_mode_bottom = (
+                self.keys_ui.pos_bottom_storage
+            )
+            positions = [
+                (
+                    midi_bottom,
+                    part_bottom,
+                    step_bottom,
+                    channel_bottom,
+                    valid_mode_bottom,
+                )
+            ]
+        if (
+            self.keys_ui is not None
+            and self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
+            == ValidButtons.VIEW_PLAY
+        ):
+            midi_top, part_top, step_top, channel_top, valid_mode_top = (
+                self.keys_ui.pos_top_storage
+            )
+            positions += [(midi_top, part_top, step_top, channel_top, valid_mode_top)]
+        self.sequencer.schedule_parts_to_play(
+            positions_to_play=positions, playback_type=ValidButtons.PLAY_PARTS
+        )
+
+    def play_all(self) -> None:
+        positions = self.sequencer.find_positions_with_music()
+        self.sequencer.schedule_parts_to_play(
+            positions_to_play=positions, playback_type=ValidButtons.PLAY_ALL
+        )
 
     def opt_up(self) -> None:
         self.nav_id += 1
@@ -436,6 +505,7 @@ class NavigationUI(Static):
         self.sequencer.send_setting(play)
 
     def play_off(self) -> None:
+        self.sequencer.stop_play()
         self.navigate(direction=-1)
         play = self.config_setting(ValidSettings.PLAY, "Off")
         self.sequencer.send_setting(play)
