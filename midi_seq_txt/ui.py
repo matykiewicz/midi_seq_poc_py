@@ -4,17 +4,9 @@ from textual.app import ComposeResult
 from textual.widgets import Label, Sparkline, Static
 
 from .configs import InitConfig
+from .const import ValidButtons, ValidIndexes, ValidModes, ValidNav, ValidSettings
 from .engine import Engine
-from .functionalities import (
-    MFunctionality,
-    SFunctionality,
-    ValidButtons,
-    ValidIndexes,
-    ValidModes,
-    ValidNav,
-    ValidSettings,
-    init_nav,
-)
+from .functionalities import MFunctionality, SFunctionality, init_nav
 
 
 class KeysUI(Static):

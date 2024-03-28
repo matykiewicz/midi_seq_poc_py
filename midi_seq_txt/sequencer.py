@@ -8,17 +8,10 @@ import rtmidi
 from rtmidi import MidiOut
 
 from .configs import InitConfig
-from .functionalities import (
-    MFunctionality,
-    SFunctionality,
-    ValidButtons,
-    ValidModes,
-    ValidSettings,
-    init_modes,
-    init_settings,
-)
+from .const import ValidButtons, ValidModes, ValidSettings
+from .functionalities import MFunctionality, SFunctionality, init_modes, init_settings
 
-DEBUG: bool = True
+DEBUG: bool = False
 
 
 class Sequencer:

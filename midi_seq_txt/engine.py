@@ -7,14 +7,8 @@ import attrs
 import rtmidi
 
 from .configs import InitConfig
-from .functionalities import (
-    MFunctionality,
-    SFunctionality,
-    ValidButtons,
-    ValidIndexes,
-    ValidModes,
-    ValidSettings,
-)
+from .const import ValidButtons, ValidIndexes, ValidModes, ValidSettings
+from .functionalities import MFunctionality, SFunctionality
 from .sequencer import MiDi, Sequencer
 
 
