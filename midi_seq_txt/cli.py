@@ -3,7 +3,7 @@ import argparse
 from midi_seq_txt.app import MSApp
 
 
-def main(blocking: bool = False) -> MSApp:
+def main(blocking: bool = True) -> MSApp:
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
     ui = MSApp(args)

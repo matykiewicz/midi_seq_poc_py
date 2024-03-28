@@ -3,15 +3,15 @@ import time
 import pytest
 from textual.pilot import Pilot
 
-from midi_seq_txt.cli import main
 from midi_seq_txt.app import MSApp
+from midi_seq_txt.cli import main
 
 
 @pytest.mark.asyncio
 async def test_record_and_copy(command_line_args):
     ms_app: MSApp = main(blocking=False)
     pilot: Pilot
-    async with ms_app.run_test() as pilot:
+    async with ms_app.run_test() as pilot:  # noqa
         time.sleep(1)
         await pilot.press("l")  # next keys
         time.sleep(1)
@@ -31,7 +31,6 @@ async def test_record_and_copy(command_line_args):
         time.sleep(1)
         await pilot.press("a")  # exit record
         time.sleep(1)
-
         await pilot.press("b")  # copy
         time.sleep(1)
         await pilot.press("c")  # copy on
@@ -39,6 +38,16 @@ async def test_record_and_copy(command_line_args):
         await pilot.press("9")  # next mode
         time.sleep(1)
         await pilot.press("d")  # copy as is
+        time.sleep(1)
+    ms_app.sequencer.process.kill()
+
+
+@pytest.mark.asyncio
+async def test_tempo(command_line_args):
+    ms_app: MSApp = main(blocking=False)
+    pilot: Pilot
+    async with ms_app.run_test() as pilot:  # noqa
+        await pilot.press("b")  # copy
         time.sleep(1)
         await pilot.press("b")  # view
         time.sleep(1)
@@ -48,22 +57,23 @@ async def test_record_and_copy(command_line_args):
         time.sleep(1)
         await pilot.press("d")  # tempo up
         time.sleep(1)
-        await pilot.press("e")  # key 1
+        await pilot.press("c")  # tempo down
         time.sleep(1)
-        await pilot.press("f")  # key 2
+    ms_app.sequencer.process.kill()
+
+
+@pytest.mark.asyncio
+async def test_view(command_line_args):
+    ms_app: MSApp = main(blocking=False)
+    pilot: Pilot
+    async with ms_app.run_test() as pilot:  # noqa
+        await pilot.press("b")  # copy
         time.sleep(1)
-        await pilot.press("a")  # record off
-        time.sleep(1)
-        await pilot.press("b")  # option+
+        await pilot.press("b")  # view
         time.sleep(1)
         await pilot.press("c")  # view on
         time.sleep(1)
-        await pilot.press("7")  # part +
+        await pilot.press("c")  # rec view
         time.sleep(1)
-        await pilot.press("c")
-        time.sleep(1)
-        await pilot.press("d")
-        time.sleep(1)
-        await pilot.press("g")
-        time.sleep(1)
-    ui.sequencer.process.kill()
+        await pilot.press("a")  # view off
+    ms_app.sequencer.process.kill()
