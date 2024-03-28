@@ -365,9 +365,7 @@ class MFunctionality(AttrsInstance):
             values_str = self.get_row_values(exe=self._exe_)
             labels_str = self.get_labels()
             for i, value_str in enumerate(values_str):
-                values_int.append(
-                    convert_value_to_int(lab=labels_str[i], value=value_str)
-                )
+                values_int.append(convert_value_to_int(lab=labels_str[i], value=value_str))
         self._exe_ += 1
         return values_int
 
@@ -564,9 +562,7 @@ class Voice1(MFunctionality):
                 create_notes(scale="C"),
                 [
                     str(i * InitConfig().velocity_step)
-                    for i in range(
-                        InitConfig().velocity_min, InitConfig().velocity_max + 1
-                    )
+                    for i in range(InitConfig().velocity_min, InitConfig().velocity_max + 1)
                 ],
                 [str(x.value) for x in list(ValidLengths)],
             ],
@@ -586,9 +582,7 @@ class Voice2(MFunctionality):
                 create_notes(scale="C"),
                 [
                     str(i * InitConfig().velocity_step)
-                    for i in range(
-                        InitConfig().velocity_min, InitConfig().velocity_max + 1
-                    )
+                    for i in range(InitConfig().velocity_min, InitConfig().velocity_max + 1)
                 ],
                 [str(x.value) for x in list(ValidLengths)],
             ],

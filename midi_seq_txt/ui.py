@@ -59,24 +59,19 @@ class KeysUI(Static):
             else:
                 vis_index_1 = self.vis_index[0]
             if self.vis_index[1] > len(
-                self.sequencer.sequences[midi][part][step][channel][valid_mode][
-                    vis_index_1
-                ]
+                self.sequencer.sequences[midi][part][step][channel][valid_mode][vis_index_1]
             ):
                 vis_index_2 = 0
             else:
                 vis_index_2 = self.vis_index[1]
             data.append(
-                self.sequencer.sequences[midi][part][step][channel][valid_mode][
-                    vis_index_1
-                ][vis_index_2]
+                self.sequencer.sequences[midi][part][step][channel][valid_mode][vis_index_1][
+                    vis_index_2
+                ]
             )
         self.data_vis_bottom.data = data
         step = int(self.sequencer.settings[ValidSettings.STEP].get_value())
-        pos_label = (
-            f"{show_as}|M{midi}|C{channel}|"
-            f"P{part:02}|{valid_mode.value}|S{step:02}|"
-        )
+        pos_label = f"{show_as}|M{midi}|C{channel}|" f"P{part:02}|{valid_mode.value}|S{step:02}|"
         self.pos_bottom_label.update(pos_label)
 
     def update_top(self) -> None:
@@ -98,24 +93,19 @@ class KeysUI(Static):
             else:
                 vis_index_1 = self.vis_index[0]
             if self.vis_index[1] > len(
-                self.sequencer.sequences[midi][part][step][channel][valid_mode][
-                    vis_index_1
-                ]
+                self.sequencer.sequences[midi][part][step][channel][valid_mode][vis_index_1]
             ):
                 vis_index_2 = 0
             else:
                 vis_index_2 = self.vis_index[1]
             data.append(
-                self.sequencer.sequences[midi][part][step][channel][valid_mode][
-                    vis_index_1
-                ][vis_index_2]
+                self.sequencer.sequences[midi][part][step][channel][valid_mode][vis_index_1][
+                    vis_index_2
+                ]
             )
         self.data_vis_top.data = data
         step = int(self.sequencer.settings[ValidSettings.STEP].get_value())
-        pos_label = (
-            f"{show_as}|M{midi}|C{channel}|"
-            f"P{part:02}|{valid_mode.value}|S{step:02}|"
-        )
+        pos_label = f"{show_as}|M{midi}|C{channel}|" f"P{part:02}|{valid_mode.value}|S{step:02}|"
         self.pos_top_label.update(pos_label)
 
     def compose(self) -> ComposeResult:
@@ -129,9 +119,7 @@ class KeysUI(Static):
         self.update_bottom()
 
     def config_mode(self, key_ind: int) -> MFunctionality:
-        valid_mode = ValidModes(
-            str(self.sequencer.settings[ValidSettings.MODE].get_value())
-        )
+        valid_mode = ValidModes(str(self.sequencer.settings[ValidSettings.MODE].get_value()))
         mode = self.sequencer.modes[valid_mode]
         return (
             mode.new_with_off(off="Note", ind=key_ind, exe=None)
@@ -285,9 +273,7 @@ class NavigationUI(Static):
             and self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
             == ValidButtons.VIEW_PLAY
         ):
-            midi_top, part_top, step_top, channel_top, valid_mode_top = (
-                self.keys_ui.pos_top_storage
-            )
+            midi_top, part_top, step_top, channel_top, valid_mode_top = self.keys_ui.pos_top_storage
             positions += [(midi_top, part_top, step_top, channel_top, valid_mode_top)]
         self.sequencer.schedule_parts_to_play(
             positions_to_play=positions, playback_type=ValidButtons.PLAY_PART
@@ -313,9 +299,7 @@ class NavigationUI(Static):
             and self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
             == ValidButtons.VIEW_PLAY
         ):
-            midi_top, part_top, step_top, channel_top, valid_mode_top = (
-                self.keys_ui.pos_top_storage
-            )
+            midi_top, part_top, step_top, channel_top, valid_mode_top = self.keys_ui.pos_top_storage
             positions += [(midi_top, part_top, step_top, channel_top, valid_mode_top)]
         self.sequencer.schedule_parts_to_play(
             positions_to_play=positions, playback_type=ValidButtons.PLAY_PARTS
@@ -339,15 +323,11 @@ class NavigationUI(Static):
 
     def tempo_up(self) -> None:
         self.change_setting(valid_setting=ValidSettings.TEMPO, direction=1)
-        self.sequencer.send_setting(
-            setting=self.sequencer.settings[ValidSettings.TEMPO]
-        )
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.TEMPO])
 
     def tempo_down(self) -> None:
         self.change_setting(valid_setting=ValidSettings.TEMPO, direction=-1)
-        self.sequencer.send_setting(
-            setting=self.sequencer.settings[ValidSettings.TEMPO]
-        )
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.TEMPO])
 
     def delete_note(self) -> None:
         self.sequencer.send_delete()
@@ -376,14 +356,10 @@ class NavigationUI(Static):
         self.sequencer.send_reset_step()
 
     def next_length(self) -> MFunctionality:
-        return self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-            lab="Length", by=1
-        )
+        return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Length", by=1)
 
     def next_velocity(self) -> MFunctionality:
-        return self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-            lab="Velocity", by=1
-        )
+        return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Velocity", by=1)
 
     def record_on(self) -> None:
         self.sequencer.send_reset_step()
@@ -408,9 +384,7 @@ class NavigationUI(Static):
 
     def view_only(self) -> None:
         self.sequencer.send_reset_step()
-        view = self.config_setting(
-            ValidSettings.VIEW_FUNCTION, str(ValidButtons.VIEW_ONLY.value)
-        )
+        view = self.config_setting(ValidSettings.VIEW_FUNCTION, str(ValidButtons.VIEW_ONLY.value))
         self.sequencer.send_setting(view)
         if self.keys_ui is not None:
             midi, part, step, channel, mode = self.keys_ui.pos_top_storage
@@ -418,9 +392,7 @@ class NavigationUI(Static):
 
     def view_rec(self) -> None:
         self.sequencer.send_reset_step()
-        view = self.config_setting(
-            ValidSettings.VIEW_FUNCTION, str(ValidButtons.VIEW_REC.value)
-        )
+        view = self.config_setting(ValidSettings.VIEW_FUNCTION, str(ValidButtons.VIEW_REC.value))
         self.sequencer.send_setting(view)
         if self.keys_ui is not None:
             midi, part, step, channel, mode = self.keys_ui.pos_top_storage
@@ -513,9 +485,7 @@ class NavigationUI(Static):
     def next_any(self, valid_setting: ValidSettings) -> SFunctionality:
         return self.sequencer.settings[valid_setting].next_ind()
 
-    def config_setting(
-        self, valid_setting: ValidSettings, setting_value: str
-    ) -> SFunctionality:
+    def config_setting(self, valid_setting: ValidSettings, setting_value: str) -> SFunctionality:
         return self.sequencer.settings[valid_setting].set_value(setting_value)
 
     def update_all(self) -> None:
@@ -550,9 +520,7 @@ class NavigationUI(Static):
         current_nav = self.valid_nav[self.nav_id]
         self.navigation[current_nav].update_with_dir(direction=direction)
 
-    def change_setting(
-        self, valid_setting: ValidSettings, direction: int
-    ) -> SFunctionality:
+    def change_setting(self, valid_setting: ValidSettings, direction: int) -> SFunctionality:
         return self.sequencer.settings[valid_setting].change(direction=direction)
 
     def get_current_nav(self) -> Tuple[str, List[ValidButtons]]:

@@ -8,7 +8,7 @@ from midi_seq_txt.ui import UI
 
 
 @pytest.mark.asyncio
-async def test_ui(command_line_args):
+async def test_record_and_copy(command_line_args):
     ui: UI = main(blocking=False)
     pilot: Pilot
     async with ui.run_test() as pilot:
@@ -31,6 +31,7 @@ async def test_ui(command_line_args):
         time.sleep(1)
         await pilot.press("a")  # exit record
         time.sleep(1)
+
         await pilot.press("b")  # copy
         time.sleep(1)
         await pilot.press("c")  # copy on

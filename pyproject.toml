@@ -21,12 +21,21 @@ flake8 = "^7.0.0"
 mypy = "^1.9.0"
 pytest-asyncio = "^0.23.5.post1"
 pytest-cov = "^4.1.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+coverage = "^7.4.4"
 
 [tool.mypy]
 files = "pulse_generator, tests"
 ignore_missing_imports = true
 check_untyped_defs = true
+
+[tool.isort]
+multi_line_output = 3
+line_length = 100
+include_trailing_comma = true
+
+[tool.black]
+line_length = 100
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
