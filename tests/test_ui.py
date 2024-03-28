@@ -18,6 +18,8 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.1)
         await pilot.press("l")  # next keys
         time.sleep(0.1)
+        await pilot.press("d")  # skip
+        time.sleep(0.1)
         await pilot.press("c")  # record on
         time.sleep(0.1)
         await pilot.press("d")  # delete step
@@ -29,6 +31,8 @@ async def test_record_and_copy(command_line_args):
         await pilot.press("e")  # key 1
         time.sleep(0.1)
         await pilot.press("f")  # key 2
+        time.sleep(0.1)
+        await pilot.press("g")  # key 3
         time.sleep(0.1)
         await pilot.press("l")  # next keys
         time.sleep(0.1)
@@ -53,6 +57,9 @@ async def test_record_and_copy(command_line_args):
 
 @pytest.mark.asyncio
 async def test_tempo(command_line_args):
+    import midi_seq_txt.sequencer
+
+    setattr(midi_seq_txt.sequencer, "DEBUG", False)
     ms_app: MSApp = main(blocking=False)
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
@@ -73,6 +80,9 @@ async def test_tempo(command_line_args):
 
 @pytest.mark.asyncio
 async def test_view(command_line_args):
+    import midi_seq_txt.sequencer
+
+    setattr(midi_seq_txt.sequencer, "DEBUG", False)
     ms_app: MSApp = main(blocking=False)
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
@@ -92,6 +102,9 @@ async def test_view(command_line_args):
 
 @pytest.mark.asyncio
 async def test_buttons(command_line_args):
+    import midi_seq_txt.sequencer
+
+    setattr(midi_seq_txt.sequencer, "DEBUG", False)
     ms_app: MSApp = main(blocking=False)
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa

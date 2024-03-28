@@ -27,9 +27,8 @@ class Sequencer:
 
     def debug(self) -> None:
         import json
-        import os
 
-        fh = open(f"{self.__class__.__name__}.{os.getpid()}.{self.detached}.json", "w")
+        fh = open(f"{self.__class__.__name__}.{self.detached}.json", "w")
         json.dump(self.sequences, indent=2, sort_keys=True, fp=fh)
         fh.close()
 
