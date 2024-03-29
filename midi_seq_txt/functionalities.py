@@ -82,6 +82,9 @@ class SFunctionality(AttrsInstance):
     def get_value(self) -> Union[str, int]:
         return self.values[self.ind]
 
+    def get_first_value(self) -> Union[str, int]:
+        return self.values[0]
+
     def next_ind(self) -> "SFunctionality":
         ind = self.ind
         ind += 1
@@ -100,6 +103,7 @@ class MFunctionality(AttrsInstance):
     labels: List[str]
     offsets: List[int]
     data: List[List[str]]
+    vis_ind: Tuple[int, int]
     _exe_: int = 0
     _lock_: bool = True
 
@@ -134,11 +138,12 @@ class MFunctionality(AttrsInstance):
         return values
 
     def get_single_value_by_off(self, off: str, ind: int) -> str:
-        off_int = self.labels.index(off)
-        if off_int < len(self.data):
-            ind = self.offsets[off_int] + ind
-            if ind < len(self.data[off_int]):
-                return deepcopy(self.data[off_int][ind])
+        if off in self.labels:
+            off_int = self.labels.index(off)
+            if off_int < len(self.data):
+                ind = self.offsets[off_int] + ind
+                if ind < len(self.data[off_int]):
+                    return deepcopy(self.data[off_int][ind])
         return ValidButtons.NA
 
     def get_single_value_by_lab(self, exe: int, lab: str) -> str:
@@ -155,6 +160,12 @@ class MFunctionality(AttrsInstance):
             for j in range(len(self.indexes[exe])):
                 values.append(deepcopy(self.data[j][self.indexes[exe][j]]))
         return values
+
+    def get_vis_ind(self) -> Tuple[int, int]:
+        return self.vis_ind
+
+    def get_vis_label(self) -> str:
+        return self.labels[self.vis_ind[1]]
 
     def new(self, lock: bool) -> "MFunctionality":
         new = deepcopy(self)
@@ -176,13 +187,14 @@ class MFunctionality(AttrsInstance):
     ) -> "MFunctionality":
         if self._lock_:
             raise PermissionError(f"{self.name} mode is locked!")
-        off_int = self.labels.index(off)
-        ind = self.offsets[off_int] + ind
-        if off_int < len(self.data):
-            for i in range(len(self.indexes)):
-                if exe is None or exe == i:
-                    if ind < len(self.data[off_int]):
-                        self.indexes[i][off_int] = ind
+        if off in self.labels:
+            off_int = self.labels.index(off)
+            ind = self.offsets[off_int] + ind
+            if off_int < len(self.data):
+                for i in range(len(self.indexes)):
+                    if exe is None or exe == i:
+                        if ind < len(self.data[off_int]):
+                            self.indexes[i][off_int] = ind
         return self
 
     def set_indexes(self, indexes: List[List[int]]) -> "MFunctionality":
@@ -271,72 +283,103 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
     }
 
 
-class TempoS(SFunctionality):
-    def __init__(self):
-        tempos = [
-            i * InitConfig().tempo_step
-            for i in range(InitConfig().tempo_min, InitConfig().tempo_max + 1)
-        ]
-        ind = tempos.index(InitConfig().init_tempo)
-        super().__init__(
-            name=ValidSettings.TEMPO.value,
-            ind=ind,
-            values=[str(tempo) for tempo in tempos],
-        )
+# - - EDIT POS - - #
 
 
-class PartS(SFunctionality):
-    def __init__(self):
-        super().__init__(
-            name=ValidSettings.PART.value,
-            ind=0,
-            values=[i for i in range(1, InitConfig().n_parts + 1)],
-        )
-
-
-class StepS(SFunctionality):
-    def __init__(self):
-        super().__init__(
-            name=ValidSettings.STEP.value,
-            ind=0,
-            values=[i for i in range(1, InitConfig().n_steps + 1)],
-        )
-
-
-class MIDIS(SFunctionality):
+class EMiDiOS(SFunctionality):
     def __init__(self, n_midis: int):
         super().__init__(
-            name=ValidSettings.MIDI.value,
+            name=ValidSettings.E_MIDI_O.value,
             ind=0,
             values=[i for i in range(n_midis)],
         )
 
 
-class ChannelS(SFunctionality):
+class EPartS(SFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidSettings.CHANNEL.value,
+            name=ValidSettings.E_PART.value,
+            ind=0,
+            values=[i for i in range(1, InitConfig().n_parts + 1)],
+        )
+
+
+class EStepS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.E_STEP.value,
+            ind=0,
+            values=[i for i in range(1, InitConfig().n_steps + 1)],
+        )
+
+
+class EChannelS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.E_CHANNEL.value,
             ind=0,
             values=[i for i in range(1, InitConfig().n_channels + 1)],
         )
 
 
-class ModeS(SFunctionality):
+class EModeS(SFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidSettings.MODE.value,
+            name=ValidSettings.E_MODE.value,
             ind=0,
             values=[k for k in ValidModes],
         )
 
 
-class RecordS(SFunctionality):
+# - - VIEW - - #
+
+
+class VMiDiOS(SFunctionality):
+    def __init__(self, n_midis: int):
+        super().__init__(
+            name=ValidSettings.V_MIDI_O.value,
+            ind=0,
+            values=[i for i in range(n_midis)],
+        )
+
+
+class VPartS(SFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidSettings.RECORD.value,
+            name=ValidSettings.V_PART.value,
             ind=0,
-            values=["Off", "On"],
+            values=[i for i in range(1, InitConfig().n_parts + 1)],
         )
+
+
+class VStepS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.V_STEP.value,
+            ind=0,
+            values=[i for i in range(1, InitConfig().n_steps + 1)],
+        )
+
+
+class VChannelS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.V_CHANNEL.value,
+            ind=0,
+            values=[i for i in range(1, InitConfig().n_channels + 1)],
+        )
+
+
+class VModeS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.V_MODE.value,
+            ind=0,
+            values=[k for k in ValidModes],
+        )
+
+
+# - - OTHER - - #
 
 
 class ViewSS(SFunctionality):
@@ -348,7 +391,7 @@ class ViewSS(SFunctionality):
         )
 
 
-class ViewSF(SFunctionality):
+class ViewFS(SFunctionality):
     def __init__(self):
         super().__init__(
             name=ValidSettings.VIEW_FUNCTION.value,
@@ -361,10 +404,28 @@ class ViewSF(SFunctionality):
         )
 
 
-class PlayS(SFunctionality):
+class PlaySS(SFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidSettings.PLAY.value,
+            name=ValidSettings.PLAY_SHOW.value,
+            ind=0,
+            values=["Off", "On"],
+        )
+
+
+class PlayFS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.PLAY_FUNCTION.value,
+            ind=0,
+            values=[ValidButtons.PLAY_PART, ValidButtons.PLAY_PARTS, ValidButtons.PLAY_ALL],
+        )
+
+
+class RecordS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.RECORD.value,
             ind=0,
             values=["Off", "On"],
         )
@@ -379,19 +440,39 @@ class CopyS(SFunctionality):
         )
 
 
+class TempoS(SFunctionality):
+    def __init__(self):
+        tempos = [
+            i * InitConfig().tempo_step
+            for i in range(InitConfig().tempo_min, InitConfig().tempo_max + 1)
+        ]
+        ind = tempos.index(InitConfig().init_tempo)
+        super().__init__(
+            name=ValidSettings.TEMPO.value,
+            ind=ind,
+            values=[str(tempo) for tempo in tempos],
+        )
+
+
 def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
     return {
+        ValidSettings.E_MIDI_O: EMiDiOS(n_midis=n_midis),
+        ValidSettings.E_PART: EPartS(),
+        ValidSettings.E_STEP: EStepS(),
+        ValidSettings.E_CHANNEL: EChannelS(),
+        ValidSettings.E_MODE: EModeS(),
+        ValidSettings.V_MIDI_O: VMiDiOS(n_midis=n_midis),
+        ValidSettings.V_PART: VPartS(),
+        ValidSettings.V_STEP: VStepS(),
+        ValidSettings.V_CHANNEL: VChannelS(),
+        ValidSettings.V_MODE: VModeS(),
         ValidSettings.TEMPO: TempoS(),
-        ValidSettings.MIDI: MIDIS(n_midis=n_midis),
-        ValidSettings.CHANNEL: ChannelS(),
-        ValidSettings.MODE: ModeS(),
-        ValidSettings.PART: PartS(),
-        ValidSettings.STEP: StepS(),
         ValidSettings.RECORD: RecordS(),
-        ValidSettings.VIEW_SHOW: ViewSS(),
-        ValidSettings.VIEW_FUNCTION: ViewSF(),
-        ValidSettings.PLAY: PlayS(),
         ValidSettings.COPY: CopyS(),
+        ValidSettings.VIEW_SHOW: ViewSS(),
+        ValidSettings.VIEW_FUNCTION: ViewFS(),
+        ValidSettings.PLAY_SHOW: PlaySS(),
+        ValidSettings.PLAY_FUNCTION: PlayFS(),
     }
 
 
@@ -403,6 +484,7 @@ class Voice1(MFunctionality):
             indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
             offsets=[1, 1 + 8 * 2, 6, 1],
             labels=["Code", "Note", "Velocity", "Length"],
+            vis_ind=(0, 1),
             data=[
                 [str(0), str(0x90), str(0x80)],
                 create_notes(scale="C"),
@@ -421,8 +503,9 @@ class Voice2(MFunctionality):
             name=ValidModes.VOICE_2.value,
             first_only=False,
             indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
-            offsets=[1, 1 + 8 * 2, 1, 6],
+            offsets=[1, 1 + 8 * 2, 6, 1],
             labels=["Code", "Note", "Velocity", "Length"],
+            vis_ind=(0, 1),
             data=[
                 [str(0), str(0x90), str(0x80)],
                 create_notes(scale="C"),
@@ -454,6 +537,7 @@ class Scale(MFunctionality):
             indexes=[[0]],
             offsets=[1],
             labels=["Scale"],
+            vis_ind=(0, 0),
             data=[create_scales()],
         )
 

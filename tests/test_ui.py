@@ -8,6 +8,27 @@ from midi_seq_txt.cli import main
 
 
 @pytest.mark.asyncio
+async def test_record_and_scale(command_line_args):
+    import midi_seq_txt.sequencer
+
+    setattr(midi_seq_txt.sequencer, "DEBUG", True)
+    ms_app: MSApp = main(blocking=False)
+    pilot: Pilot
+    async with ms_app.run_test() as pilot:  # noqa
+        time.sleep(0.01)
+        await pilot.press("9")  # next mode (Vo2)
+        time.sleep(0.01)
+        await pilot.press("9")  # next mode (Scale)
+        time.sleep(0.01)
+        await pilot.press("c")  # record on
+        time.sleep(0.01)
+        await pilot.press("l")  # next keys
+        time.sleep(0.01)
+        await pilot.press("e")  # key 1
+        time.sleep(0.01)
+
+
+@pytest.mark.asyncio
 async def test_record_and_copy(command_line_args):
     import midi_seq_txt.sequencer
 
@@ -15,43 +36,43 @@ async def test_record_and_copy(command_line_args):
     ms_app: MSApp = main(blocking=False)
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("l")  # next keys
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("d")  # skip
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("c")  # record on
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("d")  # delete step
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("7")  # part +
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("b")  # next length
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("e")  # key 1
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("f")  # key 2
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("g")  # key 3
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("l")  # next keys
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("a")  # exit record
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("b")  # copy
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("d")  # empty
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("c")  # copy on
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("9")  # next mode
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("d")  # copy as is
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("c")  # copy reverse
-        time.sleep(0.1)
+        time.sleep(0.01)
         await pilot.press("b")  # copy random
-        time.sleep(0.1)
+        time.sleep(0.01)
     ms_app.sequencer.process.kill()
 
 

@@ -31,6 +31,12 @@ Once the package is installed you can use it as a typical command line tool:
 midi_seq
 ```
 
+You can also run it this way:
+
+```shell
+poetry run midi_seq
+```
+
 # Code Testing
 
 We can test the code and output code coverage report in a following way:

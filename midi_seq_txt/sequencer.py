@@ -38,10 +38,10 @@ class Sequencer:
         sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]] = (
             defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
         )
-        for midi in self.settings[ValidSettings.MIDI].values:
-            for part in self.settings[ValidSettings.PART].values:
-                for step in self.settings[ValidSettings.STEP].values:
-                    for channel in self.settings[ValidSettings.CHANNEL].values:
+        for midi in self.settings[ValidSettings.E_MIDI_O].values:
+            for part in self.settings[ValidSettings.E_PART].values:
+                for step in self.settings[ValidSettings.E_STEP].values:
+                    for channel in self.settings[ValidSettings.E_CHANNEL].values:
                         for mode_str in list(ValidModes):
                             valid_mode = ValidModes(mode_str)
                             mode = self.modes[valid_mode].new(lock=False)
@@ -50,24 +50,40 @@ class Sequencer:
                             ] = mode.get_indexes()
         self.sequences = sequences
 
-    def get_current_pos(self) -> Tuple[int, int, int, int, ValidModes]:
-        midi = int(self.settings[ValidSettings.MIDI].get_value())
-        part = int(self.settings[ValidSettings.PART].get_value())
-        step = int(self.settings[ValidSettings.STEP].get_value())
-        channel = int(self.settings[ValidSettings.CHANNEL].get_value())
-        valid_mode = ValidModes(str(self.settings[ValidSettings.MODE].get_value()))
+    def get_current_e_pos(self) -> Tuple[int, int, int, int, ValidModes]:
+        midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())
+        part = int(self.settings[ValidSettings.E_PART].get_value())
+        step = int(self.settings[ValidSettings.E_STEP].get_value())
+        channel = int(self.settings[ValidSettings.E_CHANNEL].get_value())
+        valid_mode = ValidModes(str(self.settings[ValidSettings.E_MODE].get_value()))
+        return midi, part, step, channel, valid_mode
+
+    def get_current_v_pos(self) -> Tuple[int, int, int, int, ValidModes]:
+        midi = int(self.settings[ValidSettings.V_MIDI_O].get_value())
+        part = int(self.settings[ValidSettings.V_PART].get_value())
+        step = int(self.settings[ValidSettings.V_STEP].get_value())
+        channel = int(self.settings[ValidSettings.V_CHANNEL].get_value())
+        valid_mode = ValidModes(str(self.settings[ValidSettings.V_MODE].get_value()))
         return midi, part, step, channel, valid_mode
 
     def get_first_step_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
-        midi, part, step, channel, mode = self.get_current_pos()
+        midi, part, step, channel, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
         indexes = self.sequences[midi][part][1][channel][valid_mode]
         first_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return first_mode
 
-    def get_current_step_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
-        midi, part, step, channel, mode = self.get_current_pos()
+    def get_current_e_step_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
+        midi, part, step, channel, mode = self.get_current_e_pos()
+        if valid_mode is None:
+            valid_mode = mode
+        indexes = self.sequences[midi][part][step][channel][valid_mode]
+        current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
+        return current_mode
+
+    def get_current_v_step_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
+        midi, part, step, channel, mode = self.get_current_v_pos()
         if valid_mode is None:
             valid_mode = mode
         indexes = self.sequences[midi][part][step][channel][valid_mode]
@@ -75,20 +91,20 @@ class Sequencer:
         return current_mode
 
     def get_current_new_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
-        midi, part, step, channel, mode = self.get_current_pos()
+        midi, part, step, channel, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
         current_mode = self.modes[valid_mode].new(lock=False)
         return current_mode
 
     def get_current_proto_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
-        midi, part, step, channel, mode = self.get_current_pos()
+        midi, part, step, channel, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
         return self.modes[valid_mode]
 
     def get_sound_properties(self) -> Tuple[List[str], List[str]]:
-        current_mode = self.get_current_step_mode()
+        current_mode = self.get_current_e_step_mode()
         mode_values = current_mode.get_row_values(exe=0)
         mode_labels = current_mode.get_labels()
         scale_values = self.get_current_scale_values()
@@ -112,26 +128,50 @@ class Sequencer:
         return scale.get_labels()
 
     def set_step(self, mode: MFunctionality) -> None:
+        main_label = mode.get_vis_label()
         if (
             self.settings[ValidSettings.RECORD].get_ind() == 1
             or self.settings[ValidSettings.COPY].get_ind() == 1
-        ) and mode.get_single_value_by_lab(exe=0, lab="Note") != ValidButtons.NEXT:
-            midi, part, step, channel, valid_mode = self.get_current_pos()
+        ) and mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
+            midi, part, step, channel, valid_mode = self.get_current_e_pos()
             if mode.first_only:
-                step = 0
+                step = self.settings[ValidSettings.E_STEP].get_first_value()
             self.sequences[midi][part][step][channel][valid_mode] = mode.get_indexes()
-            if not mode.first_only:
-                self.settings[ValidSettings.STEP].next_ind()
-            else:
-                self.settings[ValidSettings.STEP].update_with_ind(0)
+            self.settings[ValidSettings.E_STEP].next_ind()
         self.debug() if DEBUG else None
 
     def set_option(self, option: SFunctionality) -> None:
         valid_setting = ValidSettings(option.name)
         self.settings[valid_setting].update_with_ind(option.get_ind())
 
+    def find_positions_with_music(self) -> List[Tuple[int, int, int, int, ValidModes]]:
+        positions_with_music = list()
+        for midi in self.sequences.keys():
+            for part in self.sequences[midi].keys():
+                for step in self.sequences[midi][part].keys():
+                    for channel in self.sequences[midi][part][step].keys():
+                        for valid_mode in self.sequences[midi][part][step][channel].keys():
+                            indexes = self.sequences[midi][part][step][channel][valid_mode]
+                            mode = self.get_current_proto_mode(valid_mode=valid_mode)
+                            vis_index_1, vis_index_2 = mode.get_vis_ind()
+                            has_note = indexes[vis_index_1][vis_index_2]
+                            if has_note > 0:
+                                positions_with_music.append((midi, part, step, channel, valid_mode))
+        return positions_with_music
 
-class MiDi:
+    def schedule_parts_to_play(
+        self,
+        positions_to_play: List[Tuple[int, int, int, int, ValidModes]],
+        playback_type: ValidButtons,
+    ) -> None:
+        self.stop_play()
+        pass
+
+    def stop_play(self) -> None:
+        pass
+
+
+class MiDiO:
     def __init__(self, port_id: int, clock_sync: float):
         super().__init__()
         self.port_id = port_id
@@ -156,7 +196,7 @@ class MiDi:
         valid_mode: Optional[ValidModes] = None,
     ) -> None:
         if self.sequencer is not None:
-            midi, part, step, ch, mo = self.sequencer.get_current_pos()
+            midi, part, step, ch, mo = self.sequencer.get_current_e_pos()
             if channel is None:
                 channel = ch
             if valid_mode is None:
@@ -165,14 +205,15 @@ class MiDi:
             self.scheduled_steps[next_tick].append(full_step)
 
     def run_midi_schedule(self, new_mode: Optional[MFunctionality]) -> None:
-        if (
-            new_mode is not None
-            and self.sequencer is not None
-            and self.sequencer.get_current_pos()[0] == self.port_id
-            and new_mode.get_single_value_by_lab(0, "Note") != ValidButtons.NA
-            and new_mode.get_single_value_by_lab(0, "Note") != ValidButtons.NEXT
-        ):
-            self.add_to_schedule(next_tick=time.time(), mode=new_mode)
+        if new_mode is not None:
+            main_label = new_mode.get_vis_label()
+            if (
+                self.sequencer is not None
+                and self.sequencer.get_current_e_pos()[0] == self.port_id
+                and new_mode.get_single_value_by_lab(0, main_label) != ValidButtons.NA
+                and new_mode.get_single_value_by_lab(0, main_label) != ValidButtons.NEXT
+            ):
+                self.add_to_schedule(next_tick=time.time(), mode=new_mode)
         self.play_scheduled()
         if time.time() >= self.next_tick:
             self.i_quant += 1
@@ -205,14 +246,15 @@ class MiDi:
                         for valid_mode in step[channel].keys():
                             mode = step[channel][valid_mode]
                             message: List[int] = mode.get_message()
-                            with midi_out:
-                                self.channel_message(
-                                    midi_out=midi_out,
-                                    command=message[0],
-                                    ch=channel,
-                                    data=message[1:3],
-                                )
-                            if message[3] > 0:
+                            if len(message) >= 3:
+                                with midi_out:
+                                    self.channel_message(
+                                        midi_out=midi_out,
+                                        command=message[0],
+                                        ch=channel,
+                                        data=message[1:3],
+                                    )
+                            if len(message) > 3 and message[3] > 0:
                                 self.add_to_schedule(
                                     next_tick=time_tick + (message[3] * self.interval_quant),
                                     mode=mode,

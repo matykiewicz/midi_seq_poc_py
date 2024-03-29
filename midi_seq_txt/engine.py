@@ -1,15 +1,15 @@
 import random
 import time
 from multiprocessing import Process, Queue
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
 
 import attrs
 import rtmidi
 
 from .configs import InitConfig
-from .const import ValidButtons, ValidIndexes, ValidModes, ValidSettings
+from .const import ValidButtons, ValidModes, ValidSettings
 from .functionalities import MFunctionality, SFunctionality
-from .sequencer import MiDi, Sequencer
+from .sequencer import MiDiO, Sequencer
 
 
 class Engine(Sequencer):
@@ -22,7 +22,7 @@ class Engine(Sequencer):
         super().__init__()
         self.modes: Dict[ValidModes, MFunctionality] = dict()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
-        self.midis: Dict[int, MiDi] = self.init_midis()
+        self.midis: Dict[int, MiDiO] = self.init_midis()
         self.n_midis = len(self.midis)
         from midi_seq_txt.sequencer import DEBUG
 
@@ -30,13 +30,13 @@ class Engine(Sequencer):
         self.func_queue: Queue[Dict[str, Any]] = Queue()
 
     @staticmethod
-    def init_midis() -> Dict[int, MiDi]:
+    def init_midis() -> Dict[int, MiDiO]:
         clock_sync = round(time.time() + InitConfig().init_time)
-        midis: Dict[int, MiDi] = dict()
+        midis: Dict[int, MiDiO] = dict()
         midi_out = rtmidi.MidiOut()
         port_names = midi_out.get_ports()
         for i in range(len(port_names)):
-            midis[i] = MiDi(port_id=i, clock_sync=clock_sync)
+            midis[i] = MiDiO(port_id=i, clock_sync=clock_sync)
         if not len(midis):
             raise ValueError("At least 1 usb midi device is needed")
         return midis
@@ -91,28 +91,28 @@ class Engine(Sequencer):
         self.func_queue.put(attrs.asdict(setting))
 
     def send_delete(self) -> None:
-        midi, part, step, channel, valid_mode = self.get_current_pos()
+        midi, part, step, channel, valid_mode = self.get_current_e_pos()
         mode = self.modes[valid_mode].new(lock=True)
         self.send_mode(mode=mode)
 
     def send_pos(self, midi: int, channel: int, part: int, mode: ValidModes) -> None:
-        self.settings[ValidSettings.MIDI].update_with_value(midi)
-        self.settings[ValidSettings.CHANNEL].update_with_value(channel)
-        self.settings[ValidSettings.PART].update_with_value(part)
-        self.settings[ValidSettings.MODE].update_with_value(mode)
-        self.send_setting(self.settings[ValidSettings.MIDI])
-        self.send_setting(self.settings[ValidSettings.CHANNEL])
-        self.send_setting(self.settings[ValidSettings.PART])
-        self.send_setting(self.settings[ValidSettings.MODE])
+        self.settings[ValidSettings.E_MIDI_O].update_with_value(midi)
+        self.settings[ValidSettings.E_CHANNEL].update_with_value(channel)
+        self.settings[ValidSettings.E_PART].update_with_value(part)
+        self.settings[ValidSettings.E_MODE].update_with_value(mode)
+        self.send_setting(self.settings[ValidSettings.E_MIDI_O])
+        self.send_setting(self.settings[ValidSettings.E_CHANNEL])
+        self.send_setting(self.settings[ValidSettings.E_PART])
+        self.send_setting(self.settings[ValidSettings.E_MODE])
         self.send_reset_step()
 
     def send_reset_step(self) -> None:
-        self.settings[ValidSettings.STEP].update_with_ind(0)
-        self.send_setting(setting=self.settings[ValidSettings.STEP])
+        self.settings[ValidSettings.E_STEP].update_with_ind(0)
+        self.send_setting(setting=self.settings[ValidSettings.E_STEP])
 
     def send_next_step(self) -> None:
-        self.settings[ValidSettings.STEP].next_ind()
-        self.send_setting(setting=self.settings[ValidSettings.STEP])
+        self.settings[ValidSettings.E_STEP].next_ind()
+        self.send_setting(setting=self.settings[ValidSettings.E_STEP])
 
     def send_copy(
         self,
@@ -125,7 +125,7 @@ class Engine(Sequencer):
         t_mode = self.get_current_new_mode()
         shuffle = list(range(1, self.internal_config.n_steps + 1))
         random.shuffle(shuffle)
-        for f_step in self.settings[ValidSettings.STEP].values:
+        for f_step in self.settings[ValidSettings.E_STEP].values:
             f_sequence = self.sequences[f_midi][f_part][int(f_step)][f_channel][f_mode]
             t_step: int = -1
             if button == ValidButtons.C_AS_IS:
@@ -135,35 +135,9 @@ class Engine(Sequencer):
             elif button == ValidButtons.C_RANDOM:
                 t_step = shuffle[int(f_step) - 1]
             if t_step > 0:
-                step_setting = self.settings[ValidSettings.STEP].update_with_value(t_step)
+                step_setting = self.settings[ValidSettings.E_STEP].update_with_value(t_step)
                 t_mode = t_mode.set_indexes(f_sequence)
                 self.send_setting(step_setting)
                 self.send_mode(t_mode)
-        step_setting = self.settings[ValidSettings.STEP].update_with_value(1)
+        step_setting = self.settings[ValidSettings.E_STEP].update_with_value(1)
         self.send_setting(step_setting)
-
-    def find_positions_with_music(self) -> List[Tuple[int, int, int, int, ValidModes]]:
-        positions_with_music = list()
-        for midi in self.sequences.keys():
-            for part in self.sequences[midi].keys():
-                for step in self.sequences[midi][part].keys():
-                    for channel in self.sequences[midi][part][step].keys():
-                        for valid_mode in self.sequences[midi][part][step][channel].keys():
-                            indexes = self.sequences[midi][part][step][channel][valid_mode]
-                            has_note = indexes[ValidIndexes.VIS_INDEX_1.value][
-                                ValidIndexes.VIS_INDEX_2.value
-                            ]
-                            if has_note > 0:
-                                positions_with_music.append((midi, part, step, channel, valid_mode))
-        return positions_with_music
-
-    def schedule_parts_to_play(
-        self,
-        positions_to_play: List[Tuple[int, int, int, int, ValidModes]],
-        playback_type: ValidButtons,
-    ) -> None:
-        self.stop_play()
-        pass
-
-    def stop_play(self) -> None:
-        pass

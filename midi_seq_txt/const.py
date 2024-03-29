@@ -3,11 +3,6 @@ from enum import Enum, StrEnum
 from .configs import InitConfig
 
 
-class ValidIndexes(Enum):
-    VIS_INDEX_1 = 0
-    VIS_INDEX_2 = 1
-
-
 class ValidLengths(Enum):
     ZERO = 0
     DOUBLE = InitConfig().n_quants * 2
@@ -149,17 +144,23 @@ class ValidNav(StrEnum):
 
 
 class ValidSettings(StrEnum):
-    TEMPO = "Tempo"
-    MIDI = "MIDI"
-    MODE = "Mode"
-    PART = "Part"
-    STEP = "Step"
-    CHANNEL = "Channel"
-    RECORD = "Record"
-    PLAY = "Play"
+    E_MIDI_O = "EMiDiO"
+    E_PART = "EPart"
+    E_STEP = "EStep"
+    E_CHANNEL = "EChannel"
+    E_MODE = "EMode"
+    V_MIDI_O = "VMiDiO"
+    V_PART = "VPart"
+    V_STEP = "VStep"
+    V_CHANNEL = "VChannel"
+    V_MODE = "VMode"
     VIEW_SHOW = "ViewS"
     VIEW_FUNCTION = "ViewF"
+    PLAY_SHOW = "PlayS"
+    PLAY_FUNCTION = "PlayF"
+    RECORD = "Record"
     COPY = "COPY"
+    TEMPO = "Tempo"
 
 
 class ValidModes(StrEnum):
