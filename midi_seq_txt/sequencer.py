@@ -133,9 +133,12 @@ class Sequencer:
             self.settings[ValidSettings.RECORD].get_ind() == 1
             or self.settings[ValidSettings.COPY].get_ind() == 1
         ) and mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
-            midi, part, step, channel, valid_mode = self.get_current_e_pos()
+            if self.settings[ValidSettings.COPY].get_ind() == 1:
+                midi, part, step, channel, valid_mode = self.get_current_v_pos()
+            else:
+                midi, part, step, channel, valid_mode = self.get_current_e_pos()
             if mode.first_only:
-                step = self.settings[ValidSettings.E_STEP].get_first_value()
+                step = int(self.settings[ValidSettings.E_STEP].get_first_value())
             self.sequences[midi][part][step][channel][valid_mode] = mode.get_indexes()
             self.settings[ValidSettings.E_STEP].next_ind()
         self.debug() if DEBUG else None

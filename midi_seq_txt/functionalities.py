@@ -120,9 +120,6 @@ class MFunctionality(AttrsInstance):
     def get_indexes(self) -> List[List[int]]:
         return deepcopy(self.indexes)
 
-    def get_offsets(self) -> List[int]:
-        return deepcopy(self.offsets)
-
     def get_labels(self) -> List[str]:
         return deepcopy(self.labels)
 

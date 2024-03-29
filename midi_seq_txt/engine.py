@@ -95,17 +95,6 @@ class Engine(Sequencer):
         mode = self.modes[valid_mode].new(lock=True)
         self.send_mode(mode=mode)
 
-    def send_pos(self, midi: int, channel: int, part: int, mode: ValidModes) -> None:
-        self.settings[ValidSettings.E_MIDI_O].update_with_value(midi)
-        self.settings[ValidSettings.E_CHANNEL].update_with_value(channel)
-        self.settings[ValidSettings.E_PART].update_with_value(part)
-        self.settings[ValidSettings.E_MODE].update_with_value(mode)
-        self.send_setting(self.settings[ValidSettings.E_MIDI_O])
-        self.send_setting(self.settings[ValidSettings.E_CHANNEL])
-        self.send_setting(self.settings[ValidSettings.E_PART])
-        self.send_setting(self.settings[ValidSettings.E_MODE])
-        self.send_reset_step()
-
     def send_reset_step(self) -> None:
         self.settings[ValidSettings.E_STEP].update_with_ind(0)
         self.send_setting(setting=self.settings[ValidSettings.E_STEP])
@@ -135,9 +124,9 @@ class Engine(Sequencer):
             elif button == ValidButtons.C_RANDOM:
                 t_step = shuffle[int(f_step) - 1]
             if t_step > 0:
-                step_setting = self.settings[ValidSettings.E_STEP].update_with_value(t_step)
+                step_setting = self.settings[ValidSettings.V_STEP].update_with_value(t_step)
                 t_mode = t_mode.set_indexes(f_sequence)
                 self.send_setting(step_setting)
                 self.send_mode(t_mode)
-        step_setting = self.settings[ValidSettings.E_STEP].update_with_value(1)
+        step_setting = self.settings[ValidSettings.V_STEP].update_with_value(1)
         self.send_setting(step_setting)

@@ -255,22 +255,46 @@ class NavigationUI(Static):
         self.sequencer.send_next_step()
 
     def next_midi(self) -> None:
-        setting = self.next_any(ValidSettings.E_MIDI_O)
+        if (
+            self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
+            or self.sequencer.settings[ValidSettings.COPY].get_ind()
+        ):
+            setting = self.next_any(ValidSettings.V_MIDI_O)
+        else:
+            setting = self.next_any(ValidSettings.E_MIDI_O)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
     def next_channel(self) -> None:
-        setting = self.next_any(ValidSettings.E_CHANNEL)
+        if (
+            self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
+            or self.sequencer.settings[ValidSettings.COPY].get_ind()
+        ):
+            setting = self.next_any(ValidSettings.V_CHANNEL)
+        else:
+            setting = self.next_any(ValidSettings.E_CHANNEL)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
     def next_part(self) -> None:
-        setting = self.next_any(ValidSettings.E_PART)
+        if (
+            self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
+            or self.sequencer.settings[ValidSettings.COPY].get_ind()
+        ):
+            setting = self.next_any(ValidSettings.V_PART)
+        else:
+            setting = self.next_any(ValidSettings.E_PART)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
     def next_mode(self) -> None:
-        setting = self.next_any(ValidSettings.E_MODE)
+        if (
+            self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
+            or self.sequencer.settings[ValidSettings.COPY].get_ind()
+        ):
+            setting = self.next_any(ValidSettings.V_MODE)
+        else:
+            setting = self.next_any(ValidSettings.E_MODE)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
