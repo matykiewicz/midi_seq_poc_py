@@ -13,7 +13,7 @@ class InitConfig:
     tempo_min: int = 5
     tempo_max: int = 20
     n_keys: int = 8
-    n_channels: int = 1
+    n_channels: int = 2
     n_buttons: int = 8
     midi_workers: int = 10
     init_time: float = 2.0

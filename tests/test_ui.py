@@ -39,7 +39,7 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.01)
         await pilot.press("l")  # next keys
         time.sleep(0.01)
-        await pilot.press("d")  # skip
+        await pilot.press("d")  # skip step
         time.sleep(0.01)
         await pilot.press("c")  # record on
         time.sleep(0.01)
@@ -73,6 +73,17 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.01)
         await pilot.press("b")  # copy random
         time.sleep(0.01)
+        await pilot.press("a")  # exit copy
+        time.sleep(0.01)
+        await pilot.press("b")  # view
+        time.sleep(0.01)
+        await pilot.press("b")  # play
+        time.sleep(0.01)
+        await pilot.press("c")  # play on
+        time.sleep(0.01)
+        await pilot.press("c")  # play all
+        time.sleep(0.01)
+    time.sleep(1000.01)
     ms_app.sequencer.process.kill()
 
 

@@ -205,10 +205,16 @@ class MFunctionality(AttrsInstance):
         return self
 
     def get_message(self) -> List[int]:
+        if self._lock_:
+            raise PermissionError(f"{self.name} mode is locked!")
+
         def convert_value_to_int(lab: str, value: str) -> int:
             value_int = 0
             if lab == "Note":
-                value_int = int(Note(value)) + 12
+                if value != ValidButtons.NA:
+                    value_int = int(Note(value)) + 12
+                else:
+                    value_int = -1
             elif lab == "Scale":
                 value_int = 0
             else:
@@ -454,14 +460,14 @@ class TempoS(SFunctionality):
 def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
     return {
         ValidSettings.E_MIDI_O: EMiDiOS(n_midis=n_midis),
+        ValidSettings.E_CHANNEL: EChannelS(),
         ValidSettings.E_PART: EPartS(),
         ValidSettings.E_STEP: EStepS(),
-        ValidSettings.E_CHANNEL: EChannelS(),
         ValidSettings.E_MODE: EModeS(),
         ValidSettings.V_MIDI_O: VMiDiOS(n_midis=n_midis),
+        ValidSettings.V_CHANNEL: VChannelS(),
         ValidSettings.V_PART: VPartS(),
         ValidSettings.V_STEP: VStepS(),
-        ValidSettings.V_CHANNEL: VChannelS(),
         ValidSettings.V_MODE: VModeS(),
         ValidSettings.TEMPO: TempoS(),
         ValidSettings.RECORD: RecordS(),

@@ -29,46 +29,46 @@ class KeysUI(Static):
         show_as = self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "To"
-        midi, part, step, channel, valid_mode = self.sequencer.get_current_v_pos()
+        midi, channel, part, step, valid_mode = self.sequencer.get_current_v_pos()
         data = []
         vis_index_1, vis_index_2 = self.sequencer.get_current_v_step_mode(
             valid_mode=valid_mode
         ).get_vis_ind()
         for step in range(1, self.internal_config.n_steps + 1):
-            if vis_index_1 >= len(self.sequencer.sequences[midi][part][step][channel][valid_mode]):
+            if vis_index_1 >= len(self.sequencer.sequences[midi][channel][part][step][valid_mode]):
                 vis_index_1 = 0
             if vis_index_2 >= len(
-                self.sequencer.sequences[midi][part][step][channel][valid_mode][vis_index_1]
+                self.sequencer.sequences[midi][channel][part][step][valid_mode][vis_index_1]
             ):
                 vis_index_2 = 0
             data.append(
-                self.sequencer.sequences[midi][part][step][channel][valid_mode][vis_index_1][
+                self.sequencer.sequences[midi][channel][part][step][valid_mode][vis_index_1][
                     vis_index_2
                 ]
             )
         self.data_vis_top.data = data
         step = int(self.sequencer.settings[ValidSettings.V_STEP].get_value())
-        pos_label = f"{show_as}|M{midi}|C{channel}|P{part:02}|{valid_mode.value}|S{step:02}|"
+        pos_label = f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|{valid_mode.value}|"
         self.pos_top_label.update(pos_label)
 
     def update_bottom(self) -> None:
         show_as = "Edit"
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "From"
-        midi, part, step, channel, valid_mode = self.sequencer.get_current_e_pos()
+        midi, channel, part, step, valid_mode = self.sequencer.get_current_e_pos()
         data = []
         vis_index_1, vis_index_2 = self.sequencer.get_current_e_step_mode(
             valid_mode=valid_mode
         ).get_vis_ind()
         for step in range(1, self.internal_config.n_steps + 1):
             data.append(
-                self.sequencer.sequences[midi][part][step][channel][valid_mode][vis_index_1][
+                self.sequencer.sequences[midi][channel][part][step][valid_mode][vis_index_1][
                     vis_index_2
                 ]
             )
         self.data_vis_bottom.data = data
-        step = int(self.sequencer.settings[ValidSettings.V_STEP].get_value())
-        pos_label = f"{show_as}|M{midi}|C{channel}|P{part:02}|{valid_mode.value}|S{step:02}|"
+        step = int(self.sequencer.settings[ValidSettings.E_STEP].get_value())
+        pos_label = f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|{valid_mode.value}|"
         self.pos_bottom_label.update(pos_label)
 
     def compose(self) -> ComposeResult:
@@ -357,7 +357,7 @@ class NavigationUI(Static):
         self.sequencer.send_setting(view)
 
     def copy_random(self) -> None:
-        f_midi, f_part, f_step, f_channel, f_mode = self.sequencer.get_current_e_pos()
+        f_midi, f_channel, f_part, f_step, f_mode = self.sequencer.get_current_e_pos()
         self.sequencer.send_copy(
             f_midi=f_midi,
             f_channel=f_channel,
@@ -369,7 +369,7 @@ class NavigationUI(Static):
             self.keys_ui.update_all()
 
     def copy_reverse(self) -> None:
-        f_midi, f_part, f_step, f_channel, f_mode = self.sequencer.get_current_e_pos()
+        f_midi, f_channel, f_part, f_step, f_mode = self.sequencer.get_current_e_pos()
         self.sequencer.send_copy(
             f_midi=f_midi,
             f_channel=f_channel,
@@ -381,7 +381,7 @@ class NavigationUI(Static):
             self.keys_ui.update_all()
 
     def copy_as_is(self) -> None:
-        f_midi, f_part, f_step, f_channel, f_mode = self.sequencer.get_current_e_pos()
+        f_midi, f_channel, f_part, f_step, f_mode = self.sequencer.get_current_e_pos()
         self.sequencer.send_copy(
             f_midi=f_midi,
             f_channel=f_channel,
@@ -398,7 +398,6 @@ class NavigationUI(Static):
         self.sequencer.send_setting(play)
 
     def play_off(self) -> None:
-        self.sequencer.stop_play()
         self.navigate(direction=-1)
         play = self.config_setting(ValidSettings.PLAY_SHOW, "Off")
         self.sequencer.send_setting(play)

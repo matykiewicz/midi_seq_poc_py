@@ -64,16 +64,16 @@ class Engine(Sequencer):
                     mode = self.convert_to_mode(func_dict)
                     self.set_step(mode=mode)
                     midi_id = int(self.settings[ValidSettings.E_MIDI_O].get_value())
-                    self.midis[midi_id].add_to_notes(mode)
+                    self.midis[midi_id].add_note_to_note_schedule(mode)
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
                     for midi_id in self.midis.keys():
-                        self.midis[midi_id].add_to_schedule()
+                        self.midis[midi_id].add_parts_to_step_schedule()
             for midi_id in self.midis.keys():
                 self.midis[midi_id].reset_intervals()
                 self.midis[midi_id].reset_scale()
-                self.midis[midi_id].run_notes_and_schedule()
+                self.midis[midi_id].run_note_and_step_schedule()
             time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:
@@ -97,7 +97,7 @@ class Engine(Sequencer):
         self.func_queue.put(attrs.asdict(setting))
 
     def send_delete(self) -> None:
-        midi, part, step, channel, valid_mode = self.get_current_e_pos()
+        midi, channel, part, step, valid_mode = self.get_current_e_pos()
         mode = self.modes[valid_mode].new(lock=True)
         self.send_mode(mode=mode)
 
@@ -121,7 +121,7 @@ class Engine(Sequencer):
         shuffle = list(range(1, self.internal_config.n_steps + 1))
         random.shuffle(shuffle)
         for f_step in self.settings[ValidSettings.E_STEP].values:
-            f_sequence = self.sequences[f_midi][f_part][int(f_step)][f_channel][f_mode]
+            f_sequence = self.sequences[f_midi][f_channel][f_part][int(f_step)][f_mode]
             t_step: int = -1
             if button == ValidButtons.C_AS_IS:
                 t_step = int(f_step)
