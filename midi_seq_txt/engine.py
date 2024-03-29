@@ -1,3 +1,4 @@
+import math
 import random
 import time
 from multiprocessing import Process, Queue
@@ -31,7 +32,7 @@ class Engine(Sequencer):
 
     @staticmethod
     def init_midis() -> Dict[int, MiDiO]:
-        clock_sync = round(time.time() + InitConfig().init_time)
+        clock_sync = float(math.ceil(time.time() + InitConfig().init_time))
         midis: Dict[int, MiDiO] = dict()
         midi_out = rtmidi.MidiOut()
         port_names = midi_out.get_ports()
@@ -62,12 +63,17 @@ class Engine(Sequencer):
                 if "indexes" in func_dict:
                     mode = self.convert_to_mode(func_dict)
                     self.set_step(mode=mode)
+                    midi_id = int(self.settings[ValidSettings.E_MIDI_O].get_value())
+                    self.midis[midi_id].add_to_notes(mode)
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
+                    for midi_id in self.midis.keys():
+                        self.midis[midi_id].add_to_schedule()
             for midi_id in self.midis.keys():
                 self.midis[midi_id].reset_intervals()
-                self.midis[midi_id].run_midi_schedule(new_mode=mode)
+                self.midis[midi_id].reset_scale()
+                self.midis[midi_id].run_notes_and_schedule()
             time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:

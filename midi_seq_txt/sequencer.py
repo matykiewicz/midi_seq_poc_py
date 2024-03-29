@@ -181,23 +181,54 @@ class MiDiO:
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
         self.tempo: int = self.internal_config.init_tempo
+        self.scale: str = self.internal_config.init_scale
         self.interval_quant: float = 0.0
         self.next_tick = clock_sync + self.interval_quant
         self.scheduled_steps: Dict[float, List[Dict[int, Dict[ValidModes, MFunctionality]]]] = (
             defaultdict(list)
+        )
+        self.scheduled_notes: Dict[float, Dict[int, Dict[ValidModes, MFunctionality]]] = (
+            defaultdict(dict)
         )
         self.i_part = 1
         self.i_step = 1
         self.i_quant = 1
         self.reset_intervals()
 
-    def add_to_schedule(
-        self,
-        next_tick: float,
-        mode: MFunctionality,
-        channel: Optional[int] = None,
-        valid_mode: Optional[ValidModes] = None,
-    ) -> None:
+    def reset_intervals(self) -> None:
+        if self.i_step == self.internal_config.n_steps and self.sequencer is not None:
+            self.tempo = int(self.sequencer.settings[ValidSettings.TEMPO].get_value())
+        self.interval_quant = round(self.tempo / (60 * self.internal_config.n_quants), 4)
+
+    def reset_scale(self):
+        if self.i_step == self.internal_config.n_steps and self.sequencer is not None:
+            pass
+
+    def attach(self, sequencer: Sequencer) -> None:
+        self.sequencer = sequencer
+
+    # - - NOTES - - #
+
+    def add_to_notes(self, mode: MFunctionality) -> None:
+        if mode is not None:
+            main_label = mode.get_vis_label()
+            if (
+                self.sequencer is not None
+                and self.sequencer.get_current_e_pos()[0] == self.port_id
+                and mode.get_single_value_by_lab(0, main_label) != ValidButtons.NA
+                and mode.get_single_value_by_lab(0, main_label) != ValidButtons.NEXT
+            ):
+                pass
+
+    def play_notes(self) -> None:
+        pass
+
+    def remove_from_notes(self) -> None:
+        pass
+
+    # - - SCHEDULE - - #
+
+    def add_to_schedule(self) -> None:
         if self.sequencer is not None:
             midi, part, step, ch, mo = self.sequencer.get_current_e_pos()
             if channel is None:
@@ -207,38 +238,7 @@ class MiDiO:
             full_step = {channel: {valid_mode: mode}}
             self.scheduled_steps[next_tick].append(full_step)
 
-    def run_midi_schedule(self, new_mode: Optional[MFunctionality]) -> None:
-        if new_mode is not None:
-            main_label = new_mode.get_vis_label()
-            if (
-                self.sequencer is not None
-                and self.sequencer.get_current_e_pos()[0] == self.port_id
-                and new_mode.get_single_value_by_lab(0, main_label) != ValidButtons.NA
-                and new_mode.get_single_value_by_lab(0, main_label) != ValidButtons.NEXT
-            ):
-                self.add_to_schedule(next_tick=time.time(), mode=new_mode)
-        self.play_scheduled()
-        if time.time() >= self.next_tick:
-            self.i_quant += 1
-            if self.i_quant > self.internal_config.n_quants:
-                self.i_quant = 1
-                self.i_step += 1
-            if self.i_step > self.internal_config.n_steps:
-                self.i_step = 1
-                self.i_part += 1
-            if self.i_part > self.internal_config.n_parts:
-                self.i_part = 1
-            self.next_tick += self.interval_quant
-
-    def reset_intervals(self) -> None:
-        if self.i_step == self.internal_config.n_steps and self.sequencer is not None:
-            self.tempo = int(self.sequencer.settings[ValidSettings.TEMPO].get_value())
-        self.interval_quant = round(self.tempo / (60 * self.internal_config.n_quants), 4)
-
-    def attach(self, sequencer: Sequencer) -> None:
-        self.sequencer = sequencer
-
-    def play_scheduled(self) -> None:
+    def play_schedule(self) -> None:
         midi_out: MidiOut = rtmidi.MidiOut()
         midi_out.open_port(self.port_id)
         old_schedule = list()
@@ -281,6 +281,23 @@ class MiDiO:
                     if len(new_step):
                         new_schedule[time_tick].append(new_step)
             self.scheduled_steps = new_schedule
+
+    # - - BOTH - - #
+
+    def run_notes_and_schedule(self) -> None:
+        self.play_notes()
+        self.play_schedule()
+        if time.time() >= self.next_tick:
+            self.i_quant += 1
+            if self.i_quant > self.internal_config.n_quants:
+                self.i_quant = 1
+                self.i_step += 1
+            if self.i_step > self.internal_config.n_steps:
+                self.i_step = 1
+                self.i_part += 1
+            if self.i_part > self.internal_config.n_parts:
+                self.i_part = 1
+            self.next_tick += self.interval_quant
 
     @staticmethod
     def channel_message(midi_out: MidiOut, command: int, data: List[int], ch=None):
