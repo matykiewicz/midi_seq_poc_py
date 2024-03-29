@@ -45,6 +45,8 @@ class ValidButtons(StrEnum):
     VIEW_ONLY = "VOnly"
     VIEW_REC = "VRec"
     VIEW_PLAY = "VPlay"
+    ON = "On"
+    OFF = "Off"
 
 
 BUT_TEMPO = (

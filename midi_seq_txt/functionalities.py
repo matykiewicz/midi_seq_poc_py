@@ -384,7 +384,7 @@ class ViewSS(SFunctionality):
         super().__init__(
             name=ValidSettings.VIEW_SHOW.value,
             ind=0,
-            values=["Off", "On"],
+            values=[ValidButtons.OFF.value, ValidButtons.ON.value],
         )
 
 
@@ -406,7 +406,7 @@ class PlaySS(SFunctionality):
         super().__init__(
             name=ValidSettings.PLAY_SHOW.value,
             ind=0,
-            values=["Off", "On"],
+            values=[ValidButtons.OFF.value, ValidButtons.ON.value],
         )
 
 
@@ -424,7 +424,7 @@ class RecordS(SFunctionality):
         super().__init__(
             name=ValidSettings.RECORD.value,
             ind=0,
-            values=["Off", "On"],
+            values=[ValidButtons.OFF.value, ValidButtons.ON.value],
         )
 
 
@@ -433,7 +433,7 @@ class CopyS(SFunctionality):
         super().__init__(
             name=ValidSettings.COPY.value,
             ind=0,
-            values=["Off", "On"],
+            values=[ValidButtons.OFF.value, ValidButtons.ON.value],
         )
 
 
