@@ -43,7 +43,7 @@ class Sequencer:
     def reset_intervals(self) -> None:
         if ValidSettings.TEMPO in self.settings:
             self.tempo = int(self.settings[ValidSettings.TEMPO].get_value())
-        self.step_interval = round((1 / (self.tempo / 60)) / self.internal_config.n_quants, 4)
+        self.quant_interval = round((1 / (self.tempo / 60)) / self.internal_config.n_quants, 4)
         self.step_interval = self.quant_interval * self.internal_config.n_quants
         self.part_interval = self.step_interval * self.internal_config.n_steps
 
@@ -333,6 +333,8 @@ class MiDiO:
         if self.sequencer is not None:
             play_positions = self.sequencer.get_play_positions()
             if len(play_positions) and len(self.scheduled_steps) == 0:
+                self.sequencer.clock_sync = 0.0
+                self.sequencer.sync_clock()
                 for midi in play_positions.keys():
                     for channel in play_positions[midi].keys():
                         for part in play_positions[midi][channel].keys():

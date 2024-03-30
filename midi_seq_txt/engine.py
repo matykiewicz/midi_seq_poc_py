@@ -66,12 +66,8 @@ class Engine(Sequencer):
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
-                    for midi_id in self.midis.keys():
-                        self.midis[midi_id].add_parts_to_step_schedule()
-                    self.reset_intervals()
-                    self.reset_scale()
-                    self.sync_clock()
             for midi_id in self.midis.keys():
+                self.midis[midi_id].add_parts_to_step_schedule()
                 self.midis[midi_id].run_note_and_step_schedule()
             time.sleep(self.internal_config.sleep)
 

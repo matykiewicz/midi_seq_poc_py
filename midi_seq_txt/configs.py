@@ -16,7 +16,7 @@ class InitConfig:
     n_channels: int = 2
     n_buttons: int = 8
     midi_workers: int = 10
-    init_time: float = 2.0
+    init_time: float = 0.0
     n_quants: int = 4
     velocity_min: int = 0
     velocity_step: int = 20
