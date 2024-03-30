@@ -422,7 +422,7 @@ class PlayFS(SFunctionality):
             name=ValidSettings.PLAY_FUNCTION.value,
             ind=0,
             values=[
-                ValidButtons.OFF,
+                ValidButtons.NA,
                 ValidButtons.PLAY_PART,
                 ValidButtons.PLAY_PARTS,
                 ValidButtons.PLAY_ALL,

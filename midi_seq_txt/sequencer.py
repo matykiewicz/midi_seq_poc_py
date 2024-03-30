@@ -26,16 +26,12 @@ class Sequencer:
         ] = dict()
         self.tempo: int = self.internal_config.init_tempo
         self.scale: str = self.internal_config.init_scale
-        self.clock_sync = float(math.ceil(time.time() + InitConfig().init_time))
-        self.step_id = 1
-        self.quant_id = 1
+        self.clock_sync = 0.0
         self.quant_interval: float = 0.0
         self.step_interval: float = 0.0
         self.part_interval: float = 0.0
         self.reset_intervals()
         self.reset_scale()
-        self.quant_tick = self.clock_sync
-        self.step_tick = self.clock_sync
 
     def debug(self) -> None:
         import json
@@ -45,26 +41,14 @@ class Sequencer:
         fh.close()
 
     def reset_intervals(self) -> None:
-        if self.step_id == self.internal_config.n_steps:
+        if ValidSettings.TEMPO in self.settings:
             self.tempo = int(self.settings[ValidSettings.TEMPO].get_value())
-        self.quant_interval = round(self.tempo / (60 * self.internal_config.n_quants), 4)
+        self.step_interval = round((1 / (self.tempo / 60)) / self.internal_config.n_quants, 4)
         self.step_interval = self.quant_interval * self.internal_config.n_quants
-        self.part_interval = self.step_interval * self.internal_config.n_quants
+        self.part_interval = self.step_interval * self.internal_config.n_steps
 
     def reset_scale(self):
-        if self.step_id == self.internal_config.n_steps:
-            pass
-
-    def clock_tick(self):
-        if time.time() >= self.quant_tick:
-            if self.quant_id > self.internal_config.n_quants:
-                self.quant_id = 1
-                self.step_id += 1
-                self.step_tick += self.internal_config.n_quants * self.quant_interval
-            if self.step_id > self.internal_config.n_steps:
-                self.step_id = 1
-            self.quant_id += 1
-            self.quant_tick += self.quant_interval
+        pass
 
     def init_data(self) -> None:
         self.settings = init_settings(self.n_midis)
@@ -293,8 +277,18 @@ class Sequencer:
             # Play view part
             play_positions = self.find_view_to_play()
         if play_show_value == ValidButtons.OFF:
-            play_positions: Dict[int, Dict[int, Dict[int, bool]]] = dict()
+            play_positions = dict()
         return play_positions
+
+    def sync_clock(self) -> None:
+        if (
+            self.clock_sync == 0.0
+            and self.settings[ValidSettings.PLAY_SHOW].get_value() == ValidButtons.ON
+        ):
+            self.reset_intervals()
+            self.clock_sync = float(math.ceil(time.time() + InitConfig().init_time))
+        if self.settings[ValidSettings.PLAY_SHOW].get_value() == ValidButtons.OFF:
+            self.clock_sync = 0.0
 
 
 class MiDiO:
@@ -327,7 +321,7 @@ class MiDiO:
             ):
                 pass
 
-    def play_note_schedule(self) -> None:
+    def play_note_schedule(self, offset_time: float = 0.0) -> None:
         pass
 
     def update_note_schedule(self) -> None:
@@ -342,9 +336,7 @@ class MiDiO:
                 for midi in play_positions.keys():
                     for channel in play_positions[midi].keys():
                         for part in play_positions[midi][channel].keys():
-                            part_tick = self.sequencer.step_tick + self.sequencer.part_interval * (
-                                part - 1
-                            )
+                            part_tick = self.sequencer.part_interval * (part - 1)
                             self.add_steps_to_step_schedule(
                                 midi=midi, channel=channel, part=part, part_tick=part_tick
                             )
@@ -364,24 +356,25 @@ class MiDiO:
                         if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NA:
                             self.scheduled_steps[step_tick][channel].append(mode)
 
-    def play_step_schedule(self) -> None:
+    def play_step_schedule(self, offset_time: float = 0.0) -> None:
         old_schedule: Dict[float, Dict[int, List[int]]] = defaultdict(lambda: defaultdict(list))
         new_schedule: Dict[float, Dict[int, List[MFunctionality]]] = defaultdict(
             lambda: defaultdict(list)
         )
+        if self.midi_out is not None and not self.midi_out.is_port_open():
+            self.midi_out.open_port(self.port_id)
         for step_tick in sorted(self.scheduled_steps.keys()):
-            if time.time() >= step_tick and self.midi_out.is_port_open():
+            if time.time() >= step_tick + offset_time:
                 for channel in self.scheduled_steps[step_tick].keys():
                     for i, mode in enumerate(self.scheduled_steps[step_tick][channel]):
                         message: List[int] = mode.get_message()
                         if len(message) >= 3 and min(message) >= 0:
-                            with self.midi_out:
-                                self.channel_message(
-                                    midi_out=self.midi_out,
-                                    command=message[0],
-                                    ch=channel,
-                                    data=message[1:3],
-                                )
+                            self.channel_message(
+                                midi_out=self.midi_out,
+                                command=message[0],
+                                ch=channel,
+                                data=message[1:3],
+                            )
                         if len(message) > 3 and message[3] > 0 and min(message) >= 0:
                             if self.sequencer is not None:
                                 next_tick = step_tick + float(
@@ -389,6 +382,7 @@ class MiDiO:
                                 )
                                 new_schedule[next_tick][channel].append(mode.new(lock=False))
                         old_schedule[step_tick][channel].append(i)
+                break
         self.update_step_schedule(old_schedule=old_schedule, new_schedule=new_schedule)
 
     def update_step_schedule(
@@ -396,22 +390,24 @@ class MiDiO:
         old_schedule: Dict[float, Dict[int, List[int]]],
         new_schedule: Dict[float, Dict[int, List[MFunctionality]]],
     ) -> None:
-        for step_tick in self.scheduled_steps.keys():
-            for channel in self.scheduled_steps[step_tick].keys():
-                for i, mode in enumerate(self.scheduled_steps[step_tick][channel]):
-                    if (
-                        step_tick not in old_schedule
-                        and channel not in old_schedule[step_tick]
-                        and i not in old_schedule[step_tick][channel]
-                    ):
-                        new_schedule[step_tick][channel].append(mode)
-        self.scheduled_steps = new_schedule
+        if len(old_schedule) or len(new_schedule):
+            for step_tick in self.scheduled_steps.keys():
+                for channel in self.scheduled_steps[step_tick].keys():
+                    for i, mode in enumerate(self.scheduled_steps[step_tick][channel]):
+                        if (
+                            step_tick not in old_schedule
+                            and channel not in old_schedule[step_tick]
+                            and i not in old_schedule[step_tick][channel]
+                        ):
+                            new_schedule[step_tick][channel].append(mode)
+            self.scheduled_steps = new_schedule
 
     # - - BOTH - - #
 
     def run_note_and_step_schedule(self) -> None:
-        self.play_note_schedule()
-        self.play_step_schedule()
+        if self.sequencer is not None:
+            self.play_note_schedule(offset_time=self.sequencer.clock_sync)
+            self.play_step_schedule(offset_time=self.sequencer.clock_sync)
 
     @staticmethod
     def channel_message(midi_out: MidiOut, command: int, data: List[int], ch=None):

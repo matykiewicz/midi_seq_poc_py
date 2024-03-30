@@ -317,19 +317,19 @@ class NavigationUI(Static):
 
     def record_on(self) -> None:
         self.navigate(direction=1)
-        record = self.config_setting(ValidSettings.RECORD, "On")
+        record = self.config_setting(ValidSettings.RECORD, ValidButtons.ON)
         self.sequencer.send_setting(record)
 
     def record_off(self) -> None:
         self.sequencer.send_reset_step()
         self.navigate(direction=-1)
-        record = self.config_setting(ValidSettings.RECORD, "Off")
+        record = self.config_setting(ValidSettings.RECORD, ValidButtons.OFF)
         self.sequencer.send_setting(record)
 
     def view_on(self) -> None:
         self.sequencer.send_reset_step()
         self.navigate(direction=1)
-        view = self.config_setting(ValidSettings.VIEW_SHOW, "On")
+        view = self.config_setting(ValidSettings.VIEW_SHOW, ValidButtons.ON)
         self.sequencer.send_setting(view)
 
     def view_only(self) -> None:
@@ -352,19 +352,19 @@ class NavigationUI(Static):
     def view_off(self) -> None:
         self.sequencer.send_reset_step()
         self.navigate(direction=-1)
-        view_show = self.config_setting(ValidSettings.VIEW_SHOW, "Off")
+        view_show = self.config_setting(ValidSettings.VIEW_SHOW, ValidButtons.OFF)
         self.sequencer.send_setting(view_show)
 
     def copy_on(self) -> None:
         self.sequencer.send_reset_step()
         self.navigate(direction=1)
-        view = self.config_setting(ValidSettings.COPY, "On")
+        view = self.config_setting(ValidSettings.COPY, ValidButtons.ON)
         self.sequencer.send_setting(view)
 
     def copy_off(self) -> None:
         self.sequencer.send_reset_step()
         self.navigate(direction=-1)
-        view = self.config_setting(ValidSettings.COPY, "Off")
+        view = self.config_setting(ValidSettings.COPY, ValidButtons.OFF)
         self.sequencer.send_setting(view)
 
     def copy_random(self) -> None:
@@ -405,13 +405,15 @@ class NavigationUI(Static):
 
     def play_on(self) -> None:
         self.navigate(direction=1)
-        play = self.config_setting(ValidSettings.PLAY_SHOW, "On")
+        play = self.config_setting(ValidSettings.PLAY_SHOW, ValidButtons.ON)
         self.sequencer.send_setting(play)
 
     def play_off(self) -> None:
         self.navigate(direction=-1)
-        play = self.config_setting(ValidSettings.PLAY_SHOW, "Off")
-        self.sequencer.send_setting(play)
+        play_fun = self.config_setting(ValidSettings.PLAY_FUNCTION, ValidButtons.NA)
+        self.sequencer.send_setting(play_fun)
+        play_show = self.config_setting(ValidSettings.PLAY_SHOW, ValidButtons.OFF)
+        self.sequencer.send_setting(play_show)
 
     def next_any(self, valid_setting: ValidSettings) -> SFunctionality:
         return self.sequencer.settings[valid_setting].next_ind()

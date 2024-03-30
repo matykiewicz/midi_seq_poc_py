@@ -36,12 +36,27 @@ async def test_record_and_copy(command_line_args):
     ms_app: MSApp = main(blocking=False)
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
+        await pilot.press("a")  # tempo
+        time.sleep(0.01)
+        await pilot.press("d")  # tempo +
+        time.sleep(0.01)
+        await pilot.press("d")  # tempo +
+        time.sleep(0.01)
+        await pilot.press("d")  # tempo +
+        time.sleep(0.01)
+        await pilot.press("d")  # tempo +
+        time.sleep(0.01)
+        await pilot.press("b")  # rec
         time.sleep(0.01)
         await pilot.press("l")  # next keys
         time.sleep(0.01)
         await pilot.press("d")  # skip step
         time.sleep(0.01)
         await pilot.press("c")  # record on
+        time.sleep(0.01)
+        await pilot.press("e")  # key 1
+        time.sleep(0.01)
+        await pilot.press("f")  # key 2
         time.sleep(0.01)
         await pilot.press("d")  # delete step
         time.sleep(0.01)
@@ -75,9 +90,9 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.01)
         await pilot.press("d")  # copy as is
         time.sleep(0.01)
-        await pilot.press("c")  # copy reverse
-        time.sleep(0.01)
         await pilot.press("b")  # copy random
+        time.sleep(0.01)
+        await pilot.press("c")  # copy reverse
         time.sleep(0.01)
         await pilot.press("a")  # exit copy
         time.sleep(0.01)
@@ -87,7 +102,7 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.01)
         await pilot.press("c")  # play on
         time.sleep(0.01)
-        await pilot.press("c")  # play all
+        await pilot.press("d")  # play all
         time.sleep(0.01)
     time.sleep(1000.01)
     ms_app.sequencer.process.kill()
