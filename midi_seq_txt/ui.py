@@ -23,9 +23,12 @@ class KeysUI(Static):
         self.pos_bottom_label = Label("")
         self.data_vis_bottom = Sparkline(data=[0] * self.internal_config.n_steps)
         self.navigation_ui: Optional[NavigationUI] = None
+        self.seq_step: int = 1
         self.update_all()
 
     def update_top(self) -> None:
+        if not self.sequencer.current_step_id.empty():
+            self.seq_step = self.sequencer.current_step_id.get()
         show_as = self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "To"
@@ -48,10 +51,15 @@ class KeysUI(Static):
             )
         self.data_vis_top.data = data
         step = int(self.sequencer.settings[ValidSettings.V_STEP].get_value())
-        pos_label = f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|{valid_mode.value}|"
+        pos_label = (
+            f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|"
+            f"{valid_mode.value}|{self.seq_step:02}"
+        )
         self.pos_top_label.update(pos_label)
 
     def update_bottom(self) -> None:
+        if not self.sequencer.current_step_id.empty():
+            self.seq_step = self.sequencer.current_step_id.get()
         show_as = "Edit"
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "From"
@@ -68,7 +76,10 @@ class KeysUI(Static):
             )
         self.data_vis_bottom.data = data
         step = int(self.sequencer.settings[ValidSettings.E_STEP].get_value())
-        pos_label = f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|{valid_mode.value}|"
+        pos_label = (
+            f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|"
+            f"{valid_mode.value}|{self.seq_step:02}"
+        )
         self.pos_bottom_label.update(pos_label)
 
     def compose(self) -> ComposeResult:

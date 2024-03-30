@@ -421,7 +421,12 @@ class PlayFS(SFunctionality):
         super().__init__(
             name=ValidSettings.PLAY_FUNCTION.value,
             ind=0,
-            values=[ValidButtons.PLAY_PART, ValidButtons.PLAY_PARTS, ValidButtons.PLAY_ALL],
+            values=[
+                ValidButtons.OFF,
+                ValidButtons.PLAY_PART,
+                ValidButtons.PLAY_PARTS,
+                ValidButtons.PLAY_ALL,
+            ],
         )
 
 

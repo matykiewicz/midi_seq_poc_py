@@ -51,7 +51,13 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.01)
         await pilot.press("e")  # key 1
         time.sleep(0.01)
+        await pilot.press("d")  # delete step
+        time.sleep(0.01)
+        await pilot.press("d")  # delete step
+        time.sleep(0.01)
         await pilot.press("f")  # key 2
+        time.sleep(0.01)
+        await pilot.press("d")  # delete step
         time.sleep(0.01)
         await pilot.press("g")  # key 3
         time.sleep(0.01)

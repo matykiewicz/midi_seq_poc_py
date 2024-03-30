@@ -1,4 +1,3 @@
-import math
 import random
 import time
 from multiprocessing import Process, Queue
@@ -7,7 +6,6 @@ from typing import Any, Dict
 import attrs
 import rtmidi
 
-from .configs import InitConfig
 from .const import ValidButtons, ValidModes, ValidSettings
 from .functionalities import MFunctionality, SFunctionality
 from .sequencer import MiDiO, Sequencer
@@ -29,15 +27,15 @@ class Engine(Sequencer):
 
         self.process = Process(target=self.start, args=(DEBUG,))
         self.func_queue: Queue[Dict[str, Any]] = Queue()
+        self.current_step_id: Queue[int] = Queue()
 
     @staticmethod
     def init_midis() -> Dict[int, MiDiO]:
-        clock_sync = float(math.ceil(time.time() + InitConfig().init_time))
         midis: Dict[int, MiDiO] = dict()
         midi_out = rtmidi.MidiOut()
         port_names = midi_out.get_ports()
         for i in range(len(port_names)):
-            midis[i] = MiDiO(port_id=i, clock_sync=clock_sync)
+            midis[i] = MiDiO(port_id=i)
         if not len(midis):
             raise ValueError("At least 1 usb midi device is needed")
         return midis
@@ -70,10 +68,13 @@ class Engine(Sequencer):
                     self.set_option(option=setting)
                     for midi_id in self.midis.keys():
                         self.midis[midi_id].add_parts_to_step_schedule()
+            if self.current_step_id.empty():
+                self.current_step_id.put(self.step_id)
             for midi_id in self.midis.keys():
-                self.midis[midi_id].reset_intervals()
-                self.midis[midi_id].reset_scale()
                 self.midis[midi_id].run_note_and_step_schedule()
+            self.clock_tick()
+            self.reset_intervals()
+            self.reset_scale()
             time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:

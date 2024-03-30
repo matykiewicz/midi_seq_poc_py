@@ -5,10 +5,10 @@ from .configs import InitConfig
 
 class ValidLengths(Enum):
     ZERO = 0
-    DOUBLE = InitConfig().n_quants * 2
     FULL = InitConfig().n_quants
     HALF = InitConfig().n_quants // 2
     QUARTER = InitConfig().n_quants // 4
+    DOUBLE = InitConfig().n_quants * 2
 
 
 class ValidButtons(StrEnum):
