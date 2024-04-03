@@ -1,6 +1,8 @@
 import os
 from argparse import Namespace
-from typing import List, Union
+from glob import iglob
+from pathlib import Path
+from typing import List, Tuple, Union, Dict, Any
 
 import attrs
 import yaml
@@ -8,12 +10,30 @@ import yaml
 from .functionalities import MFunctionality, MMappings, MMusic
 
 
-def read_all_presets():
-    pass
+def read_all_presets(args: Namespace) -> Tuple[List[MFunctionality], List[MMappings], List[MMusic]]:
+    loc: str = args.dir
+    modes: List[MFunctionality] = list()
+    mappings: List[MMappings] = list()
+    music: List[MMusic] = list()
+    for file_path in iglob(f"{loc}/*/*.yaml"):
+        path = Path(file_path)
+        class_name = path.parts[-2]
+        if class_name == "MFunctionality":
+            mode_dict = read_preset(file_path=file_path)
+            mode = MFunctionality(**mode_dict)
+            print(mode)
+        elif class_name == "MMappings":
+            mappings_dict = read_preset(file_path=file_path)
+            pass
+        elif class_name == "MMusic":
+            pass
+    return modes, mappings, music
 
 
-def read_preset():
-    pass
+def read_preset(file_path: str) -> Dict[str, Any]:
+    with open(file_path, "r") as fh:
+        preset_dict = yaml.load(fh, yaml.Loader)
+    return preset_dict
 
 
 def write_preset(preset: Union[MMappings, MFunctionality, MMusic], loc: str) -> None:
@@ -21,6 +41,10 @@ def write_preset(preset: Union[MMappings, MFunctionality, MMusic], loc: str) -> 
     preset_dict = attrs.asdict(preset)
     os.makedirs(f"{loc}/{preset_type}", exist_ok=True)
     with open(f"{loc}/{preset_type}/{preset.name}.yaml", "w") as fh:
+        if "_exe_" in preset_dict:
+            del preset_dict["_exe_"]
+        if "_lock_" in preset_dict:
+            del preset_dict["_lock_"]
         yaml.dump(preset_dict, fh)
 
 

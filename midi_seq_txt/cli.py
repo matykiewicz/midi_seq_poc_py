@@ -1,7 +1,7 @@
 import argparse
 
 from midi_seq_txt.app import MSApp
-from midi_seq_txt.presets import write_all_presets
+from midi_seq_txt.presets import read_all_presets, write_all_presets
 
 
 def main() -> MSApp:
@@ -26,5 +26,6 @@ def main() -> MSApp:
         ui.run()
     elif args.command == "presets":
         write_all_presets(args)
+        read_all_presets(args)
         ui.sequencer.process.kill()
     return ui
