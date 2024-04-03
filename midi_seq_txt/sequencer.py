@@ -1,7 +1,7 @@
 import math
 import time
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple, Union, Any, Callable
+from typing import Dict, List, Optional, Set, Tuple
 
 import mingus.core.scales as scales
 import rtmidi
@@ -113,6 +113,56 @@ class Sequencer:
                     exists_in = True
                     return n_step_set
             elif valid_setting == ValidSettings.E_MODE:
+                check_in_v = self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
+                    int(c_step)
+                ]
+                n_mode_set.next_ind()
+                n_valid_mode = n_mode_set.get_value()
+                if ValidModes(str(n_valid_mode)) in check_in_v:
+                    exists_in = True
+                    return n_mode_set
+            else:
+                return None
+        return None
+
+    def next_v_pos(self, valid_setting: ValidSettings) -> Optional["SFunctionality"]:
+        c_midi, c_channel, c_part, c_step, c_valid_mode = self.get_current_v_pos()
+        n_midi_set = self.settings[ValidSettings.V_MIDI_O].new()
+        n_channel_set = self.settings[ValidSettings.V_CHANNEL].new()
+        n_part_set = self.settings[ValidSettings.V_PART].new()
+        n_step_set = self.settings[ValidSettings.V_STEP].new()
+        n_mode_set = self.settings[ValidSettings.V_MODE].new()
+        exists_in = False
+        while not exists_in:
+            if valid_setting == ValidSettings.V_MIDI_O:
+                check_in_m = self.sequences.data
+                n_midi_set.next_ind()
+                n_midi = n_midi_set.get_value()
+                if int(n_midi) in check_in_m:
+                    exists_in = True
+                    return n_midi_set
+            elif valid_setting == ValidSettings.V_CHANNEL:
+                check_in_c = self.sequences.data[int(c_midi)]
+                n_channel_set.next_ind()
+                n_channel = n_channel_set.get_value()
+                if int(n_channel) in check_in_c:
+                    exists_in = True
+                    return n_channel_set
+            elif valid_setting == ValidSettings.V_PART:
+                check_in_p = self.sequences.data[int(c_midi)][int(c_channel)]
+                n_part_set.next_ind()
+                n_part = n_part_set.get_value()
+                if int(n_part) in check_in_p:
+                    exists_in = True
+                    return n_part_set
+            elif valid_setting == ValidSettings.V_STEP:
+                check_in_s = self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)]
+                n_step_set.next_ind()
+                n_step = n_step_set.get_value()
+                if int(n_step) in check_in_s:
+                    exists_in = True
+                    return n_step_set
+            elif valid_setting == ValidSettings.V_MODE:
                 check_in_v = self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
                     int(c_step)
                 ]

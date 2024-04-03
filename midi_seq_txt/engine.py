@@ -34,8 +34,8 @@ class Engine(Sequencer):
     def init_midis() -> Dict[int, MiDiO]:
         midis: Dict[int, MiDiO] = dict()
         midi_out = rtmidi.MidiOut()
-        port_names = midi_out.get_ports()
-        for i in range(len(port_names)):
+        port_count = midi_out.get_port_count()
+        for i in range(port_count):
             midis[i] = MiDiO(port_id=i)
         if not len(midis):
             raise ValueError("At least 1 usb midi device is needed")
