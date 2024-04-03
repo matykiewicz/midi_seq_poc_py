@@ -1,14 +1,26 @@
 mappings:
-- channel_id: 1
-  instrument: Volca Drum
+- channel: 1
+  instruments:
+  - Volca Drum
+  - Generic
+  is_out: true
   midi_id: 0
-- channel_id: 1
-  instrument: Volca Bass
+- channel: 1
+  instruments:
+  - Volca Bass
+  - Generic
+  is_out: true
   midi_id: 1
-- channel_id: 1
-  instrument: Volca Keys
+- channel: 1
+  instruments:
+  - Volca Keys
+  - Generic
+  is_out: true
   midi_id: 2
-- channel_id: 1
-  instrument: Volca FM2
+- channel: 1
+  instruments:
+  - Volca FM2
+  - Generic
+  is_out: true
   midi_id: 3
 name: Volca_DBKF_map

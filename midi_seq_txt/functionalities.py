@@ -23,8 +23,9 @@ from .const import (
 @define
 class MMapping(AttrsInstance):
     midi_id: int
-    channel_id: int
-    instrument: str
+    channel: int
+    is_out: bool
+    instruments: List[str]
 
 
 @define
@@ -41,10 +42,11 @@ class MMappings(AttrsInstance):
                 instruments_dict[instrument].append(valid_mode)
         for mapping in self.mappings:
             midi_id = mapping.midi_id
-            channel_id = mapping.channel_id
-            instrument = mapping.instrument
-            for valid_mode in instruments_dict[instrument]:
-                mappings_dict[midi_id][channel_id].append(valid_mode)
+            channel = mapping.channel
+            instruments = mapping.instruments
+            for instrument in instruments:
+                for valid_mode in instruments_dict[instrument]:
+                    mappings_dict[midi_id][channel].append(valid_mode)
         return mappings_dict
 
 

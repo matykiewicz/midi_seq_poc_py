@@ -158,20 +158,40 @@ SCALE = MFunctionality(
 MAPPINGS_GENERIC_4 = MMappings(
     name="Generic_4_map",
     mappings=[
-        MMapping(0, 1, str(ValidInstruments.GENERIC)),
-        MMapping(1, 1, str(ValidInstruments.GENERIC)),
-        MMapping(2, 1, str(ValidInstruments.GENERIC)),
-        MMapping(3, 1, str(ValidInstruments.GENERIC)),
+        MMapping(midi_id=0, channel=1, is_out=True, instruments=[str(ValidInstruments.GENERIC)]),
+        MMapping(midi_id=1, channel=1, is_out=True, instruments=[str(ValidInstruments.GENERIC)]),
+        MMapping(midi_id=2, channel=1, is_out=True, instruments=[str(ValidInstruments.GENERIC)]),
+        MMapping(midi_id=3, channel=1, is_out=True, instruments=[str(ValidInstruments.GENERIC)]),
     ],
 )
 
 MAPPINGS_VOLCA_DBKF = MMappings(
     name="Volca_DBKF_map",
     mappings=[
-        MMapping(0, 1, str(ValidInstruments.VOLCA_DRUM)),
-        MMapping(1, 1, str(ValidInstruments.VOLCA_BASS)),
-        MMapping(2, 1, str(ValidInstruments.VOLCA_KEYS)),
-        MMapping(3, 1, str(ValidInstruments.VOLCA_FM2)),
+        MMapping(
+            midi_id=0,
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.VOLCA_DRUM), str(ValidInstruments.GENERIC)],
+        ),
+        MMapping(
+            midi_id=1,
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.VOLCA_BASS), str(ValidInstruments.GENERIC)],
+        ),
+        MMapping(
+            midi_id=2,
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.VOLCA_KEYS), str(ValidInstruments.GENERIC)],
+        ),
+        MMapping(
+            midi_id=3,
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.VOLCA_FM2), str(ValidInstruments.GENERIC)],
+        ),
     ],
 )
 

@@ -1,7 +1,7 @@
 import math
 import time
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Type, Union
 
 import mingus.core.scales as scales
 import rtmidi
@@ -85,96 +85,80 @@ class Sequencer:
         n_step_set = self.settings[ValidSettings.E_STEP].new()
         n_mode_set = self.settings[ValidSettings.E_MODE].new()
         exists_in = False
+        check_map: Dict[ValidSettings, Dict] = {
+            ValidSettings.E_MIDI_O: self.sequences.data,
+            ValidSettings.E_CHANNEL: self.sequences.data[int(c_midi)],
+            ValidSettings.E_PART: self.sequences.data[int(c_midi)][int(c_channel)],
+            ValidSettings.E_STEP: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)],
+            ValidSettings.E_MODE: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
+                int(c_step)
+            ],
+        }
+        next_map: Dict[ValidSettings, SFunctionality] = {
+            ValidSettings.E_MIDI_O: n_midi_set,
+            ValidSettings.E_CHANNEL: n_channel_set,
+            ValidSettings.E_PART: n_part_set,
+            ValidSettings.E_STEP: n_step_set,
+            ValidSettings.E_MODE: n_mode_set,
+        }
+        conv_map: Dict[ValidSettings, Type[Union[str, int]]] = {
+            ValidSettings.E_MIDI_O: int,
+            ValidSettings.E_CHANNEL: int,
+            ValidSettings.E_PART: int,
+            ValidSettings.E_STEP: int,
+            ValidSettings.E_MODE: str,
+        }
         while not exists_in:
-            if valid_setting == ValidSettings.E_MIDI_O:
-                check_in_m = self.sequences.data
-                n_midi_set.next_ind()
-                n_midi = n_midi_set.get_value()
-                if int(n_midi) in check_in_m:
-                    exists_in = True
-                    return n_midi_set
-            elif valid_setting == ValidSettings.E_CHANNEL:
-                check_in_c = self.sequences.data[int(c_midi)]
-                n_channel_set.next_ind()
-                n_channel = n_channel_set.get_value()
-                if int(n_channel) in check_in_c:
-                    exists_in = True
-                    return n_channel_set
-            elif valid_setting == ValidSettings.E_PART:
-                check_in_p = self.sequences.data[int(c_midi)][int(c_channel)]
-                n_part_set.next_ind()
-                n_part = n_part_set.get_value()
-                if int(n_part) in check_in_p:
-                    exists_in = True
-                    return n_part_set
-            elif valid_setting == ValidSettings.E_STEP:
-                check_in_s = self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)]
-                n_step_set.next_ind()
-                n_step = n_step_set.get_value()
-                if int(n_step) in check_in_s:
-                    exists_in = True
-                    return n_step_set
-            elif valid_setting == ValidSettings.E_MODE:
-                check_in_v = self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
-                    int(c_step)
-                ]
-                n_mode_set.next_ind()
-                n_valid_mode = n_mode_set.get_value()
-                if str(n_valid_mode) in check_in_v:
-                    exists_in = True
-                    return n_mode_set
-            else:
-                return None
+            check_in = check_map[valid_setting]
+            next_set = next_map[valid_setting]
+            next_set.next_ind()
+            n_val = next_set.get_value()
+            conv = conv_map[valid_setting]
+            if conv(n_val) in check_in:
+                exists_in = True
+                return next_set
         return None
 
     def next_v_pos(self, valid_setting: ValidSettings) -> Optional["SFunctionality"]:
-        c_midi, c_channel, c_part, c_step, c_valid_mode = self.get_current_v_pos()
+        c_midi, c_channel, c_part, c_step, c_valid_mode = self.get_current_e_pos()
         n_midi_set = self.settings[ValidSettings.V_MIDI_O].new()
         n_channel_set = self.settings[ValidSettings.V_CHANNEL].new()
         n_part_set = self.settings[ValidSettings.V_PART].new()
         n_step_set = self.settings[ValidSettings.V_STEP].new()
         n_mode_set = self.settings[ValidSettings.V_MODE].new()
         exists_in = False
+        check_map: Dict[ValidSettings, Dict] = {
+            ValidSettings.V_MIDI_O: self.sequences.data,
+            ValidSettings.V_CHANNEL: self.sequences.data[int(c_midi)],
+            ValidSettings.V_PART: self.sequences.data[int(c_midi)][int(c_channel)],
+            ValidSettings.V_STEP: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)],
+            ValidSettings.V_MODE: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
+                int(c_step)
+            ],
+        }
+        next_map: Dict[ValidSettings, SFunctionality] = {
+            ValidSettings.V_MIDI_O: n_midi_set,
+            ValidSettings.V_CHANNEL: n_channel_set,
+            ValidSettings.V_PART: n_part_set,
+            ValidSettings.V_STEP: n_step_set,
+            ValidSettings.V_MODE: n_mode_set,
+        }
+        conv_map: Dict[ValidSettings, Type[Union[str, int]]] = {
+            ValidSettings.V_MIDI_O: int,
+            ValidSettings.V_CHANNEL: int,
+            ValidSettings.V_PART: int,
+            ValidSettings.V_STEP: int,
+            ValidSettings.V_MODE: str,
+        }
         while not exists_in:
-            if valid_setting == ValidSettings.V_MIDI_O:
-                check_in_m = self.sequences.data
-                n_midi_set.next_ind()
-                n_midi = n_midi_set.get_value()
-                if int(n_midi) in check_in_m:
-                    exists_in = True
-                    return n_midi_set
-            elif valid_setting == ValidSettings.V_CHANNEL:
-                check_in_c = self.sequences.data[int(c_midi)]
-                n_channel_set.next_ind()
-                n_channel = n_channel_set.get_value()
-                if int(n_channel) in check_in_c:
-                    exists_in = True
-                    return n_channel_set
-            elif valid_setting == ValidSettings.V_PART:
-                check_in_p = self.sequences.data[int(c_midi)][int(c_channel)]
-                n_part_set.next_ind()
-                n_part = n_part_set.get_value()
-                if int(n_part) in check_in_p:
-                    exists_in = True
-                    return n_part_set
-            elif valid_setting == ValidSettings.V_STEP:
-                check_in_s = self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)]
-                n_step_set.next_ind()
-                n_step = n_step_set.get_value()
-                if int(n_step) in check_in_s:
-                    exists_in = True
-                    return n_step_set
-            elif valid_setting == ValidSettings.V_MODE:
-                check_in_v = self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
-                    int(c_step)
-                ]
-                n_mode_set.next_ind()
-                n_valid_mode = n_mode_set.get_value()
-                if str(n_valid_mode) in check_in_v:
-                    exists_in = True
-                    return n_mode_set
-            else:
-                return None
+            check_in = check_map[valid_setting]
+            next_set = next_map[valid_setting]
+            next_set.next_ind()
+            n_val = next_set.get_value()
+            conv = conv_map[valid_setting]
+            if conv(n_val) in check_in:
+                exists_in = True
+                return next_set
         return None
 
     def get_first_step_mode(self, valid_mode: Optional[str] = None) -> MFunctionality:
@@ -279,20 +263,21 @@ class Sequencer:
         midis: Set[int] = set()
         parts: Set[int] = set()
         midi_channel: Dict[int, Set[int]] = defaultdict(set)
-        for midi in self.sequences.data.keys():
-            for channel in self.sequences.data[midi].keys():
-                for part in self.sequences.data[midi][channel].keys():
-                    for step in self.sequences.data[midi][channel][part].keys():
-                        for valid_mode in self.sequences.data[midi][channel][part][step].keys():
-                            indexes = self.sequences.data[midi][channel][part][step][valid_mode]
-                            mode = self.get_current_proto_mode(valid_mode=valid_mode)
-                            if not mode.first_only:
-                                vis_index_1, vis_index_2 = mode.get_vis_ind()
-                                has_note = indexes[vis_index_1][vis_index_2]
-                                if has_note > 0:
-                                    midis.add(midi)
-                                    parts.add(part)
-                                    midi_channel[midi].add(channel)
+        for midi_id in self.sequences.data.keys():
+            for channel in self.sequences.data[midi_id].keys():
+                for part in self.sequences.data[midi_id][channel].keys():
+                    for step in self.sequences.data[midi_id][channel][part].keys():
+                        for valid_mode in self.sequences.data[midi_id][channel][part][step].keys():
+                            self.apply_vis_element(
+                                midi_id=midi_id,
+                                channel=channel,
+                                part=part,
+                                parts=parts,
+                                step_data=self.sequences.data[midi_id][channel][part][step],
+                                valid_mode=valid_mode,
+                                midi_channel=midi_channel,
+                                midis=midis,
+                            )
         for midi in midis:
             for channel in midi_channel[midi]:
                 for part in parts:
@@ -315,6 +300,29 @@ class Sequencer:
             part_to_play[midi][channel][part] = True
         return part_to_play
 
+    def apply_vis_element(
+        self,
+        midi_id: int,
+        channel: int,
+        part: int,
+        valid_mode: str,
+        step_data: Dict[str, List[List[int]]],
+        midis: Set[int],
+        midi_channel: Dict[int, Set[int]],
+        parts: Set[int],
+    ) -> bool:
+        indexes = step_data[valid_mode]
+        mode = self.get_current_proto_mode(valid_mode=valid_mode)
+        has_vis_element = False
+        if not mode.first_only:
+            vis_index_1, vis_index_2 = mode.get_vis_ind()
+            has_note = indexes[vis_index_1][vis_index_2]
+            if has_note > 0:
+                midis.add(midi_id)
+                midi_channel[midi_id].add(channel)
+                parts.add(part)
+        return has_vis_element
+
     def find_parts_to_play(self) -> Dict[int, Dict[int, Dict[int, bool]]]:
         parts_to_play: Dict[int, Dict[int, Dict[int, bool]]] = defaultdict(
             lambda: defaultdict(dict)
@@ -327,19 +335,21 @@ class Sequencer:
         if self.settings[ValidSettings.VIEW_FUNCTION].get_value() == ValidButtons.VIEW_PLAY:
             midi, channel, part, step, valid_mode = self.get_current_v_pos()
             parts.add(part)
-        for midi in self.sequences.data.keys():
-            for channel in self.sequences.data[midi].keys():
-                for part in self.sequences.data[midi][channel].keys():
-                    for step in self.sequences.data[midi][channel][part].keys():
-                        for valid_mode in self.sequences.data[midi][channel][part][step].keys():
-                            indexes = self.sequences.data[midi][channel][part][step][valid_mode]
-                            mode = self.get_current_proto_mode(valid_mode=valid_mode)
-                            if not mode.first_only:
-                                vis_index_1, vis_index_2 = mode.get_vis_ind()
-                                has_note = indexes[vis_index_1][vis_index_2]
-                                if has_note > 0:
-                                    midis.add(midi)
-                                    midi_channel[midi].add(channel)
+        for midi_id in self.sequences.data.keys():
+            for channel in self.sequences.data[midi_id].keys():
+                for part in self.sequences.data[midi_id][channel].keys():
+                    for step in self.sequences.data[midi_id][channel][part].keys():
+                        for valid_mode in self.sequences.data[midi_id][channel][part][step].keys():
+                            self.apply_vis_element(
+                                midi_id=midi_id,
+                                channel=channel,
+                                part=part,
+                                parts=set(),
+                                step_data=self.sequences.data[midi][channel][part][step],
+                                valid_mode=valid_mode,
+                                midi_channel=midi_channel,
+                                midis=midis,
+                            )
         for midi in midis:
             for channel in midi_channel[midi]:
                 for part in parts:

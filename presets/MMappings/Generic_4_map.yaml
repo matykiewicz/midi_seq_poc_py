@@ -1,14 +1,22 @@
 mappings:
-- channel_id: 1
-  instrument: Generic
+- channel: 1
+  instruments:
+  - Generic
+  is_out: true
   midi_id: 0
-- channel_id: 1
-  instrument: Generic
+- channel: 1
+  instruments:
+  - Generic
+  is_out: true
   midi_id: 1
-- channel_id: 1
-  instrument: Generic
+- channel: 1
+  instruments:
+  - Generic
+  is_out: true
   midi_id: 2
-- channel_id: 1
-  instrument: Generic
+- channel: 1
+  instruments:
+  - Generic
+  is_out: true
   midi_id: 3
 name: Generic_4_map
