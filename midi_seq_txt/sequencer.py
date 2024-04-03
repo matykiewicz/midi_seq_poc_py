@@ -9,8 +9,8 @@ from rtmidi import MidiOut
 
 from .configs import InitConfig
 from .const import ValidButtons, ValidModes, ValidSettings
-from .functionalities import MFunctionality, SFunctionality
-from .init import init_modes, init_settings
+from .functionalities import MFunctionality, MMappings, MMusic, SFunctionality
+from .init import init_mappings, init_modes, init_music, init_settings
 
 DEBUG: bool = False
 
@@ -22,9 +22,8 @@ class Sequencer:
         self.modes: Dict[ValidModes, MFunctionality] = dict()
         self.n_midis = 0
         self.detached = False
-        self.sequences: Dict[
-            int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]
-        ] = dict()
+        self.mappings: MMappings = init_mappings()
+        self.sequences: MMusic = MMusic("", dict())
         self.tempo: int = self.internal_config.init_tempo
         self.scale: str = self.internal_config.init_scale
         self.clock_sync = 0.0
@@ -38,7 +37,7 @@ class Sequencer:
         import json
 
         fh = open(f"{self.__class__.__name__}.{self.detached}.json", "w")
-        json.dump(self.sequences, indent=2, sort_keys=True, fp=fh)
+        json.dump(self.sequences.data, indent=2, sort_keys=True, fp=fh)
         fh.close()
 
     def reset_intervals(self) -> None:
@@ -54,20 +53,7 @@ class Sequencer:
     def init_data(self) -> None:
         self.settings = init_settings(self.n_midis)
         self.modes = init_modes()
-        sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]] = (
-            defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
-        )
-        for midi in self.settings[ValidSettings.E_MIDI_O].values:
-            for channel in self.settings[ValidSettings.E_CHANNEL].values:
-                for part in self.settings[ValidSettings.E_PART].values:
-                    for step in self.settings[ValidSettings.E_STEP].values:
-                        for mode_str in list(ValidModes):
-                            valid_mode = ValidModes(mode_str)
-                            mode = self.modes[valid_mode].new(lock=False)
-                            sequences[int(midi)][int(channel)][int(part)][int(step)][
-                                valid_mode
-                            ] = mode.get_indexes()
-        self.sequences = sequences
+        self.sequences = init_music(n_midis=self.n_midis, mappings=self.mappings)
 
     def get_current_e_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, ValidModes]:
         midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())
@@ -94,7 +80,7 @@ class Sequencer:
         if valid_mode is None:
             valid_mode = mode
         first_step = int(self.settings[ValidSettings.E_STEP].get_first_value())
-        indexes = self.sequences[midi][channel][part][first_step][valid_mode]
+        indexes = self.sequences.data[midi][channel][part][first_step][valid_mode]
         first_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return first_mode
 
@@ -102,7 +88,7 @@ class Sequencer:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
-        indexes = self.sequences[midi][channel][part][step][valid_mode]
+        indexes = self.sequences.data[midi][channel][part][step][valid_mode]
         current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return current_mode
 
@@ -110,7 +96,7 @@ class Sequencer:
         midi, channel, part, step, mode = self.get_current_v_pos()
         if valid_mode is None:
             valid_mode = mode
-        indexes = self.sequences[midi][channel][part][step][valid_mode]
+        indexes = self.sequences.data[midi][channel][part][step][valid_mode]
         current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return current_mode
 
@@ -159,7 +145,7 @@ class Sequencer:
             positions_to_set += self.get_copy_positions(mode=mode)
         for position_to_set in positions_to_set:
             midi, channel, part, step, valid_mode = position_to_set
-            self.sequences[midi][channel][part][step][valid_mode] = mode.get_indexes()
+            self.sequences.data[midi][channel][part][step][valid_mode] = mode.get_indexes()
         self.debug() if DEBUG else None
 
     def get_record_positions(
@@ -195,12 +181,12 @@ class Sequencer:
         midis: Set[int] = set()
         parts: Set[int] = set()
         midi_channel: Dict[int, Set[int]] = defaultdict(set)
-        for midi in self.sequences.keys():
-            for channel in self.sequences[midi].keys():
-                for part in self.sequences[midi][channel].keys():
-                    for step in self.sequences[midi][channel][part].keys():
-                        for valid_mode in self.sequences[midi][channel][part][step].keys():
-                            indexes = self.sequences[midi][channel][part][step][valid_mode]
+        for midi in self.sequences.data.keys():
+            for channel in self.sequences.data[midi].keys():
+                for part in self.sequences.data[midi][channel].keys():
+                    for step in self.sequences.data[midi][channel][part].keys():
+                        for valid_mode in self.sequences.data[midi][channel][part][step].keys():
+                            indexes = self.sequences.data[midi][channel][part][step][valid_mode]
                             mode = self.get_current_proto_mode(valid_mode=valid_mode)
                             if not mode.first_only:
                                 vis_index_1, vis_index_2 = mode.get_vis_ind()
@@ -243,12 +229,12 @@ class Sequencer:
         if self.settings[ValidSettings.VIEW_FUNCTION].get_value() == ValidButtons.VIEW_PLAY:
             midi, channel, part, step, valid_mode = self.get_current_v_pos()
             parts.add(part)
-        for midi in self.sequences.keys():
-            for channel in self.sequences[midi].keys():
-                for part in self.sequences[midi][channel].keys():
-                    for step in self.sequences[midi][channel][part].keys():
-                        for valid_mode in self.sequences[midi][channel][part][step].keys():
-                            indexes = self.sequences[midi][channel][part][step][valid_mode]
+        for midi in self.sequences.data.keys():
+            for channel in self.sequences.data[midi].keys():
+                for part in self.sequences.data[midi][channel].keys():
+                    for step in self.sequences.data[midi][channel][part].keys():
+                        for valid_mode in self.sequences.data[midi][channel][part][step].keys():
+                            indexes = self.sequences.data[midi][channel][part][step][valid_mode]
                             mode = self.get_current_proto_mode(valid_mode=valid_mode)
                             if not mode.first_only:
                                 vis_index_1, vis_index_2 = mode.get_vis_ind()
@@ -348,10 +334,10 @@ class MiDiO:
         self, midi: int, channel: int, part: int, part_tick: float
     ) -> None:
         if midi == self.port_id and self.sequencer is not None:
-            for step in self.sequencer.sequences[midi][channel][part].keys():
+            for step in self.sequencer.sequences.data[midi][channel][part].keys():
                 step_tick = part_tick + (step - 1) * self.sequencer.step_interval
-                for valid_mode in self.sequencer.sequences[midi][channel][part][step].keys():
-                    indexes = self.sequencer.sequences[midi][channel][part][step][valid_mode]
+                for valid_mode in self.sequencer.sequences.data[midi][channel][part][step].keys():
+                    indexes = self.sequencer.sequences.data[midi][channel][part][step][valid_mode]
                     mode = self.sequencer.get_current_new_mode(valid_mode=valid_mode)
                     if not mode.first_only:
                         mode.set_indexes(indexes=indexes)

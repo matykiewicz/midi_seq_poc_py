@@ -31,7 +31,7 @@ class MSApp(App):
 
     def __init__(self, args: Namespace):
         super().__init__()
-        self.sequencer = Engine()
+        self.sequencer = Engine(loc=args.dir)
         self.sequencer.detach()
         self.sequencer.init_data()
         self.keys_ui = KeysUI(sequencer=self.sequencer)

@@ -1,5 +1,6 @@
+from collections import defaultdict
 from copy import deepcopy
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from attrs import AttrsInstance, define
 from mingus.containers import Note
@@ -32,6 +33,31 @@ class MMapping(AttrsInstance):
 class MMappings(AttrsInstance):
     name: str
     mappings: List[MMapping]
+
+    def to_dict(
+        self, modes: Dict[ValidModes, "MFunctionality"]
+    ) -> Dict[int, Dict[int, List[ValidModes]]]:
+        mappings_dict: Dict[int, Dict[int, List[ValidModes]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
+        instruments_dict: Dict[str, List[ValidModes]] = defaultdict(list)
+        for valid_mode in modes.keys():
+            mode = modes[valid_mode]
+            for instrument in mode.instruments:
+                instruments_dict[instrument].append(valid_mode)
+        for mapping in self.mappings:
+            midi_id = mapping.midi_id
+            channel_id = mapping.channel_id
+            instrument = mapping.instrument
+            for valid_mode in instruments_dict[instrument]:
+                mappings_dict[midi_id][channel_id].append(valid_mode)
+        return mappings_dict
+
+
+@define
+class MMusic(AttrsInstance):
+    name: str
+    data: Dict[int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]]
 
 
 @define

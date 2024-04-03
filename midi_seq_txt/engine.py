@@ -17,8 +17,9 @@ class Engine(Sequencer):
     It maintains communication between MSApp and all MIDIs.
     """
 
-    def __init__(self):
+    def __init__(self, loc: str):
         super().__init__()
+        self.loc = loc
         self.modes: Dict[ValidModes, MFunctionality] = dict()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.midis: Dict[int, MiDiO] = self.init_midis()
@@ -116,7 +117,7 @@ class Engine(Sequencer):
         shuffle = list(range(1, self.internal_config.n_steps + 1))
         random.shuffle(shuffle)
         for f_step in self.settings[ValidSettings.E_STEP].values:
-            f_sequence = self.sequences[f_midi][f_channel][f_part][int(f_step)][f_mode]
+            f_sequence = self.sequences.data[f_midi][f_channel][f_part][int(f_step)][f_mode]
             t_step: int = -1
             if button == ValidButtons.C_AS_IS:
                 t_step = int(f_step)

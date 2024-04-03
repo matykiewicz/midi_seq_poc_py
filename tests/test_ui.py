@@ -12,7 +12,7 @@ async def test_record_and_scale(command_line_args):
     import midi_seq_txt.sequencer
 
     setattr(midi_seq_txt.sequencer, "DEBUG", True)
-    ms_app: MSApp = main(blocking=False)
+    ms_app: MSApp = main()
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
         time.sleep(0.01)
@@ -33,7 +33,7 @@ async def test_record_and_copy(command_line_args):
     import midi_seq_txt.sequencer
 
     setattr(midi_seq_txt.sequencer, "DEBUG", True)
-    ms_app: MSApp = main(blocking=False)
+    ms_app: MSApp = main()
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
         await pilot.press("a")  # tempo
@@ -113,7 +113,7 @@ async def test_tempo(command_line_args):
     import midi_seq_txt.sequencer
 
     setattr(midi_seq_txt.sequencer, "DEBUG", False)
-    ms_app: MSApp = main(blocking=False)
+    ms_app: MSApp = main()
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
         await pilot.press("b")  # copy
@@ -136,7 +136,7 @@ async def test_view(command_line_args):
     import midi_seq_txt.sequencer
 
     setattr(midi_seq_txt.sequencer, "DEBUG", False)
-    ms_app: MSApp = main(blocking=False)
+    ms_app: MSApp = main()
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
         await pilot.press("b")  # copy
@@ -158,7 +158,7 @@ async def test_buttons(command_line_args):
     import midi_seq_txt.sequencer
 
     setattr(midi_seq_txt.sequencer, "DEBUG", False)
-    ms_app: MSApp = main(blocking=False)
+    ms_app: MSApp = main()
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
         for binding in ms_app.BINDINGS:

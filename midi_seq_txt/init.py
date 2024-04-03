@@ -26,6 +26,7 @@ from .functionalities import (
     MFunctionality,
     MMapping,
     MMappings,
+    MMusic,
     NFunctionality,
     PlayFS,
     PlayN,
@@ -99,40 +100,6 @@ def create_motions() -> List[str]:
     return button_motions
 
 
-def init_nav() -> Dict[ValidNav, NFunctionality]:
-    return {
-        ValidNav.RECORD: RecordN(),
-        ValidNav.VIEW: ViewN(),
-        ValidNav.PLAY: PlayN(),
-        ValidNav.TEMPO: TempoN(),
-        ValidNav.COPY: CopyN(),
-        ValidNav.PRESETS: PresetsN(),
-        ValidNav.EDITS: EditsN(),
-    }
-
-
-def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
-    return {
-        ValidSettings.E_MIDI_O: EMiDiOS(n_midis=n_midis),
-        ValidSettings.E_CHANNEL: EChannelS(),
-        ValidSettings.E_PART: EPartS(),
-        ValidSettings.E_STEP: EStepS(),
-        ValidSettings.E_MODE: EModeS(),
-        ValidSettings.V_MIDI_O: VMiDiOS(n_midis=n_midis),
-        ValidSettings.V_CHANNEL: VChannelS(),
-        ValidSettings.V_PART: VPartS(),
-        ValidSettings.V_STEP: VStepS(),
-        ValidSettings.V_MODE: VModeS(),
-        ValidSettings.TEMPO: TempoS(),
-        ValidSettings.RECORD: RecordS(),
-        ValidSettings.COPY: CopyS(),
-        ValidSettings.VIEW_SHOW: ViewSS(),
-        ValidSettings.VIEW_FUNCTION: ViewFS(),
-        ValidSettings.PLAY_SHOW: PlaySS(),
-        ValidSettings.PLAY_FUNCTION: PlayFS(),
-    }
-
-
 VOICE_1 = MFunctionality(
     name=str(ValidModes.VOICE_1),
     first_only=False,
@@ -178,7 +145,7 @@ CUTOFF_EG_INT = MFunctionality(
     offsets=[1, 1],
     labels=["Code", "Cutoff"],
     vis_ind=(0, 1),
-    instruments=[ValidInstruments.VOLCA_BASS, ValidInstruments.GENERIC],
+    instruments=[ValidInstruments.VOLCA_BASS],
     data=[
         [str(0), str(0x90), str(0x80)],
         create_motions(),
@@ -196,18 +163,17 @@ SCALE = MFunctionality(
     data=[create_scales()],
 )
 
-MAPPINGS_1 = MMappings(
-    name="Generic_map",
+MAPPINGS_GENERIC_4 = MMappings(
+    name="Generic_4_map",
     mappings=[
         MMapping(0, 1, ValidInstruments.GENERIC),
-        MMapping(1, 1, ValidInstruments.VOLCA_BASS),
-        MMapping(2, 1, ValidInstruments.VOLCA_KEYS),
-        MMapping(3, 1, ValidInstruments.VOLCA_FM2),
-        MMapping(4, 1, ValidInstruments.VOLCA_DRUM),
+        MMapping(1, 1, ValidInstruments.GENERIC),
+        MMapping(2, 1, ValidInstruments.GENERIC),
+        MMapping(3, 1, ValidInstruments.GENERIC),
     ],
 )
 
-MAPPINGS_2 = MMappings(
+MAPPINGS_VOLCA_DBKF = MMappings(
     name="Volca_DBKF_map",
     mappings=[
         MMapping(0, 1, ValidInstruments.VOLCA_DRUM),
@@ -216,6 +182,40 @@ MAPPINGS_2 = MMappings(
         MMapping(3, 1, ValidInstruments.VOLCA_FM2),
     ],
 )
+
+
+def init_nav() -> Dict[ValidNav, NFunctionality]:
+    return {
+        ValidNav.RECORD: RecordN(),
+        ValidNav.VIEW: ViewN(),
+        ValidNav.PLAY: PlayN(),
+        ValidNav.TEMPO: TempoN(),
+        ValidNav.COPY: CopyN(),
+        ValidNav.PRESETS: PresetsN(),
+        ValidNav.EDITS: EditsN(),
+    }
+
+
+def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
+    return {
+        ValidSettings.E_MIDI_O: EMiDiOS(n_midis=n_midis),
+        ValidSettings.E_CHANNEL: EChannelS(),
+        ValidSettings.E_PART: EPartS(),
+        ValidSettings.E_STEP: EStepS(),
+        ValidSettings.E_MODE: EModeS(),
+        ValidSettings.V_MIDI_O: VMiDiOS(n_midis=n_midis),
+        ValidSettings.V_CHANNEL: VChannelS(),
+        ValidSettings.V_PART: VPartS(),
+        ValidSettings.V_STEP: VStepS(),
+        ValidSettings.V_MODE: VModeS(),
+        ValidSettings.TEMPO: TempoS(),
+        ValidSettings.RECORD: RecordS(),
+        ValidSettings.COPY: CopyS(),
+        ValidSettings.VIEW_SHOW: ViewSS(),
+        ValidSettings.VIEW_FUNCTION: ViewFS(),
+        ValidSettings.PLAY_SHOW: PlaySS(),
+        ValidSettings.PLAY_FUNCTION: PlayFS(),
+    }
 
 
 def init_modes() -> Dict[ValidModes, MFunctionality]:
@@ -228,27 +228,32 @@ def init_modes() -> Dict[ValidModes, MFunctionality]:
 
 
 def init_mappings() -> MMappings:
-    return MAPPINGS_1
+    return MAPPINGS_GENERIC_4
 
 
 def init_music(
     n_midis: int,
-) -> Dict[int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]]:
+    mappings: MMappings,
+) -> MMusic:
     sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]] = (
         defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
     )
     modes = init_modes()
+    mappings_dict = mappings.to_dict(modes=modes)
     for midi in range(n_midis):
         for channel in EChannelS().values:
-            for part in EPartS().values:
-                for step in EStepS().values:
-                    for mode_str in list(ValidModes):
-                        valid_mode = ValidModes(mode_str)
-                        mode = modes[valid_mode].new(lock=False)
-                        sequences[int(midi)][int(channel)][int(part)][int(step)][
-                            valid_mode
-                        ] = mode.get_indexes()
-    return sequences
+            if int(channel) in mappings_dict[int(midi)]:
+                for part in EPartS().values:
+                    for step in EStepS().values:
+                        for mode_str in list(ValidModes):
+                            valid_mode = ValidModes(mode_str)
+                            if valid_mode in mappings_dict[int(midi)][int(channel)]:
+                                mode = modes[valid_mode].new(lock=False)
+                                sequences[int(midi)][int(channel)][int(part)][int(step)][
+                                    valid_mode
+                                ] = mode.get_indexes()
+    m_music = MMusic(name="Empty", data=sequences)
+    return m_music
 
 
 def init_presets() -> Dict[ValidPresets, Any]:

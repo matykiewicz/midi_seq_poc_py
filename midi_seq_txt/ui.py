@@ -39,14 +39,16 @@ class KeysUI(Static):
             valid_mode=valid_mode
         ).get_vis_ind()
         for step in range(1, self.internal_config.n_steps + 1):
-            if vis_index_1 >= len(self.sequencer.sequences[midi][channel][part][step][valid_mode]):
+            if vis_index_1 >= len(
+                self.sequencer.sequences.data[midi][channel][part][step][valid_mode]
+            ):
                 vis_index_1 = 0
             if vis_index_2 >= len(
-                self.sequencer.sequences[midi][channel][part][step][valid_mode][vis_index_1]
+                self.sequencer.sequences.data[midi][channel][part][step][valid_mode][vis_index_1]
             ):
                 vis_index_2 = 0
             data.append(
-                self.sequencer.sequences[midi][channel][part][step][valid_mode][vis_index_1][
+                self.sequencer.sequences.data[midi][channel][part][step][valid_mode][vis_index_1][
                     vis_index_2
                 ]
             )
@@ -71,7 +73,7 @@ class KeysUI(Static):
         ).get_vis_ind()
         for step in range(1, self.internal_config.n_steps + 1):
             data.append(
-                self.sequencer.sequences[midi][channel][part][step][valid_mode][vis_index_1][
+                self.sequencer.sequences.data[midi][channel][part][step][valid_mode][vis_index_1][
                     vis_index_2
                 ]
             )
