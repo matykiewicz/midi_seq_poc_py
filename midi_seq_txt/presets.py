@@ -2,7 +2,7 @@ import os
 from argparse import Namespace
 from glob import iglob
 from pathlib import Path
-from typing import List, Tuple, Union, Dict, Any
+from typing import Any, Dict, List, Tuple, Union
 
 import attrs
 import yaml

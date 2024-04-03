@@ -1,18 +1,11 @@
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Dict, List
 
 import mingus.core.scales as scales
 from mingus.core import keys
 
 from .configs import InitConfig
-from .const import (
-    ValidButtons,
-    ValidInstruments,
-    ValidLengths,
-    ValidNav,
-    ValidPresets,
-    ValidSettings,
-)
+from .const import ValidButtons, ValidInstruments, ValidLengths, ValidNav, ValidSettings
 from .functionalities import (
     CopyN,
     CopyS,
@@ -254,8 +247,4 @@ def init_music_mem(
     return m_music
 
 
-def init_presets() -> Dict[ValidPresets, Any]:
-    return dict()
-
-
-MUSIC_GENERIC_4 = init_music(n_midis=4, mappings=MAPPINGS_GENERIC_4)
+MUSIC_GENERIC_4 = init_music_mem(n_midis=4, mappings=MAPPINGS_GENERIC_4)

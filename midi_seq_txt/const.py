@@ -214,8 +214,3 @@ class ValidInstruments(StrEnum):
     VOLCA_KEYS = "Volca Keys"
     VOLCA_BASS = "Volca Bass"
     VOLCA_FM2 = "Volca FM2"
-
-
-class ValidPresets(StrEnum):
-    INSTRUMENT_MAPPING = "Instrument Mapping"
-    SEQUENCED_MUSIC = "Sequenced Music"
