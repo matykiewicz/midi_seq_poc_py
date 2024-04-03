@@ -217,7 +217,7 @@ def init_settings(n_midis: int, valid_modes: List[str]) -> Dict[ValidSettings, S
     }
 
 
-def init_modes() -> Dict[str, MFunctionality]:
+def init_modes_mem() -> Dict[str, MFunctionality]:
     return {
         VOICE_1.name: VOICE_1,
         VOICE_2.name: VOICE_2,
@@ -226,18 +226,18 @@ def init_modes() -> Dict[str, MFunctionality]:
     }
 
 
-def init_mappings() -> MMappings:
+def init_mappings_mem() -> MMappings:
     return MAPPINGS_GENERIC_4
 
 
-def init_music(
+def init_music_mem(
     n_midis: int,
     mappings: MMappings,
 ) -> MMusic:
     sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     )
-    modes = init_modes()
+    modes = init_modes_mem()
     mappings_dict = mappings.to_dict(modes=modes)
     for midi in range(n_midis):
         for channel in EChannelS().values:

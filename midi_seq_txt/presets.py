@@ -14,20 +14,23 @@ def read_all_presets(args: Namespace) -> Tuple[List[MFunctionality], List[MMappi
     loc: str = args.dir
     modes: List[MFunctionality] = list()
     mappings: List[MMappings] = list()
-    music: List[MMusic] = list()
+    all_music: List[MMusic] = list()
     for file_path in iglob(f"{loc}/*/*.yaml"):
         path = Path(file_path)
         class_name = path.parts[-2]
         if class_name == "MFunctionality":
             mode_dict = read_preset(file_path=file_path)
             mode = MFunctionality(**mode_dict)
-            print(mode)
+            modes.append(mode)
         elif class_name == "MMappings":
             mappings_dict = read_preset(file_path=file_path)
-            pass
+            mapping = MMappings(**mappings_dict)
+            mappings.append(mapping)
         elif class_name == "MMusic":
-            pass
-    return modes, mappings, music
+            music_dict = read_preset(file_path=file_path)
+            music = MMusic(**music_dict)
+            all_music.append(music)
+    return modes, mappings, all_music
 
 
 def read_preset(file_path: str) -> Dict[str, Any]:

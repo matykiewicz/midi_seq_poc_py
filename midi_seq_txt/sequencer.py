@@ -10,7 +10,7 @@ from rtmidi import MidiOut
 from .configs import InitConfig
 from .const import ValidButtons, ValidSettings
 from .functionalities import MFunctionality, MMappings, MMusic, SFunctionality
-from .init import init_mappings, init_modes, init_music, init_settings
+from .init import init_mappings_mem, init_modes_mem, init_music_mem, init_settings
 
 DEBUG: bool = False
 
@@ -23,7 +23,7 @@ class Sequencer:
         self.valid_modes: List[str] = list()
         self.n_midis = 0
         self.detached = False
-        self.mappings: MMappings = init_mappings()
+        self.mappings: MMappings = init_mappings_mem()
         self.sequences: MMusic = MMusic("", dict())
         self.tempo: int = self.internal_config.init_tempo
         self.scale: str = self.internal_config.init_scale
@@ -52,10 +52,10 @@ class Sequencer:
         pass
 
     def init_data(self) -> None:
-        self.modes = init_modes()
+        self.modes = init_modes_mem()
         self.valid_modes = list(self.modes.keys())
         self.settings = init_settings(n_midis=self.n_midis, valid_modes=self.valid_modes)
-        self.sequences = init_music(n_midis=self.n_midis, mappings=self.mappings)
+        self.sequences = init_music_mem(n_midis=self.n_midis, mappings=self.mappings)
 
     def get_current_e_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())
