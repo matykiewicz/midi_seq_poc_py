@@ -24,6 +24,8 @@ from .functionalities import (
     EPartS,
     EStepS,
     MFunctionality,
+    MMapping,
+    MMappings,
     NFunctionality,
     PlayFS,
     PlayN,
@@ -32,7 +34,6 @@ from .functionalities import (
     RecordN,
     RecordS,
     SFunctionality,
-    SMapping,
     TempoN,
     TempoS,
     VChannelS,
@@ -56,6 +57,8 @@ def create_scales() -> List[str]:
             button_scale.append(ValidButtons.NEXT)
         else:
             button_scale.append(no_button_scales[i])
+    if button_scale[-1] != ValidButtons.NEXT.value:
+        button_scale.append(ValidButtons.NEXT.value)
     return button_scale
 
 
@@ -73,6 +76,8 @@ def create_notes(scale: str) -> List[str]:
             button_notes.append(ValidButtons.NEXT.value)
         else:
             button_notes.append(no_button_notes[i])
+    if button_notes[-1] != ValidButtons.NEXT.value:
+        button_notes.append(ValidButtons.NEXT.value)
     return button_notes
 
 
@@ -89,6 +94,8 @@ def create_motions() -> List[str]:
             button_motions.append(ValidButtons.NEXT.value)
         else:
             button_motions.append(str(no_button_motions[i]))
+    if button_motions[-1] != ValidButtons.NEXT.value:
+        button_motions.append(ValidButtons.NEXT.value)
     return button_motions
 
 
@@ -145,7 +152,6 @@ VOICE_1 = MFunctionality(
     ],
 )
 
-
 VOICE_2 = MFunctionality(
     name=str(ValidModes.VOICE_2),
     first_only=False,
@@ -165,17 +171,19 @@ VOICE_2 = MFunctionality(
     ],
 )
 
-
-# class Motion1(MFunctionality):
-#    def __init__(self):
-#        super().__init__(
-#            name=ValidModes.MOTION_1.value,
-#            ind=0,
-#            offset=1,
-#            first_only=False,
-#            values=create_motions(),
-#        )
-
+CUTOFF_EG_INT = MFunctionality(
+    name=str(ValidModes.CUTOFF_EG_INT),
+    first_only=False,
+    indexes=[[1, 0]],
+    offsets=[1, 1],
+    labels=["Code", "Cutoff"],
+    vis_ind=(0, 1),
+    instruments=[ValidInstruments.VOLCA_BASS, ValidInstruments.GENERIC],
+    data=[
+        [str(0), str(0x90), str(0x80)],
+        create_motions(),
+    ],
+)
 
 SCALE = MFunctionality(
     name=str(ValidModes.SCALE),
@@ -188,23 +196,39 @@ SCALE = MFunctionality(
     data=[create_scales()],
 )
 
+MAPPINGS_1 = MMappings(
+    name="Generic_map",
+    mappings=[
+        MMapping(0, 1, ValidInstruments.GENERIC),
+        MMapping(1, 1, ValidInstruments.VOLCA_BASS),
+        MMapping(2, 1, ValidInstruments.VOLCA_KEYS),
+        MMapping(3, 1, ValidInstruments.VOLCA_FM2),
+        MMapping(4, 1, ValidInstruments.VOLCA_DRUM),
+    ],
+)
+
+MAPPINGS_2 = MMappings(
+    name="Volca_DBKF_map",
+    mappings=[
+        MMapping(0, 1, ValidInstruments.VOLCA_DRUM),
+        MMapping(1, 1, ValidInstruments.VOLCA_BASS),
+        MMapping(2, 1, ValidInstruments.VOLCA_KEYS),
+        MMapping(3, 1, ValidInstruments.VOLCA_FM2),
+    ],
+)
+
 
 def init_modes() -> Dict[ValidModes, MFunctionality]:
     return {
         ValidModes.VOICE_1: VOICE_1,
         ValidModes.VOICE_2: VOICE_2,
+        ValidModes.CUTOFF_EG_INT: CUTOFF_EG_INT,
         ValidModes.SCALE: SCALE,
     }
 
 
-def init_mappings() -> List[SMapping]:
-    return [
-        SMapping(0, 1, ValidInstruments.GENERIC),
-        SMapping(1, 1, ValidInstruments.VOLCA_BASS),
-        SMapping(2, 1, ValidInstruments.VOLCA_KEYS),
-        SMapping(3, 1, ValidInstruments.VOLCA_FM2),
-        SMapping(4, 1, ValidInstruments.VOLCA_DRUM),
-    ]
+def init_mappings() -> MMappings:
+    return MAPPINGS_1
 
 
 def init_music(
@@ -213,13 +237,14 @@ def init_music(
     sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]] = (
         defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
     )
+    modes = init_modes()
     for midi in range(n_midis):
         for channel in EChannelS().values:
             for part in EPartS().values:
                 for step in EStepS().values:
                     for mode_str in list(ValidModes):
                         valid_mode = ValidModes(mode_str)
-                        mode = self.modes[valid_mode].new(lock=False)
+                        mode = modes[valid_mode].new(lock=False)
                         sequences[int(midi)][int(channel)][int(part)][int(step)][
                             valid_mode
                         ] = mode.get_indexes()

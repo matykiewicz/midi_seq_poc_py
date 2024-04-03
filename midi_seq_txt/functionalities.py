@@ -22,10 +22,16 @@ from .const import (
 
 
 @define
-class SMapping(AttrsInstance):
+class MMapping(AttrsInstance):
     midi_id: int
     channel_id: int
     instrument: ValidInstruments
+
+
+@define
+class MMappings(AttrsInstance):
+    name: str
+    mappings: List[MMapping]
 
 
 @define

@@ -107,10 +107,18 @@ class KeysUI(Static):
         mode = self.config_mode(key_ind=0)
         self.sequencer.send_mode(mode=mode)
         self.update_all()
+        if self.navigation_ui is not None:
+            self.navigation_ui.update_all()
 
     def key_2(self):
         mode = self.config_mode(key_ind=1)
         self.sequencer.send_mode(mode=mode)
+        main_label = mode.get_vis_label()
+        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if mode_value == ValidButtons.NEXT:
+            self.sequencer.get_current_proto_mode().update_offsets_with_lab(
+                lab=main_label, by=self.internal_config.n_buttons
+            )
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
@@ -118,6 +126,12 @@ class KeysUI(Static):
     def key_3(self):
         mode = self.config_mode(key_ind=2)
         self.sequencer.send_mode(mode=mode)
+        main_label = mode.get_vis_label()
+        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if mode_value == ValidButtons.NEXT:
+            self.sequencer.get_current_proto_mode().update_offsets_with_lab(
+                lab=main_label, by=self.internal_config.n_buttons
+            )
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
@@ -125,6 +139,12 @@ class KeysUI(Static):
     def key_4(self):
         mode = self.config_mode(key_ind=3)
         self.sequencer.send_mode(mode=mode)
+        main_label = mode.get_vis_label()
+        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if mode_value == ValidButtons.NEXT:
+            self.sequencer.get_current_proto_mode().update_offsets_with_lab(
+                lab=main_label, by=self.internal_config.n_buttons
+            )
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
@@ -132,6 +152,12 @@ class KeysUI(Static):
     def key_5(self):
         mode = self.config_mode(key_ind=4)
         self.sequencer.send_mode(mode=mode)
+        main_label = mode.get_vis_label()
+        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if mode_value == ValidButtons.NEXT:
+            self.sequencer.get_current_proto_mode().update_offsets_with_lab(
+                lab=main_label, by=self.internal_config.n_buttons
+            )
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
@@ -139,6 +165,12 @@ class KeysUI(Static):
     def key_6(self):
         mode = self.config_mode(key_ind=5)
         self.sequencer.send_mode(mode=mode)
+        main_label = mode.get_vis_label()
+        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if mode_value == ValidButtons.NEXT:
+            self.sequencer.get_current_proto_mode().update_offsets_with_lab(
+                lab=main_label, by=self.internal_config.n_buttons
+            )
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
@@ -146,6 +178,12 @@ class KeysUI(Static):
     def key_7(self):
         mode = self.config_mode(key_ind=6)
         self.sequencer.send_mode(mode=mode)
+        main_label = mode.get_vis_label()
+        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if mode_value == ValidButtons.NEXT:
+            self.sequencer.get_current_proto_mode().update_offsets_with_lab(
+                lab=main_label, by=self.internal_config.n_buttons
+            )
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
@@ -159,8 +197,6 @@ class KeysUI(Static):
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
                 lab=main_label, by=self.internal_config.n_buttons
             )
-            if self.navigation_ui is not None:
-                self.navigation_ui.update_all()
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
