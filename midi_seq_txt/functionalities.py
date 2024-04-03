@@ -91,6 +91,9 @@ class SFunctionality(AttrsInstance):
     ind: int
     values: List[Union[str, int]]
 
+    def new(self) -> "SFunctionality":
+        return deepcopy(self)
+
     def update_with_ind(self, ind: int) -> "SFunctionality":
         self.ind = ind
         return self

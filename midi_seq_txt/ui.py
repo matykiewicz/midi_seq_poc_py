@@ -323,9 +323,9 @@ class NavigationUI(Static):
             self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
             or self.sequencer.settings[ValidSettings.COPY].get_ind()
         ):
-            setting = self.next_any(ValidSettings.V_MIDI_O)
+            setting = self.next_v_pos(ValidSettings.V_MIDI_O)
         else:
-            setting = self.next_any(ValidSettings.E_MIDI_O)
+            setting = self.next_e_pos(ValidSettings.E_MIDI_O)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
@@ -334,9 +334,9 @@ class NavigationUI(Static):
             self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
             or self.sequencer.settings[ValidSettings.COPY].get_ind()
         ):
-            setting = self.next_any(ValidSettings.V_CHANNEL)
+            setting = self.next_v_pos(ValidSettings.V_CHANNEL)
         else:
-            setting = self.next_any(ValidSettings.E_CHANNEL)
+            setting = self.next_e_pos(ValidSettings.E_CHANNEL)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
@@ -345,9 +345,9 @@ class NavigationUI(Static):
             self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
             or self.sequencer.settings[ValidSettings.COPY].get_ind()
         ):
-            setting = self.next_any(ValidSettings.V_PART)
+            setting = self.next_v_pos(ValidSettings.V_PART)
         else:
-            setting = self.next_any(ValidSettings.E_PART)
+            setting = self.next_e_pos(ValidSettings.E_PART)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
@@ -356,9 +356,9 @@ class NavigationUI(Static):
             self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
             or self.sequencer.settings[ValidSettings.COPY].get_ind()
         ):
-            setting = self.next_any(ValidSettings.V_MODE)
+            setting = self.next_v_pos(ValidSettings.V_MODE)
         else:
-            setting = self.next_any(ValidSettings.E_MODE)
+            setting = self.next_e_pos(ValidSettings.E_MODE)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
@@ -468,8 +468,19 @@ class NavigationUI(Static):
         play_show = self.config_setting(ValidSettings.PLAY_SHOW, ValidButtons.OFF)
         self.sequencer.send_setting(play_show)
 
-    def next_any(self, valid_setting: ValidSettings) -> SFunctionality:
-        return self.sequencer.settings[valid_setting].next_ind()
+    def next_e_pos(self, valid_setting: ValidSettings) -> SFunctionality:
+        next_setting = self.sequencer.next_e_pos(valid_setting=valid_setting)
+        if next_setting is not None:
+            return next_setting
+        else:
+            raise ValueError("Next position was not found")
+
+    def next_v_pos(self, valid_setting: ValidSettings) -> SFunctionality:
+        next_setting = self.sequencer.next_v_pos(valid_setting=valid_setting)
+        if next_setting is not None:
+            return next_setting
+        else:
+            raise ValueError("Next position was not found")
 
     def config_setting(self, valid_setting: ValidSettings, setting_value: str) -> SFunctionality:
         return self.sequencer.settings[valid_setting].set_value(setting_value)
