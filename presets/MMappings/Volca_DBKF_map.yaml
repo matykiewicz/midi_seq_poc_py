@@ -1,0 +1,14 @@
+mappings:
+- channel_id: 1
+  instrument: Volca Drum
+  midi_id: 0
+- channel_id: 1
+  instrument: Volca Bass
+  midi_id: 1
+- channel_id: 1
+  instrument: Volca Keys
+  midi_id: 2
+- channel_id: 1
+  instrument: Volca FM2
+  midi_id: 3
+name: Volca_DBKF_map

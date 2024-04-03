@@ -1,0 +1,46 @@
+_exe_: 0
+_lock_: true
+data:
+- - '0'
+  - '144'
+  - '128'
+- - '0'
+  - '6'
+  - '12'
+  - '18'
+  - '24'
+  - '30'
+  - '36'
+  - '42'
+  - Next
+  - '48'
+  - '54'
+  - '60'
+  - '67'
+  - '73'
+  - '79'
+  - '85'
+  - Next
+  - '91'
+  - '97'
+  - '103'
+  - '109'
+  - '115'
+  - '121'
+  - Next
+first_only: false
+indexes:
+- - 1
+  - 0
+instruments:
+- Volca Bass
+labels:
+- Code
+- Cutoff
+name: VBCuEgIn
+offsets:
+- 1
+- 1
+vis_ind:
+- 0
+- 1
