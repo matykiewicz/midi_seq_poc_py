@@ -9,7 +9,8 @@ from rtmidi import MidiOut
 
 from .configs import InitConfig
 from .const import ValidButtons, ValidModes, ValidSettings
-from .functionalities import MFunctionality, SFunctionality, init_modes, init_settings
+from .functionalities import MFunctionality, SFunctionality
+from .init import init_modes, init_settings
 
 DEBUG: bool = False
 

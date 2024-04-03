@@ -6,7 +6,8 @@ from textual.widgets import Label, Sparkline, Static
 from .configs import InitConfig
 from .const import ValidButtons, ValidModes, ValidNav, ValidSettings
 from .engine import Engine
-from .functionalities import MFunctionality, SFunctionality, init_nav
+from .functionalities import MFunctionality, SFunctionality
+from .init import init_nav
 
 
 class KeysUI(Static):
@@ -183,6 +184,8 @@ class NavigationUI(Static):
             ValidNav.VIEW,
             ValidNav.PLAY,
             ValidNav.TEMPO,
+            ValidNav.PRESETS,
+            ValidNav.EDITS,
         ]
         self.nav_id = 0
         self.navigation = init_nav()
@@ -227,7 +230,19 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.PLAY_PART] = self.play_part
         nav_actions[ValidButtons.PLAY_PARTS] = self.play_parts
         nav_actions[ValidButtons.PLAY_ALL] = self.play_all
+        nav_actions[ValidButtons.PRESETS_LOAD] = self.presets_load
+        nav_actions[ValidButtons.PRESETS_SAVE] = self.presets_save
+        nav_actions[ValidButtons.PRESETS_EDIT] = self.presets_edit
         return nav_actions
+
+    def presets_load(self) -> None:
+        pass
+
+    def presets_save(self) -> None:
+        pass
+
+    def presets_edit(self) -> None:
+        pass
 
     def play_part(self) -> None:
         view = self.config_setting(ValidSettings.PLAY_FUNCTION, str(ValidButtons.PLAY_PARTS.value))

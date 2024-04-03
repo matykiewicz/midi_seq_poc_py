@@ -47,6 +47,7 @@ class ValidButtons(StrEnum):
     VIEW_PLAY = "VPlay"
     ON = "On"
     OFF = "Off"
+    PRESETS_EDIT = "PrstEd"
     PRESETS_LOAD = "PrstLo"
     PRESETS_SAVE = "PrstSa"
     PRESETS_L_MSGS = "LMsgs"
@@ -66,6 +67,28 @@ class ValidButtons(StrEnum):
     MSGS_LIST = "MSGS_LIST"
     MSGS_EDIT = "MSGS_EDIT"
 
+
+BUT_PRES = (
+    ValidButtons.OPT_DOWN,
+    ValidButtons.OPT_UP,
+    ValidButtons.PRESETS_LOAD,
+    ValidButtons.PRESETS_SAVE,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+)
+
+BUT_EDIT = (
+    ValidButtons.OPT_DOWN,
+    ValidButtons.OPT_UP,
+    ValidButtons.PRESETS_EDIT,
+    ValidButtons.EMPTY,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+)
 
 BUT_TEMPO = (
     ValidButtons.OPT_DOWN,
@@ -161,6 +184,8 @@ class ValidNav(StrEnum):
     VIEW = "View"
     PLAY = "Play"
     TEMPO = "Tempo"
+    PRESETS = "Presets"
+    EDITS = "Edits"
 
 
 class ValidSettings(StrEnum):
@@ -187,3 +212,16 @@ class ValidModes(StrEnum):
     VOICE_1 = "Vo1"
     VOICE_2 = "Vo2"
     SCALE = "Sca"
+
+
+class ValidInstruments(StrEnum):
+    GENERIC = "Generic"
+    VOLCA_DRUM = "Volca Drum"
+    VOLCA_KEYS = "Volca Keys"
+    VOLCA_BASS = "Volca Bass"
+    VOLCA_FM2 = "Volca FM2"
+
+
+class ValidPresets(StrEnum):
+    INSTRUMENT_MAPPING = "Instrument Mapping"
+    SEQUENCED_MUSIC = "Sequenced Music"
