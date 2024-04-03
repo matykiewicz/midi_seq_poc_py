@@ -1,7 +1,7 @@
 
 # Intro
 
-We need some DSL to store configs. We will have hierarchical dependencies between configs.
+We need some DSL to store presets (a.k.a. configs). We will have hierarchical dependencies between presets.
 
 Here is our idea:
 
@@ -12,7 +12,7 @@ Here is our idea:
 
 # Notes
 
-Music needs MIDI messages stored alongside. Instruments and mappings are convenience data structures. They only make sense for new music piece.
+Music needs MIDI messages stored alongside. Instruments and mappings are convenience data structures. They only make sense for a new music piece. Mapping between instruments, MIDI IDs and channels are used to generate blank music "sheet".
 
 We prefer YAML over JSON because YAML allows comments.
 
