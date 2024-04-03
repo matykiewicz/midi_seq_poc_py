@@ -6,7 +6,7 @@ from typing import Any, Dict
 import attrs
 import rtmidi
 
-from .const import ValidButtons, ValidModes, ValidSettings
+from .const import ValidButtons, ValidSettings
 from .functionalities import MFunctionality, SFunctionality
 from .sequencer import MiDiO, Sequencer
 
@@ -20,7 +20,7 @@ class Engine(Sequencer):
     def __init__(self, loc: str):
         super().__init__()
         self.loc = loc
-        self.modes: Dict[ValidModes, MFunctionality] = dict()
+        self.modes: Dict[str, MFunctionality] = dict()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.midis: Dict[int, MiDiO] = self.init_midis()
         self.n_midis = len(self.midis)
@@ -79,7 +79,7 @@ class Engine(Sequencer):
         return setting_value
 
     def convert_to_mode(self, mode_dict: Dict[str, Any]) -> MFunctionality:
-        valid_mode = ValidModes(mode_dict["name"])
+        valid_mode = mode_dict["name"]
         mode_value = self.modes[valid_mode].new(lock=False)
         mode_value.set_indexes(mode_dict["indexes"])
         return mode_value
@@ -110,7 +110,7 @@ class Engine(Sequencer):
         f_midi: int,
         f_channel: int,
         f_part: int,
-        f_mode: ValidModes,
+        f_mode: str,
         button: ValidButtons,
     ) -> None:
         t_mode = self.get_current_new_mode()

@@ -208,13 +208,6 @@ class ValidSettings(StrEnum):
     TEMPO = "Tempo"
 
 
-class ValidModes(StrEnum):
-    VOICE_1 = "Vo1"
-    VOICE_2 = "Vo2"
-    CUTOFF_EG_INT = "CutEGI"
-    SCALE = "Sca"
-
-
 class ValidInstruments(StrEnum):
     GENERIC = "Generic"
     VOLCA_DRUM = "Volca Drum"

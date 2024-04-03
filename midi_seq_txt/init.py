@@ -9,7 +9,6 @@ from .const import (
     ValidButtons,
     ValidInstruments,
     ValidLengths,
-    ValidModes,
     ValidNav,
     ValidPresets,
     ValidSettings,
@@ -101,13 +100,13 @@ def create_motions() -> List[str]:
 
 
 VOICE_1 = MFunctionality(
-    name=str(ValidModes.VOICE_1),
+    name="GeVo1",
     first_only=False,
     indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
     offsets=[1, 1 + 8 * 2, 6, 1],
     labels=["Code", "Note", "Velocity", "Length"],
-    vis_ind=(0, 1),
-    instruments=[ValidInstruments.GENERIC],
+    vis_ind=[0, 1],
+    instruments=[str(ValidInstruments.GENERIC)],
     data=[
         [str(0), str(0x90), str(0x80)],
         create_notes(scale="C"),
@@ -120,13 +119,13 @@ VOICE_1 = MFunctionality(
 )
 
 VOICE_2 = MFunctionality(
-    name=str(ValidModes.VOICE_2),
+    name="GeVo2",
     first_only=False,
     indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
     offsets=[1, 1 + 8 * 2, 6, 1],
     labels=["Code", "Note", "Velocity", "Length"],
-    vis_ind=(0, 1),
-    instruments=[ValidInstruments.GENERIC],
+    vis_ind=[0, 1],
+    instruments=[str(ValidInstruments.GENERIC)],
     data=[
         [str(0), str(0x90), str(0x80)],
         create_notes(scale="C"),
@@ -139,13 +138,13 @@ VOICE_2 = MFunctionality(
 )
 
 CUTOFF_EG_INT = MFunctionality(
-    name=str(ValidModes.CUTOFF_EG_INT),
+    name="VBCuEgIn",
     first_only=False,
     indexes=[[1, 0]],
     offsets=[1, 1],
     labels=["Code", "Cutoff"],
-    vis_ind=(0, 1),
-    instruments=[ValidInstruments.VOLCA_BASS],
+    vis_ind=[0, 1],
+    instruments=[str(ValidInstruments.VOLCA_BASS)],
     data=[
         [str(0), str(0x90), str(0x80)],
         create_motions(),
@@ -153,33 +152,33 @@ CUTOFF_EG_INT = MFunctionality(
 )
 
 SCALE = MFunctionality(
-    name=str(ValidModes.SCALE),
+    name="Scale",
     first_only=True,
     indexes=[[0]],
     offsets=[1],
     labels=["Scale"],
-    instruments=[ValidInstruments.GENERIC],
-    vis_ind=(0, 0),
+    instruments=[str(ValidInstruments.GENERIC)],
+    vis_ind=[0, 0],
     data=[create_scales()],
 )
 
 MAPPINGS_GENERIC_4 = MMappings(
     name="Generic_4_map",
     mappings=[
-        MMapping(0, 1, ValidInstruments.GENERIC),
-        MMapping(1, 1, ValidInstruments.GENERIC),
-        MMapping(2, 1, ValidInstruments.GENERIC),
-        MMapping(3, 1, ValidInstruments.GENERIC),
+        MMapping(0, 1, str(ValidInstruments.GENERIC)),
+        MMapping(1, 1, str(ValidInstruments.GENERIC)),
+        MMapping(2, 1, str(ValidInstruments.GENERIC)),
+        MMapping(3, 1, str(ValidInstruments.GENERIC)),
     ],
 )
 
 MAPPINGS_VOLCA_DBKF = MMappings(
     name="Volca_DBKF_map",
     mappings=[
-        MMapping(0, 1, ValidInstruments.VOLCA_DRUM),
-        MMapping(1, 1, ValidInstruments.VOLCA_BASS),
-        MMapping(2, 1, ValidInstruments.VOLCA_KEYS),
-        MMapping(3, 1, ValidInstruments.VOLCA_FM2),
+        MMapping(0, 1, str(ValidInstruments.VOLCA_DRUM)),
+        MMapping(1, 1, str(ValidInstruments.VOLCA_BASS)),
+        MMapping(2, 1, str(ValidInstruments.VOLCA_KEYS)),
+        MMapping(3, 1, str(ValidInstruments.VOLCA_FM2)),
     ],
 )
 
@@ -196,18 +195,18 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
     }
 
 
-def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
+def init_settings(n_midis: int, valid_modes: List[str]) -> Dict[ValidSettings, SFunctionality]:
     return {
         ValidSettings.E_MIDI_O: EMiDiOS(n_midis=n_midis),
         ValidSettings.E_CHANNEL: EChannelS(),
         ValidSettings.E_PART: EPartS(),
         ValidSettings.E_STEP: EStepS(),
-        ValidSettings.E_MODE: EModeS(),
+        ValidSettings.E_MODE: EModeS(valid_modes=valid_modes),
         ValidSettings.V_MIDI_O: VMiDiOS(n_midis=n_midis),
         ValidSettings.V_CHANNEL: VChannelS(),
         ValidSettings.V_PART: VPartS(),
         ValidSettings.V_STEP: VStepS(),
-        ValidSettings.V_MODE: VModeS(),
+        ValidSettings.V_MODE: VModeS(valid_modes=valid_modes),
         ValidSettings.TEMPO: TempoS(),
         ValidSettings.RECORD: RecordS(),
         ValidSettings.COPY: CopyS(),
@@ -218,12 +217,12 @@ def init_settings(n_midis: int) -> Dict[ValidSettings, SFunctionality]:
     }
 
 
-def init_modes() -> Dict[ValidModes, MFunctionality]:
+def init_modes() -> Dict[str, MFunctionality]:
     return {
-        ValidModes.VOICE_1: VOICE_1,
-        ValidModes.VOICE_2: VOICE_2,
-        ValidModes.CUTOFF_EG_INT: CUTOFF_EG_INT,
-        ValidModes.SCALE: SCALE,
+        VOICE_1.name: VOICE_1,
+        VOICE_2.name: VOICE_2,
+        CUTOFF_EG_INT.name: CUTOFF_EG_INT,
+        SCALE.name: SCALE,
     }
 
 
@@ -235,8 +234,8 @@ def init_music(
     n_midis: int,
     mappings: MMappings,
 ) -> MMusic:
-    sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]] = (
-        defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
+    sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     )
     modes = init_modes()
     mappings_dict = mappings.to_dict(modes=modes)
@@ -245,8 +244,7 @@ def init_music(
             if int(channel) in mappings_dict[int(midi)]:
                 for part in EPartS().values:
                     for step in EStepS().values:
-                        for mode_str in list(ValidModes):
-                            valid_mode = ValidModes(mode_str)
+                        for valid_mode in modes.keys():
                             if valid_mode in mappings_dict[int(midi)][int(channel)]:
                                 mode = modes[valid_mode].new(lock=False)
                                 sequences[int(midi)][int(channel)][int(part)][int(step)][
@@ -258,3 +256,6 @@ def init_music(
 
 def init_presets() -> Dict[ValidPresets, Any]:
     return dict()
+
+
+MUSIC_GENERIC_4 = init_music(n_midis=4, mappings=MAPPINGS_GENERIC_4)

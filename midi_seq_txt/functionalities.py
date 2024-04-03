@@ -15,8 +15,6 @@ from .const import (
     BUT_TEMPO,
     BUT_VIEW,
     ValidButtons,
-    ValidInstruments,
-    ValidModes,
     ValidNav,
     ValidSettings,
 )
@@ -26,7 +24,7 @@ from .const import (
 class MMapping(AttrsInstance):
     midi_id: int
     channel_id: int
-    instrument: ValidInstruments
+    instrument: str
 
 
 @define
@@ -34,13 +32,9 @@ class MMappings(AttrsInstance):
     name: str
     mappings: List[MMapping]
 
-    def to_dict(
-        self, modes: Dict[ValidModes, "MFunctionality"]
-    ) -> Dict[int, Dict[int, List[ValidModes]]]:
-        mappings_dict: Dict[int, Dict[int, List[ValidModes]]] = defaultdict(
-            lambda: defaultdict(list)
-        )
-        instruments_dict: Dict[str, List[ValidModes]] = defaultdict(list)
+    def to_dict(self, modes: Dict[str, "MFunctionality"]) -> Dict[int, Dict[int, List[str]]]:
+        mappings_dict: Dict[int, Dict[int, List[str]]] = defaultdict(lambda: defaultdict(list))
+        instruments_dict: Dict[str, List[str]] = defaultdict(list)
         for valid_mode in modes.keys():
             mode = modes[valid_mode]
             for instrument in mode.instruments:
@@ -57,7 +51,7 @@ class MMappings(AttrsInstance):
 @define
 class MMusic(AttrsInstance):
     name: str
-    data: Dict[int, Dict[int, Dict[int, Dict[int, Dict[ValidModes, List[List[int]]]]]]]
+    data: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]]
 
 
 @define
@@ -145,7 +139,7 @@ class MFunctionality(AttrsInstance):
     labels: List[str]
     offsets: List[int]
     data: List[List[str]]
-    vis_ind: Tuple[int, int]
+    vis_ind: List[int]
     instruments: List[str]
     _exe_: int = 0
     _lock_: bool = True
@@ -201,7 +195,7 @@ class MFunctionality(AttrsInstance):
                 values.append(deepcopy(self.data[j][self.indexes[exe][j]]))
         return values
 
-    def get_vis_ind(self) -> Tuple[int, int]:
+    def get_vis_ind(self) -> List[int]:
         return self.vis_ind
 
     def get_vis_label(self) -> str:
@@ -377,11 +371,11 @@ class EChannelS(SFunctionality):
 
 
 class EModeS(SFunctionality):
-    def __init__(self):
+    def __init__(self, valid_modes: List[str]):
         super().__init__(
             name=ValidSettings.E_MODE.value,
             ind=0,
-            values=[k for k in ValidModes],
+            values=[k for k in valid_modes],
         )
 
 
@@ -425,11 +419,11 @@ class VChannelS(SFunctionality):
 
 
 class VModeS(SFunctionality):
-    def __init__(self):
+    def __init__(self, valid_modes: List[str]):
         super().__init__(
             name=ValidSettings.V_MODE.value,
             ind=0,
-            values=[k for k in ValidModes],
+            values=[k for k in valid_modes],
         )
 
 

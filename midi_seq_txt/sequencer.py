@@ -8,7 +8,7 @@ import rtmidi
 from rtmidi import MidiOut
 
 from .configs import InitConfig
-from .const import ValidButtons, ValidModes, ValidSettings
+from .const import ValidButtons, ValidSettings
 from .functionalities import MFunctionality, MMappings, MMusic, SFunctionality
 from .init import init_mappings, init_modes, init_music, init_settings
 
@@ -19,7 +19,8 @@ class Sequencer:
     def __init__(self):
         self.internal_config = InitConfig()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
-        self.modes: Dict[ValidModes, MFunctionality] = dict()
+        self.modes: Dict[str, MFunctionality] = dict()
+        self.valid_modes: List[str] = list()
         self.n_midis = 0
         self.detached = False
         self.mappings: MMappings = init_mappings()
@@ -51,26 +52,27 @@ class Sequencer:
         pass
 
     def init_data(self) -> None:
-        self.settings = init_settings(self.n_midis)
         self.modes = init_modes()
+        self.valid_modes = list(self.modes.keys())
+        self.settings = init_settings(n_midis=self.n_midis, valid_modes=self.valid_modes)
         self.sequences = init_music(n_midis=self.n_midis, mappings=self.mappings)
 
-    def get_current_e_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, ValidModes]:
+    def get_current_e_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())
         channel = int(self.settings[ValidSettings.E_CHANNEL].get_value())
         part = int(self.settings[ValidSettings.E_PART].get_value())
         step = int(self.settings[ValidSettings.E_STEP].get_value())
-        valid_mode = ValidModes(str(self.settings[ValidSettings.E_MODE].get_value()))
+        valid_mode = str(self.settings[ValidSettings.E_MODE].get_value())
         if first_only:
             step = int(self.settings[ValidSettings.E_STEP].get_first_value())
         return midi, channel, part, step, valid_mode
 
-    def get_current_v_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, ValidModes]:
+    def get_current_v_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.V_MIDI_O].get_value())
         channel = int(self.settings[ValidSettings.V_CHANNEL].get_value())
         part = int(self.settings[ValidSettings.V_PART].get_value())
         step = int(self.settings[ValidSettings.V_STEP].get_value())
-        valid_mode = ValidModes(str(self.settings[ValidSettings.V_MODE].get_value()))
+        valid_mode = str(self.settings[ValidSettings.V_MODE].get_value())
         if first_only:
             step = int(self.settings[ValidSettings.V_STEP].get_first_value())
         return midi, channel, part, step, valid_mode
@@ -118,7 +120,7 @@ class Sequencer:
                 ]
                 n_mode_set.next_ind()
                 n_valid_mode = n_mode_set.get_value()
-                if ValidModes(str(n_valid_mode)) in check_in_v:
+                if str(n_valid_mode) in check_in_v:
                     exists_in = True
                     return n_mode_set
             else:
@@ -168,14 +170,14 @@ class Sequencer:
                 ]
                 n_mode_set.next_ind()
                 n_valid_mode = n_mode_set.get_value()
-                if ValidModes(str(n_valid_mode)) in check_in_v:
+                if str(n_valid_mode) in check_in_v:
                     exists_in = True
                     return n_mode_set
             else:
                 return None
         return None
 
-    def get_first_step_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
+    def get_first_step_mode(self, valid_mode: Optional[str] = None) -> MFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
@@ -184,7 +186,7 @@ class Sequencer:
         first_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return first_mode
 
-    def get_current_e_step_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
+    def get_current_e_step_mode(self, valid_mode: Optional[str] = None) -> MFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
@@ -192,7 +194,7 @@ class Sequencer:
         current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return current_mode
 
-    def get_current_v_step_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
+    def get_current_v_step_mode(self, valid_mode: Optional[str] = None) -> MFunctionality:
         midi, channel, part, step, mode = self.get_current_v_pos()
         if valid_mode is None:
             valid_mode = mode
@@ -200,14 +202,14 @@ class Sequencer:
         current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return current_mode
 
-    def get_current_new_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
+    def get_current_new_mode(self, valid_mode: Optional[str] = None) -> MFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
         current_mode = self.modes[valid_mode].new(lock=False)
         return current_mode
 
-    def get_current_proto_mode(self, valid_mode: Optional[ValidModes] = None) -> MFunctionality:
+    def get_current_proto_mode(self, valid_mode: Optional[str] = None) -> MFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
@@ -230,15 +232,15 @@ class Sequencer:
         return notes
 
     def get_current_scale_values(self) -> List[str]:
-        scale = self.get_first_step_mode(ValidModes.SCALE)
+        scale = self.get_first_step_mode("Scale")
         return scale.get_row_values(exe=0)
 
     def get_current_scale_labels(self) -> List[str]:
-        scale = self.get_first_step_mode(ValidModes.SCALE)
+        scale = self.get_first_step_mode("Scale")
         return scale.get_labels()
 
     def set_step(self, mode: MFunctionality) -> None:
-        positions_to_set: List[Tuple[int, int, int, int, ValidModes]] = list()
+        positions_to_set: List[Tuple[int, int, int, int, str]] = list()
         if self.settings[ValidSettings.RECORD].get_value() == ValidButtons.ON:
             positions_to_set += self.get_record_positions(mode=mode)
         elif self.settings[ValidSettings.COPY].get_value() == ValidButtons.ON:
@@ -248,11 +250,9 @@ class Sequencer:
             self.sequences.data[midi][channel][part][step][valid_mode] = mode.get_indexes()
         self.debug() if DEBUG else None
 
-    def get_record_positions(
-        self, mode: MFunctionality
-    ) -> List[Tuple[int, int, int, int, ValidModes]]:
+    def get_record_positions(self, mode: MFunctionality) -> List[Tuple[int, int, int, int, str]]:
         main_label = mode.get_vis_label()
-        positions_to_record: List[Tuple[int, int, int, int, ValidModes]] = list()
+        positions_to_record: List[Tuple[int, int, int, int, str]] = list()
         if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
             positions_to_record += [self.get_current_e_pos(first_only=mode.first_only)]
             self.settings[ValidSettings.E_STEP].next_ind()
@@ -263,11 +263,9 @@ class Sequencer:
                     positions_to_record += [position_to_record]
         return positions_to_record
 
-    def get_copy_positions(
-        self, mode: MFunctionality
-    ) -> List[Tuple[int, int, int, int, ValidModes]]:
+    def get_copy_positions(self, mode: MFunctionality) -> List[Tuple[int, int, int, int, str]]:
         main_label = mode.get_vis_label()
-        positions_to_copy: List[Tuple[int, int, int, int, ValidModes]] = list()
+        positions_to_copy: List[Tuple[int, int, int, int, str]] = list()
         if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
             positions_to_copy += [self.get_current_v_pos(first_only=mode.first_only)]
         return positions_to_copy

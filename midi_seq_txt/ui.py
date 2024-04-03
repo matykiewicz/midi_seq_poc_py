@@ -4,7 +4,7 @@ from textual.app import ComposeResult
 from textual.widgets import Label, Sparkline, Static
 
 from .configs import InitConfig
-from .const import ValidButtons, ValidModes, ValidNav, ValidSettings
+from .const import ValidButtons, ValidNav, ValidSettings
 from .engine import Engine
 from .functionalities import MFunctionality, SFunctionality
 from .init import init_nav
@@ -56,7 +56,7 @@ class KeysUI(Static):
         step = int(self.sequencer.settings[ValidSettings.V_STEP].get_value())
         pos_label = (
             f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|"
-            f"{valid_mode.value}|{self.seq_step:02}"
+            f"{valid_mode}|{self.seq_step:02}"
         )
         self.pos_top_label.update(pos_label)
 
@@ -81,7 +81,7 @@ class KeysUI(Static):
         step = int(self.sequencer.settings[ValidSettings.E_STEP].get_value())
         pos_label = (
             f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|"
-            f"{valid_mode.value}|{self.seq_step:02}"
+            f"{valid_mode}|{self.seq_step:02}"
         )
         self.pos_bottom_label.update(pos_label)
 
@@ -96,7 +96,7 @@ class KeysUI(Static):
         self.update_bottom()
 
     def config_mode(self, key_ind: int) -> MFunctionality:
-        valid_mode = ValidModes(str(self.sequencer.settings[ValidSettings.E_MODE].get_value()))
+        valid_mode = str(self.sequencer.settings[ValidSettings.E_MODE].get_value())
         mode = self.sequencer.modes[valid_mode]
         main_label = mode.get_vis_label()
         return (
