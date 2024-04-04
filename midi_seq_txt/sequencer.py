@@ -22,10 +22,10 @@ class Sequencer:
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.modes: Dict[str, MFunctionality] = dict()
         self.valid_modes: List[str] = list()
-        self.n_midis = 0
+        self.midi_ids: List[int] = list()
         self.detached = False
         self.mappings: MMappings = init_mappings_mem()
-        self.sequences: MMusic = MMusic("", dict())
+        self.sequences: MMusic = MMusic("", "", dict())
         self.tempo: int = self.internal_config.init_tempo
         self.scale: str = self.internal_config.init_scale
         self.clock_sync = 0.0
@@ -55,8 +55,8 @@ class Sequencer:
     def init_data(self) -> None:
         self.modes = init_modes_mem()
         self.valid_modes = list(self.modes.keys())
-        self.settings = init_settings(n_midis=self.n_midis, valid_modes=self.valid_modes)
-        self.sequences = init_music_mem(n_midis=self.n_midis, mappings=self.mappings)
+        self.settings = init_settings(midi_ids=self.midi_ids, valid_modes=self.valid_modes)
+        self.sequences = init_music_mem(midi_ids=self.midi_ids, mappings=self.mappings)
 
     def get_current_e_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())

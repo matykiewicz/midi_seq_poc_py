@@ -23,7 +23,7 @@ class Engine(Sequencer):
         self.modes: Dict[str, MFunctionality] = dict()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.midis: Dict[int, MiDiO] = self.init_midis()
-        self.n_midis = len(self.midis)
+        self.midi_ids = sorted(self.midis.keys())
         from midi_seq_txt.sequencer import DEBUG
 
         self.process = Process(target=self.start, args=(DEBUG,))

@@ -70,6 +70,7 @@ class MMappings(AttrsInstance):
 @define
 class MMusic(AttrsInstance):
     name: str
+    mappings_name: str
     data: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]]
 
 
@@ -358,11 +359,11 @@ class EditsN(NFunctionality):
 
 
 class EMiDiOS(SFunctionality):
-    def __init__(self, n_midis: int):
+    def __init__(self, midi_ids: List[int]):
         super().__init__(
             name=ValidSettings.E_MIDI_O.value,
             ind=0,
-            values=[i for i in range(n_midis)],
+            values=deepcopy(sorted(midi_ids)),
         )
 
 
@@ -406,11 +407,11 @@ class EModeS(SFunctionality):
 
 
 class VMiDiOS(SFunctionality):
-    def __init__(self, n_midis: int):
+    def __init__(self, midi_ids: List[int]):
         super().__init__(
             name=ValidSettings.V_MIDI_O.value,
             ind=0,
-            values=[i for i in range(n_midis)],
+            values=deepcopy(sorted(midi_ids)),
         )
 
 

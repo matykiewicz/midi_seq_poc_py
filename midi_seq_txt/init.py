@@ -240,14 +240,16 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
     }
 
 
-def init_settings(n_midis: int, valid_modes: List[str]) -> Dict[ValidSettings, SFunctionality]:
+def init_settings(
+    midi_ids: List[int], valid_modes: List[str]
+) -> Dict[ValidSettings, SFunctionality]:
     return {
-        ValidSettings.E_MIDI_O: EMiDiOS(n_midis=n_midis),
+        ValidSettings.E_MIDI_O: EMiDiOS(midi_ids=midi_ids),
         ValidSettings.E_CHANNEL: EChannelS(),
         ValidSettings.E_PART: EPartS(),
         ValidSettings.E_STEP: EStepS(),
         ValidSettings.E_MODE: EModeS(valid_modes=valid_modes),
-        ValidSettings.V_MIDI_O: VMiDiOS(n_midis=n_midis),
+        ValidSettings.V_MIDI_O: VMiDiOS(midi_ids=midi_ids),
         ValidSettings.V_CHANNEL: VChannelS(),
         ValidSettings.V_PART: VPartS(),
         ValidSettings.V_STEP: VStepS(),
@@ -276,7 +278,7 @@ def init_mappings_mem() -> MMappings:
 
 
 def init_music_mem(
-    n_midis: int,
+    midi_ids: List[int],
     mappings: MMappings,
 ) -> MMusic:
     sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]] = defaultdict(
@@ -284,19 +286,19 @@ def init_music_mem(
     )
     modes = init_modes_mem()
     mappings_dict = mappings.to_dict(modes=modes)
-    for midi in range(n_midis):
+    for midi_id in midi_ids:
         for channel in EChannelS().values:
-            if int(channel) in mappings_dict[int(midi)]:
+            if int(channel) in mappings_dict[int(midi_id)]:
                 for part in EPartS().values:
                     for step in EStepS().values:
                         for valid_mode in modes.keys():
-                            if valid_mode in mappings_dict[int(midi)][int(channel)]:
+                            if valid_mode in mappings_dict[int(midi_id)][int(channel)]:
                                 mode = modes[valid_mode].new(lock=False)
-                                sequences[int(midi)][int(channel)][int(part)][int(step)][
+                                sequences[int(midi_id)][int(channel)][int(part)][int(step)][
                                     valid_mode
                                 ] = mode.get_indexes()
-    m_music = MMusic(name="Empty", data=sequences)
+    m_music = MMusic(name="Empty", data=sequences, mappings_name=mappings.name)
     return m_music
 
 
-MUSIC_GENERIC_4 = init_music_mem(n_midis=4, mappings=MAPPINGS_GENERIC_4)
+MUSIC_GENERIC_4 = init_music_mem(midi_ids=list(range(4)), mappings=MAPPINGS_GENERIC_4)
