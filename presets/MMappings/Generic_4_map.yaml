@@ -3,24 +3,24 @@ mappings:
   instruments:
   - Generic
   is_out: true
-  midi_id: 0
-  midi_name: USB MIDI Interface
-- channel: 1
-  instruments:
-  - Generic
-  is_out: true
   midi_id: 1
-  midi_name: USB2.0-MIDI Port 2
+  port_name: USB MIDI Interface
 - channel: 1
   instruments:
   - Generic
   is_out: true
-  midi_id: 2
-  midi_name: ''
+  midi_id: 0
+  port_name: USB2.0-MIDI Port 2
 - channel: 1
   instruments:
   - Generic
   is_out: true
   midi_id: 3
-  midi_name: ''
+  port_name: USB MIDI Interface
+- channel: 1
+  instruments:
+  - Generic
+  is_out: true
+  midi_id: 2
+  port_name: USB2.0-MIDI Port 2
 name: Generic_4_map
