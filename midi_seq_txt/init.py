@@ -163,28 +163,28 @@ MAPPINGS_GENERIC_4 = MMappings(
     name="Generic_4_map",
     mappings=[
         MMapping(
-            midi_id=0,
+            midi_id=1,
             port_name="USB MIDI Interface",
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.GENERIC)],
         ),
         MMapping(
-            midi_id=1,
+            midi_id=0,
             port_name="USB2.0-MIDI Port 2",
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.GENERIC)],
         ),
         MMapping(
-            midi_id=2,
+            midi_id=3,
             port_name="USB MIDI Interface",
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.GENERIC)],
         ),
         MMapping(
-            midi_id=3,
+            midi_id=2,
             port_name="USB2.0-MIDI Port 2",
             channel=1,
             is_out=True,

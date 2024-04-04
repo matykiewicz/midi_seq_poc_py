@@ -35,18 +35,20 @@ class MMappings(AttrsInstance):
     mappings: List[MMapping]
 
     def filter_midis(self, port_names) -> List[Tuple[int, int]]:
-        found_midis: List[int] = list()
+        found_ports: List[int] = list()
         found_mappings: List[int] = list()
+        found_midis: List[int] = list()
         for i, port_name in enumerate(port_names):
             for j, mapping in enumerate(self.mappings):
                 if (
-                    port_name == mapping.midi_name
-                    and i not in found_midis
+                    port_name == mapping.port_name
+                    and i not in found_ports
                     and j not in found_mappings
                 ):
-                    found_midis.append(i)
+                    found_ports.append(i)
                     found_mappings.append(j)
-        return list(zip(found_midis, found_mappings))
+                    found_midis.append(self.mappings[j].midi_id)
+        return list(zip(found_ports, found_midis))
 
     def to_dict(self, modes: Dict[str, "MFunctionality"]) -> Dict[int, Dict[int, List[str]]]:
         mappings_dict: Dict[int, Dict[int, List[str]]] = defaultdict(lambda: defaultdict(list))
