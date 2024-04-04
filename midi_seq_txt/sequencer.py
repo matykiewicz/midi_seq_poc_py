@@ -1,4 +1,5 @@
 import math
+import os
 import time
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple, Type, Union
@@ -34,10 +35,10 @@ class Sequencer:
         self.reset_intervals()
         self.reset_scale()
 
-    def debug(self) -> None:
+    def debug_sequence(self) -> None:
         import json
 
-        fh = open(f"{self.__class__.__name__}.{self.detached}.json", "w")
+        fh = open(f"{self.__class__.__name__}.seq.{self.detached}.json", "w")
         json.dump(self.sequences.data, indent=2, sort_keys=True, fp=fh)
         fh.close()
 
@@ -232,7 +233,7 @@ class Sequencer:
         for position_to_set in positions_to_set:
             midi, channel, part, step, valid_mode = position_to_set
             self.sequences.data[midi][channel][part][step][valid_mode] = mode.get_indexes()
-        self.debug() if DEBUG else None
+        self.debug_sequence() if DEBUG else None
 
     def get_record_positions(self, mode: MFunctionality) -> List[Tuple[int, int, int, int, str]]:
         main_label = mode.get_vis_label()
@@ -382,19 +383,41 @@ class Sequencer:
         ):
             self.reset_intervals()
             self.clock_sync = float(math.ceil(time.time() + InitConfig().init_time))
-        if self.settings[ValidSettings.PLAY_SHOW].get_value() == ValidButtons.OFF:
-            self.clock_sync = 0.0
 
 
 class MiDiO:
-    def __init__(self, port_id: int):
+    def __init__(self, port_id: int, midi_id: int):
         super().__init__()
         self.port_id = port_id
+        self.midi_id = midi_id
         self.midi_out: Optional[MidiOut] = None
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
         self.scheduled_steps: Dict[float, Dict[int, List[MFunctionality]]] = dict()
         self.scheduled_notes: Dict[float, Dict[int, MFunctionality]] = dict()
+
+    def debug_prep(self):
+        file_name = f"{self.__class__.__name__}.midi.{self.port_id}.txt"
+        if os.path.exists(file_name):
+            os.remove(file_name)
+
+    def debug_midi(
+        self,
+        midi_id: int,
+        channel: int,
+        time_now: float,
+        offset_time: float,
+        step_tick: float,
+        valid_mode: str,
+        exe: int,
+        message: List[int],
+    ) -> None:
+        fh = open(f"{self.__class__.__name__}.midi.{self.port_id}.txt", "a")
+        fh.write(
+            f"{time_now} {offset_time} {time_now - (offset_time + step_tick)} | "
+            f"{midi_id} {channel} {step_tick} {valid_mode} {exe} {message}\n"
+        )
+        fh.close()
 
     def attach(self, sequencer: Sequencer) -> None:
         self.sequencer = sequencer
@@ -461,7 +484,8 @@ class MiDiO:
         if self.midi_out is not None and not self.midi_out.is_port_open():
             self.midi_out.open_port(self.port_id)
         for step_tick in sorted(self.scheduled_steps.keys()):
-            if time.time() >= step_tick + offset_time:
+            time_now = time.time()
+            if time_now >= (step_tick + offset_time):
                 for channel in self.scheduled_steps[step_tick].keys():
                     for i, mode in enumerate(self.scheduled_steps[step_tick][channel]):
                         message: List[int] = mode.get_message()
@@ -471,6 +495,20 @@ class MiDiO:
                                 command=message[0],
                                 ch=channel,
                                 data=message[1:3],
+                            )
+                            (
+                                self.debug_midi(
+                                    midi_id=self.port_id,
+                                    channel=channel,
+                                    time_now=time_now,
+                                    offset_time=offset_time,
+                                    step_tick=step_tick,
+                                    exe=mode.get_exe(),
+                                    valid_mode=mode.name,
+                                    message=message,
+                                )
+                                if DEBUG
+                                else None
                             )
                         if len(message) > 3 and message[3] > 0 and min(message) >= 0:
                             if self.sequencer is not None:
@@ -505,6 +543,8 @@ class MiDiO:
         if self.sequencer is not None:
             self.play_note_schedule(offset_time=self.sequencer.clock_sync)
             self.play_step_schedule(offset_time=self.sequencer.clock_sync)
+            pass
+            pass
 
     @staticmethod
     def channel_message(midi_out: MidiOut, command: int, data: List[int], ch=None):

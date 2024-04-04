@@ -30,13 +30,13 @@ class Engine(Sequencer):
         self.func_queue: Queue[Dict[str, Any]] = Queue()
         self.current_step_id: Queue[int] = Queue()
 
-    @staticmethod
-    def init_midis() -> Dict[int, MiDiO]:
+    def init_midis(self) -> Dict[int, MiDiO]:
         midis: Dict[int, MiDiO] = dict()
         midi_out = rtmidi.MidiOut()
-        port_count = midi_out.get_port_count()
-        for i in range(port_count):
-            midis[i] = MiDiO(port_id=i)
+        port_names = midi_out.get_ports()
+        ports_midis = self.mappings.filter_midis(port_names=port_names)
+        for port_id, midi_id in ports_midis:
+            midis[midi_id] = MiDiO(port_id=port_id, midi_id=midi_id)
         if not len(midis):
             raise ValueError("At least 1 usb midi device is needed")
         return midis

@@ -23,6 +23,7 @@ from .const import (
 @define
 class MMapping(AttrsInstance):
     midi_id: int
+    port_name: str
     channel: int
     is_out: bool
     instruments: List[str]
@@ -32,6 +33,20 @@ class MMapping(AttrsInstance):
 class MMappings(AttrsInstance):
     name: str
     mappings: List[MMapping]
+
+    def filter_midis(self, port_names) -> List[Tuple[int, int]]:
+        found_midis: List[int] = list()
+        found_mappings: List[int] = list()
+        for i, port_name in enumerate(port_names):
+            for j, mapping in enumerate(self.mappings):
+                if (
+                    port_name == mapping.midi_name
+                    and i not in found_midis
+                    and j not in found_mappings
+                ):
+                    found_midis.append(i)
+                    found_mappings.append(j)
+        return list(zip(found_midis, found_mappings))
 
     def to_dict(self, modes: Dict[str, "MFunctionality"]) -> Dict[int, Dict[int, List[str]]]:
         mappings_dict: Dict[int, Dict[int, List[str]]] = defaultdict(lambda: defaultdict(list))
@@ -143,8 +158,12 @@ class MFunctionality(AttrsInstance):
     data: List[List[str]]
     vis_ind: List[int]
     instruments: List[str]
+    comment: str
     _exe_: int = 0
     _lock_: bool = True
+
+    def get_exe(self) -> int:
+        return self._exe_
 
     def update_offsets_with_lab(self, lab: str, by: int) -> "MFunctionality":
         if lab in self.labels:

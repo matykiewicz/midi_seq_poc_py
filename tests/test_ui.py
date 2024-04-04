@@ -8,27 +8,6 @@ from midi_seq_txt.cli import main
 
 
 @pytest.mark.asyncio
-async def test_record_and_scale(command_line_args):
-    import midi_seq_txt.sequencer
-
-    setattr(midi_seq_txt.sequencer, "DEBUG", True)
-    ms_app: MSApp = main()
-    pilot: Pilot
-    async with ms_app.run_test() as pilot:  # noqa
-        time.sleep(0.01)
-        await pilot.press("9")  # next mode (Vo2)
-        time.sleep(0.01)
-        await pilot.press("9")  # next mode (Scale)
-        time.sleep(0.01)
-        await pilot.press("c")  # record on
-        time.sleep(0.01)
-        await pilot.press("l")  # next keys
-        time.sleep(0.01)
-        await pilot.press("e")  # key 1
-        time.sleep(0.01)
-
-
-@pytest.mark.asyncio
 async def test_record_and_copy(command_line_args):
     import midi_seq_txt.sequencer
 
@@ -106,6 +85,27 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.01)
     time.sleep(1000.01)
     ms_app.sequencer.process.kill()
+
+
+@pytest.mark.asyncio
+async def test_record_and_scale(command_line_args):
+    import midi_seq_txt.sequencer
+
+    setattr(midi_seq_txt.sequencer, "DEBUG", True)
+    ms_app: MSApp = main()
+    pilot: Pilot
+    async with ms_app.run_test() as pilot:  # noqa
+        time.sleep(0.01)
+        await pilot.press("9")  # next mode (Vo2)
+        time.sleep(0.01)
+        await pilot.press("9")  # next mode (Scale)
+        time.sleep(0.01)
+        await pilot.press("c")  # record on
+        time.sleep(0.01)
+        await pilot.press("l")  # next keys
+        time.sleep(0.01)
+        await pilot.press("e")  # key 1
+        time.sleep(0.01)
 
 
 @pytest.mark.asyncio

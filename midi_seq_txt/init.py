@@ -94,6 +94,7 @@ def create_motions() -> List[str]:
 
 VOICE_1 = MFunctionality(
     name="GeVo1",
+    comment="Generic MIDI start and stop of a note.",
     first_only=False,
     indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
     offsets=[1, 1 + 8 * 2, 6, 1],
@@ -113,6 +114,7 @@ VOICE_1 = MFunctionality(
 
 VOICE_2 = MFunctionality(
     name="GeVo2",
+    comment="Generic MIDI start and stop of a note.",
     first_only=False,
     indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
     offsets=[1, 1 + 8 * 2, 6, 1],
@@ -132,6 +134,7 @@ VOICE_2 = MFunctionality(
 
 CUTOFF_EG_INT = MFunctionality(
     name="VBCuEgIn",
+    comment="Volca Bass Cutoff EG Int CC.",
     first_only=False,
     indexes=[[1, 0]],
     offsets=[1, 1],
@@ -146,6 +149,7 @@ CUTOFF_EG_INT = MFunctionality(
 
 SCALE = MFunctionality(
     name="Scale",
+    comment="Setting the key scale at the beginning of a part.",
     first_only=True,
     indexes=[[0]],
     offsets=[1],
@@ -158,10 +162,34 @@ SCALE = MFunctionality(
 MAPPINGS_GENERIC_4 = MMappings(
     name="Generic_4_map",
     mappings=[
-        MMapping(midi_id=0, channel=1, is_out=True, instruments=[str(ValidInstruments.GENERIC)]),
-        MMapping(midi_id=1, channel=1, is_out=True, instruments=[str(ValidInstruments.GENERIC)]),
-        MMapping(midi_id=2, channel=1, is_out=True, instruments=[str(ValidInstruments.GENERIC)]),
-        MMapping(midi_id=3, channel=1, is_out=True, instruments=[str(ValidInstruments.GENERIC)]),
+        MMapping(
+            midi_id=0,
+            port_name="USB MIDI Interface",
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.GENERIC)],
+        ),
+        MMapping(
+            midi_id=1,
+            port_name="USB2.0-MIDI Port 2",
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.GENERIC)],
+        ),
+        MMapping(
+            midi_id=2,
+            port_name="USB MIDI Interface",
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.GENERIC)],
+        ),
+        MMapping(
+            midi_id=3,
+            port_name="USB2.0-MIDI Port 2",
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.GENERIC)],
+        ),
     ],
 )
 
@@ -173,24 +201,28 @@ MAPPINGS_VOLCA_DBKF = MMappings(
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.VOLCA_DRUM), str(ValidInstruments.GENERIC)],
+            port_name="",
         ),
         MMapping(
             midi_id=1,
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.VOLCA_BASS), str(ValidInstruments.GENERIC)],
+            port_name="",
         ),
         MMapping(
             midi_id=2,
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.VOLCA_KEYS), str(ValidInstruments.GENERIC)],
+            port_name="",
         ),
         MMapping(
             midi_id=3,
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.VOLCA_FM2), str(ValidInstruments.GENERIC)],
+            port_name="",
         ),
     ],
 )

@@ -1,3 +1,4 @@
+comment: Generic MIDI start and stop of a note.
 data:
 - - '0'
   - '144'

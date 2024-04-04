@@ -283,16 +283,16 @@ class NavigationUI(Static):
         pass
 
     def play_part(self) -> None:
-        view = self.config_setting(ValidSettings.PLAY_FUNCTION, str(ValidButtons.PLAY_PARTS.value))
-        self.sequencer.send_setting(view)
+        play = self.config_setting(ValidSettings.PLAY_FUNCTION, str(ValidButtons.PLAY_PARTS.value))
+        self.sequencer.send_setting(play)
 
     def play_parts(self) -> None:
-        view = self.config_setting(ValidSettings.PLAY_FUNCTION, str(ValidButtons.PLAY_PARTS.value))
-        self.sequencer.send_setting(view)
+        play = self.config_setting(ValidSettings.PLAY_FUNCTION, str(ValidButtons.PLAY_PARTS.value))
+        self.sequencer.send_setting(play)
 
     def play_all(self) -> None:
-        view = self.config_setting(ValidSettings.PLAY_FUNCTION, str(ValidButtons.PLAY_ALL.value))
-        self.sequencer.send_setting(view)
+        play = self.config_setting(ValidSettings.PLAY_FUNCTION, str(ValidButtons.PLAY_ALL.value))
+        self.sequencer.send_setting(play)
 
     def opt_up(self) -> None:
         self.nav_id += 1
