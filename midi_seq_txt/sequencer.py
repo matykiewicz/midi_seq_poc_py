@@ -397,7 +397,7 @@ class MiDiO:
         self.scheduled_notes: Dict[float, Dict[int, MFunctionality]] = dict()
 
     def debug_prep(self):
-        file_name = f"{self.__class__.__name__}.midi.{self.port_id}.txt"
+        file_name = f"{self.__class__.__name__}.midi.{self.midi_id}.{self.port_id}.txt"
         if os.path.exists(file_name):
             os.remove(file_name)
 
@@ -412,7 +412,7 @@ class MiDiO:
         exe: int,
         message: List[int],
     ) -> None:
-        fh = open(f"{self.__class__.__name__}.midi.{self.port_id}.txt", "a")
+        fh = open(f"{self.__class__.__name__}.midi.{self.midi_id}.{self.port_id}.txt", "a")
         fh.write(
             f"{time_now} {offset_time} {time_now - (offset_time + step_tick)} | "
             f"{midi_id} {channel} {step_tick} {valid_mode} {exe} {message}\n"
@@ -433,7 +433,7 @@ class MiDiO:
             main_label = mode.get_vis_label()
             if (
                 self.sequencer is not None
-                and self.sequencer.get_current_e_pos()[0] == self.port_id
+                and self.sequencer.get_current_e_pos()[0] == self.midi_id
                 and mode.get_single_value_by_lab(0, main_label) != ValidButtons.NA
                 and mode.get_single_value_by_lab(0, main_label) != ValidButtons.NEXT
             ):
@@ -464,7 +464,7 @@ class MiDiO:
     def add_steps_to_step_schedule(
         self, midi: int, channel: int, part: int, part_tick: float
     ) -> None:
-        if midi == self.port_id and self.sequencer is not None:
+        if midi == self.midi_id and self.sequencer is not None:
             for step in self.sequencer.sequences.data[midi][channel][part].keys():
                 step_tick = part_tick + (step - 1) * self.sequencer.step_interval
                 for valid_mode in self.sequencer.sequences.data[midi][channel][part][step].keys():
@@ -498,7 +498,7 @@ class MiDiO:
                             )
                             (
                                 self.debug_midi(
-                                    midi_id=self.port_id,
+                                    midi_id=self.midi_id,
                                     channel=channel,
                                     time_now=time_now,
                                     offset_time=offset_time,
