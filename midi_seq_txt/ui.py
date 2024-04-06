@@ -268,18 +268,38 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.PLAY_PART] = self.play_part
         nav_actions[ValidButtons.PLAY_PARTS] = self.play_parts
         nav_actions[ValidButtons.PLAY_ALL] = self.play_all
-        nav_actions[ValidButtons.PRESETS_LOAD] = self.presets_load
-        nav_actions[ValidButtons.PRESETS_SAVE] = self.presets_save
-        nav_actions[ValidButtons.PRESETS_EDIT] = self.presets_edit
+        nav_actions[ValidButtons.PRESETS_ON] = self.presets_on
+        nav_actions[ValidButtons.PRESETS_OFF] = self.presets_off
+        nav_actions[ValidButtons.PRESETS_L_INSTR] = self.load_instr
+        nav_actions[ValidButtons.PRESETS_E_MAPPING] = self.edit_map
+        nav_actions[ValidButtons.PRESETS_L_MAPPING] = self.load_map
+        nav_actions[ValidButtons.PRESETS_S_MAPPING] = self.save_map
+        nav_actions[ValidButtons.PRESETS_L_MUSIC] = self.load_music
+        nav_actions[ValidButtons.PRESETS_S_MUSIC] = self.save_music
         return nav_actions
 
-    def presets_load(self) -> None:
+    def presets_on(self) -> None:
+        self.navigate(direction=1)
+
+    def presets_off(self) -> None:
+        self.navigate(direction=-1)
+
+    def load_map(self) -> None:
         pass
 
-    def presets_save(self) -> None:
+    def edit_map(self) -> None:
         pass
 
-    def presets_edit(self) -> None:
+    def save_map(self) -> None:
+        pass
+
+    def load_music(self) -> None:
+        pass
+
+    def save_music(self) -> None:
+        pass
+
+    def load_instr(self) -> None:
         pass
 
     def play_part(self) -> None:

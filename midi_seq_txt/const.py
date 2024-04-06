@@ -47,47 +47,33 @@ class ValidButtons(StrEnum):
     VIEW_PLAY = "VPlay"
     ON = "On"
     OFF = "Off"
-    PRESETS_EDIT = "PrstEd"
-    PRESETS_LOAD = "PrstLo"
-    PRESETS_SAVE = "PrstSa"
-    PRESETS_L_MSGS = "LMsgs"
+    PRESETS_ON = "PrstOn"
+    PRESETS_OFF = "PrstOff"
     PRESETS_L_INSTR = "LInstr"
     PRESETS_L_MAPPING = "LMap"
+    PRESETS_E_MAPPING = "EMap"
     PRESETS_L_MUSIC = "LMusic"
-    PRESETS_S_MSGS = "SMsgs"
-    PRESETS_S_INSTR = "SInstr"
     PRESETS_S_MAPPING = "SMap"
     PRESETS_S_MUSIC = "SMusic"
-    MUSIC_LIST = "MUSIC_LIST"
-    MUSIC_NAME = "MUSIC_NAME"
-    MAPPING_LIST = "MAPPING_LIST"
-    MAPPING_EDIT = "MAPPING_EDIT"
-    INSTR_LIST = "INSTR_LIST"
-    INSTR_EDIT = "INSTR_EDIT"
-    MSGS_LIST = "MSGS_LIST"
-    MSGS_EDIT = "MSGS_EDIT"
 
 
 BUT_PRES = (
     ValidButtons.OPT_DOWN,
     ValidButtons.OPT_UP,
-    ValidButtons.PRESETS_LOAD,
-    ValidButtons.PRESETS_SAVE,
-    ValidButtons.MIDI,
-    ValidButtons.CHANNEL,
-    ValidButtons.PART,
-    ValidButtons.MODE,
-)
-
-BUT_EDIT = (
-    ValidButtons.OPT_DOWN,
-    ValidButtons.OPT_UP,
-    ValidButtons.PRESETS_EDIT,
+    ValidButtons.PRESETS_ON,
     ValidButtons.EMPTY,
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
     ValidButtons.MODE,
+    ValidButtons.PRESETS_OFF,
+    ValidButtons.PRESETS_L_INSTR,
+    ValidButtons.PRESETS_E_MAPPING,
+    ValidButtons.PRESETS_L_MAPPING,
+    ValidButtons.PRESETS_S_MAPPING,
+    ValidButtons.PRESETS_L_MUSIC,
+    ValidButtons.PRESETS_S_MUSIC,
+    ValidButtons.EMPTY,
 )
 
 BUT_TEMPO = (

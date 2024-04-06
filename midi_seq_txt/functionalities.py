@@ -8,7 +8,6 @@ from mingus.containers import Note
 from .configs import InitConfig
 from .const import (
     BUT_COPY,
-    BUT_EDIT,
     BUT_PLAY,
     BUT_PRES,
     BUT_REC,
@@ -342,15 +341,6 @@ class PresetsN(NFunctionality):
         super().__init__(
             name=ValidNav.PRESETS.value,
             buttons=BUT_PRES,
-            ind=0,
-        )
-
-
-class EditsN(NFunctionality):
-    def __init__(self):
-        super().__init__(
-            name=ValidNav.PRESETS.value,
-            buttons=BUT_EDIT,
             ind=0,
         )
 

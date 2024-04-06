@@ -10,7 +10,6 @@ from .functionalities import (
     CopyN,
     CopyS,
     EChannelS,
-    EditsN,
     EMiDiOS,
     EModeS,
     EPartS,
@@ -236,7 +235,6 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
         ValidNav.TEMPO: TempoN(),
         ValidNav.COPY: CopyN(),
         ValidNav.PRESETS: PresetsN(),
-        ValidNav.EDITS: EditsN(),
     }
 
 
