@@ -24,7 +24,7 @@ class Sequencer:
         self.midi_ids: List[int] = list()
         self.detached = False
         self.mappings: MMappings = init_mappings_mem()
-        self.sequences: MMusic = MMusic("", "", dict())
+        self.sequences: MMusic = MMusic("", "", "", dict())
         self.tempo: int = self.internal_config.init_tempo
         self.scale: str = self.internal_config.init_scale
         self.clock_sync = 0.0

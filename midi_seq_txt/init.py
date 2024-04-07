@@ -118,6 +118,7 @@ CUTOFF_EG_INT = MFunctionality(
 
 MAPPINGS_GENERIC_4 = MMappings(
     name="Generic_4_map",
+    comment="",
     mappings=[
         MMapping(
             midi_id=1,
@@ -152,6 +153,7 @@ MAPPINGS_GENERIC_4 = MMappings(
 
 MAPPINGS_VOLCA_DBKF = MMappings(
     name="Volca_DBKF_map",
+    comment="",
     mappings=[
         MMapping(
             midi_id=0,
@@ -252,7 +254,7 @@ def init_music_mem(
                                 sequences[int(midi_id)][int(channel)][int(part)][int(step)][
                                     valid_mode
                                 ] = mode.get_indexes()
-    m_music = MMusic(name="Empty", data=sequences, mappings_name=mappings.name)
+    m_music = MMusic(name="Empty", data=sequences, mappings_name=mappings.name, comment="Starter package")
     return m_music
 
 

@@ -27,7 +27,6 @@ data:
   - '115'
   - '121'
   - Next
-first_only: false
 indexes:
 - - 1
   - 0

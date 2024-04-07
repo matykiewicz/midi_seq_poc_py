@@ -51,6 +51,7 @@ class MMapping(AttrsInstance):
 @define
 class MMappings(AttrsInstance):
     name: str
+    comment: str
     mappings: List[MMapping]
 
     def filter_midis(self, port_names) -> List[Tuple[int, int]]:
@@ -90,6 +91,7 @@ class MMappings(AttrsInstance):
 class MMusic(AttrsInstance):
     name: str
     mappings_name: str
+    comment: str
     data: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]]
 
 

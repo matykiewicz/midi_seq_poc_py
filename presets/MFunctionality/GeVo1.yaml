@@ -56,13 +56,45 @@ data:
   - '2'
   - '1'
   - '8'
-first_only: false
+- - C
+  - Cb
+  - Gb
+  - Db
+  - Ab
+  - Eb
+  - Bb
+  - F
+  - C
+  - G
+  - D
+  - A
+  - E
+  - B
+  - F#
+  - C#
+  - ab
+  - eb
+  - bb
+  - f
+  - c
+  - g
+  - d
+  - a
+  - e
+  - b
+  - f#
+  - c#
+  - g#
+  - d#
+  - a#
 indexes:
 - - 1
   - 0
   - 6
   - 1
+  - 0
 - - 2
+  - 0
   - 0
   - 0
   - 0
@@ -73,12 +105,14 @@ labels:
 - Note
 - Velocity
 - Length
+- Scale
 name: GeVo1
 offsets:
 - 1
 - 17
 - 6
 - 1
+- 0
 vis_ind:
 - 0
 - 1
