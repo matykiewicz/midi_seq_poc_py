@@ -39,6 +39,7 @@ class ValidButtons(StrEnum):
     LENGTH = "Length"
     ZERO = "0"
     VELOCITY = "Velocity"
+    SCALE = "Scale"
     PLAY_PART = "PPrt"
     PLAY_PARTS = "PPrts"
     PLAY_ALL = "PAll"
@@ -91,17 +92,17 @@ BUT_REC = (
     ValidButtons.OPT_DOWN,
     ValidButtons.OPT_UP,
     ValidButtons.REC_ON,
-    ValidButtons.SKIP,
+    ValidButtons.EMPTY,
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
     ValidButtons.MODE,
     ValidButtons.REC_OFF,
-    ValidButtons.LENGTH,
     ValidButtons.VELOCITY,
+    ValidButtons.LENGTH,
+    ValidButtons.SCALE,
+    ValidButtons.SKIP,
     ValidButtons.DELETE,
-    ValidButtons.MIDI,
-    ValidButtons.CHANNEL,
     ValidButtons.PART,
     ValidButtons.MODE,
 )
@@ -171,7 +172,6 @@ class ValidNav(StrEnum):
     PLAY = "Play"
     TEMPO = "Tempo"
     PRESETS = "Presets"
-    EDITS = "Edits"
 
 
 class ValidSettings(StrEnum):

@@ -7,7 +7,7 @@ from .configs import InitConfig
 from .const import ValidButtons, ValidNav, ValidSettings
 from .engine import Engine
 from .functionalities import MFunctionality, SFunctionality
-from .init import init_nav
+from .init import create_notes, init_nav
 
 
 class KeysUI(Static):
@@ -221,9 +221,8 @@ class NavigationUI(Static):
             ValidNav.COPY,
             ValidNav.VIEW,
             ValidNav.PLAY,
-            ValidNav.TEMPO,
             ValidNav.PRESETS,
-            ValidNav.EDITS,
+            ValidNav.TEMPO,
         ]
         self.nav_id = 0
         self.navigation = init_nav()
@@ -265,6 +264,7 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.C_AS_IS] = self.copy_as_is
         nav_actions[ValidButtons.LENGTH] = self.next_length
         nav_actions[ValidButtons.VELOCITY] = self.next_velocity
+        nav_actions[ValidButtons.SCALE] = self.next_scale
         nav_actions[ValidButtons.PLAY_PART] = self.play_part
         nav_actions[ValidButtons.PLAY_PARTS] = self.play_parts
         nav_actions[ValidButtons.PLAY_ALL] = self.play_all
@@ -387,6 +387,14 @@ class NavigationUI(Static):
 
     def next_velocity(self) -> MFunctionality:
         return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Velocity", by=1)
+
+    def next_scale(self) -> MFunctionality:
+        mode = self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Scale", by=1)
+        scale = mode.get_single_value_by_off(off="Scale", ind=0)
+        mode = self.sequencer.get_current_proto_mode().set_data_with_lab(
+            lab="Note", data=create_notes(scale=scale)
+        )
+        return mode
 
     def record_on(self) -> None:
         self.navigate(direction=1)
@@ -523,7 +531,9 @@ class NavigationUI(Static):
         if "Length" in mode.get_labels():
             text += f"L:{mode.get_single_value_by_off(off='Length', ind=0)},"
         if "Velocity" in mode.get_labels():
-            text += f"V:{mode.get_single_value_by_off(off='Velocity', ind=0)}|"
+            text += f"V:{mode.get_single_value_by_off(off='Velocity', ind=0)},"
+        if "Scale" in mode.get_labels():
+            text += f"S:{mode.get_single_value_by_off(off='Scale', ind=0)}|"
         vis_label = mode.get_vis_label()
         for j in range(self.internal_config.n_buttons):
             text += f"{mode.get_single_value_by_off(off=vis_label, ind=j)}|"

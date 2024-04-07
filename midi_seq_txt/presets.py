@@ -2,7 +2,7 @@ import os
 from argparse import Namespace
 from glob import iglob
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union, Set
+from typing import Any, Dict, List, Set, Tuple, Union
 
 import attrs
 import yaml
@@ -10,7 +10,9 @@ import yaml
 from .functionalities import MFunctionality, MMappings, MMusic
 
 
-def read_all_presets(args: Namespace) -> Tuple[List[MFunctionality], Set[str], List[MMappings], List[MMusic]]:
+def read_all_presets(
+    args: Namespace,
+) -> Tuple[List[MFunctionality], Set[str], List[MMappings], List[MMusic]]:
     loc: str = args.dir
     all_modes: List[MFunctionality] = list()
     all_mappings: List[MMappings] = list()

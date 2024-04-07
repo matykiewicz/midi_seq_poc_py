@@ -4,7 +4,6 @@ import time
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple, Type, Union
 
-import mingus.core.scales as scales
 import rtmidi
 from rtmidi import MidiOut
 
@@ -204,25 +203,9 @@ class Sequencer:
         current_mode = self.get_current_e_step_mode()
         mode_values = current_mode.get_row_values(exe=0)
         mode_labels = current_mode.get_labels()
-        scale_values = self.get_current_scale_values()
-        scale_labels = self.get_current_scale_labels()
-        all_labels = ["Mode"] + mode_labels + scale_labels
-        all_values = [current_mode.name] + mode_values + scale_values
+        all_labels = ["Mode"] + mode_labels
+        all_values = [current_mode.name] + mode_values
         return all_labels, all_values
-
-    def get_current_notes(self) -> List[str]:
-        scale_values = self.get_current_scale_values()
-        notes = scales.get_notes(key=scale_values[0])
-        notes += [notes[0]]
-        return notes
-
-    def get_current_scale_values(self) -> List[str]:
-        scale = self.get_first_step_mode("Scale")
-        return scale.get_row_values(exe=0)
-
-    def get_current_scale_labels(self) -> List[str]:
-        scale = self.get_first_step_mode("Scale")
-        return scale.get_labels()
 
     def set_step(self, mode: MFunctionality) -> None:
         positions_to_set: List[Tuple[int, int, int, int, str]] = list()

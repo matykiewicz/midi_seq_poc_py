@@ -1,7 +1,6 @@
 from collections import defaultdict
 from typing import Dict, List
 
-import mingus.core.scales as scales
 from mingus.core import keys
 
 from .configs import InitConfig
@@ -36,41 +35,12 @@ from .functionalities import (
     VModeS,
     VPartS,
     VStepS,
+    create_notes,
 )
 
 
 def create_scales() -> List[str]:
-    no_button_scales = keys.major_keys + keys.minor_keys
-    button_scale = ["C"]
-    n_keys = InitConfig().n_keys
-    for i in range(len(no_button_scales)):
-        if (i + 1) % (n_keys - 1) == 0:
-            button_scale.append(no_button_scales[i])
-            button_scale.append(ValidButtons.NEXT)
-        else:
-            button_scale.append(no_button_scales[i])
-    if button_scale[-1] != ValidButtons.NEXT.value:
-        button_scale.append(ValidButtons.NEXT.value)
-    return button_scale
-
-
-def create_notes(scale: str) -> List[str]:
-    notes = scales.get_notes(key=scale)
-    no_button_notes = list()
-    button_notes = [ValidButtons.NA.value]
-    for octave in range(1, InitConfig().octaves + 1):
-        for note in notes:
-            no_button_notes.append(f"{note}-{octave}")
-    n_keys = InitConfig().n_keys
-    for i in range(len(no_button_notes)):
-        if (i + 1) % (n_keys - 1) == 0:
-            button_notes.append(no_button_notes[i])
-            button_notes.append(ValidButtons.NEXT.value)
-        else:
-            button_notes.append(no_button_notes[i])
-    if button_notes[-1] != ValidButtons.NEXT.value:
-        button_notes.append(ValidButtons.NEXT.value)
-    return button_notes
+    return ["C"] + keys.major_keys + keys.minor_keys
 
 
 def create_motions() -> List[str]:
@@ -95,9 +65,9 @@ VOICE_1 = MFunctionality(
     name="GeVo1",
     comment="Generic MIDI start and stop of a note.",
     first_only=False,
-    indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
-    offsets=[1, 1 + 8 * 2, 6, 1],
-    labels=["Code", "Note", "Velocity", "Length"],
+    indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
+    offsets=[1, 1 + 8 * 2, 6, 1, 0],
+    labels=["Code", "Note", "Velocity", "Length", "Scale"],
     vis_ind=[0, 1],
     instruments=[str(ValidInstruments.GENERIC)],
     data=[
@@ -108,6 +78,7 @@ VOICE_1 = MFunctionality(
             for i in range(InitConfig().velocity_min, InitConfig().velocity_max + 1)
         ],
         [str(x.value) for x in list(ValidLengths)],
+        create_scales(),
     ],
 )
 
@@ -115,9 +86,9 @@ VOICE_2 = MFunctionality(
     name="GeVo2",
     comment="Generic MIDI start and stop of a note.",
     first_only=False,
-    indexes=[[1, 0, 6, 1], [2, 0, 0, 0]],
-    offsets=[1, 1 + 8 * 2, 6, 1],
-    labels=["Code", "Note", "Velocity", "Length"],
+    indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
+    offsets=[1, 1 + 8 * 2, 6, 1, 0],
+    labels=["Code", "Note", "Velocity", "Length", "Scale"],
     vis_ind=[0, 1],
     instruments=[str(ValidInstruments.GENERIC)],
     data=[
@@ -128,6 +99,7 @@ VOICE_2 = MFunctionality(
             for i in range(InitConfig().velocity_min, InitConfig().velocity_max + 1)
         ],
         [str(x.value) for x in list(ValidLengths)],
+        create_scales(),
     ],
 )
 
@@ -146,17 +118,6 @@ CUTOFF_EG_INT = MFunctionality(
     ],
 )
 
-SCALE = MFunctionality(
-    name="Scale",
-    comment="Setting the key scale at the beginning of a part.",
-    first_only=True,
-    indexes=[[0]],
-    offsets=[1],
-    labels=["Scale"],
-    instruments=[str(ValidInstruments.GENERIC)],
-    vis_ind=[0, 0],
-    data=[create_scales()],
-)
 
 MAPPINGS_GENERIC_4 = MMappings(
     name="Generic_4_map",
@@ -267,7 +228,6 @@ def init_modes_mem() -> Dict[str, MFunctionality]:
         VOICE_1.name: VOICE_1,
         VOICE_2.name: VOICE_2,
         CUTOFF_EG_INT.name: CUTOFF_EG_INT,
-        SCALE.name: SCALE,
     }
 
 

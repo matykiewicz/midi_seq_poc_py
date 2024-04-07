@@ -29,9 +29,9 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.01)
         await pilot.press("l")  # next keys
         time.sleep(0.01)
-        await pilot.press("d")  # skip step
-        time.sleep(0.01)
         await pilot.press("c")  # record on
+        time.sleep(0.01)
+        await pilot.press("d")  # next scale
         time.sleep(0.01)
         await pilot.press("e")  # key 1
         time.sleep(0.01)

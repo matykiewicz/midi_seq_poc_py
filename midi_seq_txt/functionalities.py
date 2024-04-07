@@ -2,6 +2,7 @@ from collections import defaultdict
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple, Union
 
+import mingus.core.scales as scales
 from attrs import AttrsInstance, define
 from mingus.containers import Note
 
@@ -17,6 +18,25 @@ from .const import (
     ValidNav,
     ValidSettings,
 )
+
+
+def create_notes(scale: str) -> List[str]:
+    notes = scales.get_notes(key=scale)
+    no_button_notes = list()
+    button_notes = [ValidButtons.NA.value]
+    for octave in range(1, InitConfig().octaves + 1):
+        for note in notes:
+            no_button_notes.append(f"{note}-{octave}")
+    n_keys = InitConfig().n_keys
+    for i in range(len(no_button_notes)):
+        if (i + 1) % (n_keys - 1) == 0:
+            button_notes.append(no_button_notes[i])
+            button_notes.append(ValidButtons.NEXT.value)
+        else:
+            button_notes.append(no_button_notes[i])
+    if button_notes[-1] != ValidButtons.NEXT.value:
+        button_notes.append(ValidButtons.NEXT.value)
+    return button_notes
 
 
 @define
@@ -175,6 +195,8 @@ class MFunctionality(AttrsInstance):
                     self.offsets[off_int] = 1
                 else:
                     self.offsets[off_int] += by
+        else:
+            raise ValueError(f"Label {lab} not found!")
         return self
 
     def get_indexes(self) -> List[List[int]]:
@@ -201,6 +223,8 @@ class MFunctionality(AttrsInstance):
                 ind = self.offsets[off_int] + ind
                 if ind < len(self.data[off_int]):
                     return deepcopy(self.data[off_int][ind])
+        else:
+            raise ValueError(f"Offset {off} not found!")
         return ValidButtons.NA
 
     def get_single_value_by_lab(self, exe: int, lab: str) -> str:
@@ -209,11 +233,16 @@ class MFunctionality(AttrsInstance):
                 ind = self.labels.index(lab)
                 if ind < len(self.indexes[exe]):
                     return deepcopy(self.data[ind][self.indexes[exe][ind]])
+            else:
+                raise ValueError(f"Label {lab} not found!")
         return ValidButtons.NA
 
     def get_row_values(self, exe: int) -> List[str]:
         values: List[str] = list()
         if exe < len(self.indexes):
+            if "Note" in self.labels and "Scale" in self.labels:
+                scale = self.get_single_value_by_off(off="Scale", ind=0)
+                self.set_data_with_lab(lab="Note", data=create_notes(scale=scale))
             for j in range(len(self.indexes[exe])):
                 values.append(deepcopy(self.data[j][self.indexes[exe][j]]))
         return values
@@ -239,6 +268,14 @@ class MFunctionality(AttrsInstance):
         new_mode.set_indexes_with_off(off=off, ind=ind, exe=exe)
         return new_mode
 
+    def set_data_with_lab(self, lab: str, data: List[str]) -> "MFunctionality":
+        if lab in self.labels:
+            ind = self.labels.index(lab)
+            self.data[ind] = data
+        else:
+            raise ValueError(f"Label {lab} not found!")
+        return self
+
     def set_indexes_with_off(
         self, off: str, ind: int, exe: Optional[int] = None
     ) -> "MFunctionality":
@@ -252,6 +289,8 @@ class MFunctionality(AttrsInstance):
                     if exe is None or exe == i:
                         if ind < len(self.data[off_int]):
                             self.indexes[i][off_int] = ind
+        else:
+            raise ValueError(f"Offset {off} not found!")
         return self
 
     def set_indexes(self, indexes: List[List[int]]) -> "MFunctionality":
@@ -275,8 +314,6 @@ class MFunctionality(AttrsInstance):
                     value_int = int(Note(value)) + 12
                 else:
                     value_int = -1
-            elif lab == "Scale":
-                value_int = 0
             else:
                 value_int = int(value)
             return value_int
