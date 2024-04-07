@@ -83,7 +83,7 @@ async def test_record_and_copy(command_line_args):
         time.sleep(0.01)
         await pilot.press("d")  # play all
         time.sleep(0.01)
-    time.sleep(1000.01)
+    time.sleep(100.01)
     ms_app.sequencer.process.kill()
 
 

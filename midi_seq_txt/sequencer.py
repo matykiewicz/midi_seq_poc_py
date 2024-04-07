@@ -57,24 +57,20 @@ class Sequencer:
         self.settings = init_settings(midi_ids=self.midi_ids, valid_modes=self.valid_modes)
         self.sequences = init_music_mem(midi_ids=self.midi_ids, mappings=self.mappings)
 
-    def get_current_e_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, str]:
+    def get_current_e_pos(self) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())
         channel = int(self.settings[ValidSettings.E_CHANNEL].get_value())
         part = int(self.settings[ValidSettings.E_PART].get_value())
         step = int(self.settings[ValidSettings.E_STEP].get_value())
         valid_mode = str(self.settings[ValidSettings.E_MODE].get_value())
-        if first_only:
-            step = int(self.settings[ValidSettings.E_STEP].get_first_value())
         return midi, channel, part, step, valid_mode
 
-    def get_current_v_pos(self, first_only: bool = False) -> Tuple[int, int, int, int, str]:
+    def get_current_v_pos(self) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.V_MIDI_O].get_value())
         channel = int(self.settings[ValidSettings.V_CHANNEL].get_value())
         part = int(self.settings[ValidSettings.V_PART].get_value())
         step = int(self.settings[ValidSettings.V_STEP].get_value())
         valid_mode = str(self.settings[ValidSettings.V_MODE].get_value())
-        if first_only:
-            step = int(self.settings[ValidSettings.V_STEP].get_first_value())
         return midi, channel, part, step, valid_mode
 
     def next_e_pos(self, valid_setting: ValidSettings) -> Optional["SFunctionality"]:
@@ -222,10 +218,10 @@ class Sequencer:
         main_label = mode.get_vis_label()
         positions_to_record: List[Tuple[int, int, int, int, str]] = list()
         if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
-            positions_to_record += [self.get_current_e_pos(first_only=mode.first_only)]
+            positions_to_record += [self.get_current_e_pos()]
             self.settings[ValidSettings.E_STEP].next_ind()
             if self.settings[ValidSettings.VIEW_FUNCTION].get_value() == ValidButtons.VIEW_REC:
-                position_to_record = self.get_current_v_pos(first_only=mode.first_only)
+                position_to_record = self.get_current_v_pos()
                 self.settings[ValidSettings.V_STEP].next_ind()
                 if position_to_record not in positions_to_record:
                     positions_to_record += [position_to_record]
@@ -235,7 +231,7 @@ class Sequencer:
         main_label = mode.get_vis_label()
         positions_to_copy: List[Tuple[int, int, int, int, str]] = list()
         if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
-            positions_to_copy += [self.get_current_v_pos(first_only=mode.first_only)]
+            positions_to_copy += [self.get_current_v_pos()]
         return positions_to_copy
 
     def set_option(self, option: SFunctionality) -> None:
@@ -298,13 +294,12 @@ class Sequencer:
         indexes = step_data[valid_mode]
         mode = self.get_current_proto_mode(valid_mode=valid_mode)
         has_vis_element = False
-        if not mode.first_only:
-            vis_index_1, vis_index_2 = mode.get_vis_ind()
-            has_note = indexes[vis_index_1][vis_index_2]
-            if has_note > 0:
-                midis.add(midi_id)
-                midi_channel[midi_id].add(channel)
-                parts.add(part)
+        vis_index_1, vis_index_2 = mode.get_vis_ind()
+        has_note = indexes[vis_index_1][vis_index_2]
+        if has_note > 0:
+            midis.add(midi_id)
+            midi_channel[midi_id].add(channel)
+            parts.add(part)
         return has_vis_element
 
     def find_parts_to_play(self) -> Dict[int, Dict[int, Dict[int, bool]]]:
@@ -453,11 +448,10 @@ class MiDiO:
                 for valid_mode in self.sequencer.sequences.data[midi][channel][part][step].keys():
                     indexes = self.sequencer.sequences.data[midi][channel][part][step][valid_mode]
                     mode = self.sequencer.get_current_new_mode(valid_mode=valid_mode)
-                    if not mode.first_only:
-                        mode.set_indexes(indexes=indexes)
-                        main_label = mode.get_vis_label()
-                        if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NA:
-                            self.scheduled_steps[step_tick][channel].append(mode)
+                    mode.set_indexes(indexes=indexes)
+                    main_label = mode.get_vis_label()
+                    if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NA:
+                        self.scheduled_steps[step_tick][channel].append(mode)
 
     def play_step_schedule(self, offset_time: float = 0.0) -> None:
         old_schedule: Dict[float, Dict[int, List[int]]] = defaultdict(lambda: defaultdict(list))

@@ -173,7 +173,6 @@ class SFunctionality(AttrsInstance):
 class MFunctionality(AttrsInstance):
     # MIDI & Modes
     name: str
-    first_only: bool
     indexes: List[List[int]]
     labels: List[str]
     offsets: List[int]
