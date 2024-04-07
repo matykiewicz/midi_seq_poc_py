@@ -34,8 +34,8 @@ class MSApp(App):
         self.sequencer = Engine(loc=args.dir)
         self.sequencer.detach()
         self.sequencer.init_data()
-        self.keys_ui = KeysUI(sequencer=self.sequencer)
-        self.navigation_ui = NavigationUI(sequencer=self.sequencer)
+        self.keys_ui = KeysUI(sequencer=self.sequencer, loc=args.dir)
+        self.navigation_ui = NavigationUI(sequencer=self.sequencer, loc=args.dir)
         self.navigation_ui.keys_ui = self.keys_ui
         self.keys_ui.navigation_ui = self.navigation_ui
 

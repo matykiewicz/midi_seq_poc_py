@@ -557,3 +557,17 @@ class TempoS(SFunctionality):
             ind=ind,
             values=[str(tempo) for tempo in tempos],
         )
+
+
+class PresetsS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.PRESETS.value,
+            ind=0,
+            values=[
+                ValidButtons.OFF,
+                ValidButtons.ON,
+                ValidButtons.PRESETS_L_MUSIC,
+                ValidButtons.PRESETS_S_MUSIC,
+            ],
+        )

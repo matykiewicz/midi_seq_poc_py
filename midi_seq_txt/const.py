@@ -192,6 +192,7 @@ class ValidSettings(StrEnum):
     RECORD = "Record"
     COPY = "COPY"
     TEMPO = "Tempo"
+    PRESETS = "Presets"
 
 
 class ValidInstruments(StrEnum):

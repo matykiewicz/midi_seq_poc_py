@@ -8,6 +8,7 @@ from .const import ValidButtons, ValidNav, ValidSettings
 from .engine import Engine
 from .functionalities import MFunctionality, SFunctionality
 from .init import create_notes, init_nav
+from .presets import read_all_presets
 
 
 class KeysUI(Static):
@@ -15,8 +16,10 @@ class KeysUI(Static):
     def __init__(
         self,
         sequencer: Engine,
+        loc: str,
     ):
         super().__init__()
+        self.loc = loc
         self.internal_config = InitConfig()
         self.sequencer = sequencer
         self.pos_top_label = Label("")
@@ -209,11 +212,14 @@ class NavigationUI(Static):
     def __init__(
         self,
         sequencer: Engine,
+        loc: str,
     ):
         super().__init__()
+        self.loc = loc
         self.internal_config = InitConfig()
         self.sequencer = sequencer
         self.settings_vis = Label("")
+        self.name_vis = Label("")
         self.nav_vis = Label("")
         self.keys_vis = Label("")
         self.valid_nav: List[ValidNav] = [
@@ -231,6 +237,7 @@ class NavigationUI(Static):
         self.update_all()
 
     def compose(self) -> ComposeResult:
+        yield self.name_vis
         yield self.settings_vis
         yield self.nav_vis
         yield self.keys_vis
@@ -294,9 +301,10 @@ class NavigationUI(Static):
         pass
 
     def load_music(self) -> None:
-        pass
+        all_modes, all_instruments, all_mappings, all_music = read_all_presets(self)
 
     def save_music(self) -> None:
+
         pass
 
     def load_instr(self) -> None:
@@ -514,6 +522,7 @@ class NavigationUI(Static):
         return self.sequencer.settings[valid_setting].set_value(setting_value)
 
     def update_all(self) -> None:
+        self.update_name_vis()
         self.update_settings_vis()
         self.update_nav_vis()
         self.update_keys_vis()
@@ -525,9 +534,16 @@ class NavigationUI(Static):
             text += f"{button[0:5]:>5}|"
         self.nav_vis.update(text)
 
+    def update_name_vis(self) -> None:
+        text = "|"
+        setting = self.sequencer.settings[ValidSettings.PRESETS]
+        if setting.get_value() == ValidButtons.OFF:
+            text += f"Music: {self.sequencer.sequences.name}|"
+        self.name_vis.update(text)
+
     def update_keys_vis(self) -> None:
         mode = self.sequencer.get_current_new_mode()
-        text = ""
+        text = "|"
         if "Length" in mode.get_labels():
             text += f"L:{mode.get_single_value_by_off(off='Length', ind=0)},"
         if "Velocity" in mode.get_labels():

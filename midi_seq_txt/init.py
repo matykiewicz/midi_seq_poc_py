@@ -22,6 +22,7 @@ from .functionalities import (
     PlayN,
     PlaySS,
     PresetsN,
+    PresetsS,
     RecordN,
     RecordS,
     SFunctionality,
@@ -219,6 +220,7 @@ def init_settings(
         ValidSettings.VIEW_FUNCTION: ViewFS(),
         ValidSettings.PLAY_SHOW: PlaySS(),
         ValidSettings.PLAY_FUNCTION: PlayFS(),
+        ValidSettings.PRESETS: PresetsS(),
     }
 
 
@@ -254,7 +256,9 @@ def init_music_mem(
                                 sequences[int(midi_id)][int(channel)][int(part)][int(step)][
                                     valid_mode
                                 ] = mode.get_indexes()
-    m_music = MMusic(name="Empty", data=sequences, mappings_name=mappings.name, comment="Starter package")
+    m_music = MMusic(
+        name="Music_0", data=sequences, mappings_name=mappings.name, comment="Starter package"
+    )
     return m_music
 
 
