@@ -567,7 +567,18 @@ class PresetsS(SFunctionality):
             values=[
                 ValidButtons.OFF,
                 ValidButtons.ON,
-                ValidButtons.PRESETS_L_MUSIC,
-                ValidButtons.PRESETS_S_MUSIC,
+                ValidButtons.PRESETS_LO_MUSIC,
+                ValidButtons.PRESETS_SA_MUSIC,
+                ValidButtons.PRESETS_NL_MUSIC,
+                ValidButtons.PRESETS_NS_MUSIC,
             ],
+        )
+
+
+class NameS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.PRESETS.value,
+            ind=0,
+            values=[f"#NAME#_{i:02}" for i in range(InitConfig().name_count)],
         )

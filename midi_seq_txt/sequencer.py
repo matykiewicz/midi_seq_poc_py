@@ -55,7 +55,7 @@ class Sequencer:
         self.modes = init_modes_mem()
         self.valid_modes = list(self.modes.keys())
         self.settings = init_settings(midi_ids=self.midi_ids, valid_modes=self.valid_modes)
-        self.sequences = init_music_mem(midi_ids=self.midi_ids, mappings=self.mappings)
+        self.sequences = init_music_mem(mappings=self.mappings)
 
     def get_current_e_pos(self) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())

@@ -50,12 +50,10 @@ class ValidButtons(StrEnum):
     OFF = "Off"
     PRESETS_ON = "PrstOn"
     PRESETS_OFF = "PrstOff"
-    PRESETS_L_INSTR = "LInstr"
-    PRESETS_L_MAPPING = "LMap"
-    PRESETS_E_MAPPING = "EMap"
-    PRESETS_L_MUSIC = "LMusic"
-    PRESETS_S_MAPPING = "SMap"
-    PRESETS_S_MUSIC = "SMusic"
+    PRESETS_LO_MUSIC = "LoMusic"
+    PRESETS_NL_MUSIC = "+LoMusic"
+    PRESETS_SA_MUSIC = "SaMusic"
+    PRESETS_NS_MUSIC = "+SaMusic"
 
 
 BUT_PRES = (
@@ -68,12 +66,12 @@ BUT_PRES = (
     ValidButtons.PART,
     ValidButtons.MODE,
     ValidButtons.PRESETS_OFF,
-    ValidButtons.PRESETS_L_INSTR,
-    ValidButtons.PRESETS_E_MAPPING,
-    ValidButtons.PRESETS_L_MAPPING,
-    ValidButtons.PRESETS_S_MAPPING,
-    ValidButtons.PRESETS_L_MUSIC,
-    ValidButtons.PRESETS_S_MUSIC,
+    ValidButtons.PRESETS_NL_MUSIC,
+    ValidButtons.PRESETS_LO_MUSIC,
+    ValidButtons.PRESETS_NS_MUSIC,
+    ValidButtons.PRESETS_SA_MUSIC,
+    ValidButtons.EMPTY,
+    ValidButtons.EMPTY,
     ValidButtons.EMPTY,
 )
 
@@ -193,6 +191,7 @@ class ValidSettings(StrEnum):
     COPY = "COPY"
     TEMPO = "Tempo"
     PRESETS = "Presets"
+    NAME = "Name"
 
 
 class ValidInstruments(StrEnum):

@@ -26,6 +26,7 @@ from .functionalities import (
     RecordN,
     RecordS,
     SFunctionality,
+    NameS,
     TempoN,
     TempoS,
     VChannelS,
@@ -117,8 +118,8 @@ CUTOFF_EG_INT = MFunctionality(
 )
 
 
-MAPPINGS_GENERIC_4 = MMappings(
-    name="Generic_4_map",
+MMAPPINGS_00 = MMappings(
+    name="MMappings_00",
     comment="",
     mappings=[
         MMapping(
@@ -152,8 +153,8 @@ MAPPINGS_GENERIC_4 = MMappings(
     ],
 )
 
-MAPPINGS_VOLCA_DBKF = MMappings(
-    name="Volca_DBKF_map",
+MMAPPINGS_01 = MMappings(
+    name="MMappings_01",
     comment="",
     mappings=[
         MMapping(
@@ -221,6 +222,7 @@ def init_settings(
         ValidSettings.PLAY_SHOW: PlaySS(),
         ValidSettings.PLAY_FUNCTION: PlayFS(),
         ValidSettings.PRESETS: PresetsS(),
+        ValidSettings.NAME: NameS(),
     }
 
 
@@ -233,19 +235,16 @@ def init_modes_mem() -> Dict[str, MFunctionality]:
 
 
 def init_mappings_mem() -> MMappings:
-    return MAPPINGS_GENERIC_4
+    return MMAPPINGS_00
 
 
-def init_music_mem(
-    midi_ids: List[int],
-    mappings: MMappings,
-) -> MMusic:
+def init_music_mem(mappings: MMappings) -> MMusic:
     sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     )
     modes = init_modes_mem()
     mappings_dict = mappings.to_dict(modes=modes)
-    for midi_id in midi_ids:
+    for midi_id in sorted(mappings_dict.keys()):
         for channel in EChannelS().values:
             if int(channel) in mappings_dict[int(midi_id)]:
                 for part in EPartS().values:
@@ -257,9 +256,9 @@ def init_music_mem(
                                     valid_mode
                                 ] = mode.get_indexes()
     m_music = MMusic(
-        name="Music_0", data=sequences, mappings_name=mappings.name, comment="Starter package"
+        name="Music_00", data=sequences, mappings_name=mappings.name, comment="Starter package"
     )
     return m_music
 
 
-MUSIC_GENERIC_4 = init_music_mem(midi_ids=list(range(4)), mappings=MAPPINGS_GENERIC_4)
+MUSIC_00 = init_music_mem(mappings=MMAPPINGS_00)

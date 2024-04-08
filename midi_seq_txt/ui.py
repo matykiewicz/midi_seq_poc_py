@@ -277,12 +277,10 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.PLAY_ALL] = self.play_all
         nav_actions[ValidButtons.PRESETS_ON] = self.presets_on
         nav_actions[ValidButtons.PRESETS_OFF] = self.presets_off
-        nav_actions[ValidButtons.PRESETS_L_INSTR] = self.load_instr
-        nav_actions[ValidButtons.PRESETS_E_MAPPING] = self.edit_map
-        nav_actions[ValidButtons.PRESETS_L_MAPPING] = self.load_map
-        nav_actions[ValidButtons.PRESETS_S_MAPPING] = self.save_map
-        nav_actions[ValidButtons.PRESETS_L_MUSIC] = self.load_music
-        nav_actions[ValidButtons.PRESETS_S_MUSIC] = self.save_music
+        nav_actions[ValidButtons.PRESETS_LO_MUSIC] = self.load_music
+        nav_actions[ValidButtons.PRESETS_SA_MUSIC] = self.save_music
+        nav_actions[ValidButtons.PRESETS_NL_MUSIC] = self.next_load_music
+        nav_actions[ValidButtons.PRESETS_NS_MUSIC] = self.next_save_music
         return nav_actions
 
     def presets_on(self) -> None:
@@ -291,23 +289,16 @@ class NavigationUI(Static):
     def presets_off(self) -> None:
         self.navigate(direction=-1)
 
-    def load_map(self) -> None:
-        pass
-
-    def edit_map(self) -> None:
-        pass
-
-    def save_map(self) -> None:
-        pass
-
     def load_music(self) -> None:
-        all_modes, all_instruments, all_mappings, all_music = read_all_presets(self)
+        all_modes, all_instruments, all_mappings, all_music = read_all_presets(self.loc)
 
     def save_music(self) -> None:
-
         pass
 
-    def load_instr(self) -> None:
+    def next_save_music(self) -> None:
+        pass
+
+    def next_load_music(self) -> None:
         pass
 
     def play_part(self) -> None:
@@ -538,7 +529,9 @@ class NavigationUI(Static):
         text = "|"
         setting = self.sequencer.settings[ValidSettings.PRESETS]
         if setting.get_value() == ValidButtons.OFF:
-            text += f"Music: {self.sequencer.sequences.name}|"
+            text += f"LMusic: {self.sequencer.sequences.name} *|"
+        elif setting.get_value() == ValidButtons.PRESETS_LO_MUSIC:
+            pass
         self.name_vis.update(text)
 
     def update_keys_vis(self) -> None:

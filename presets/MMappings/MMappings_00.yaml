@@ -24,4 +24,4 @@ mappings:
   is_out: true
   midi_id: 2
   port_name: USB2.0-MIDI Port 2
-name: Generic_4_map
+name: MMappings_00
