@@ -132,7 +132,7 @@ class MMappings(AttrsInstance):
             midi_outs[1] = MMiDi(port_id=0, midi_id=1, port_name="DEBUG", is_out=True)
         return midi_outs
 
-    def to_dict(self, modes: Dict[str, "MInFunctionality"]) -> Dict[int, Dict[int, List[str]]]:
+    def to_dict(self, modes: Dict[str, "MOutFunctionality"]) -> Dict[int, Dict[int, List[str]]]:
         mappings_dict: Dict[int, Dict[int, List[str]]] = defaultdict(lambda: defaultdict(list))
         instruments_dict: Dict[str, List[str]] = defaultdict(list)
         for valid_mode in modes.keys():
@@ -234,12 +234,14 @@ class SFunctionality(AttrsInstance):
 
 
 @define
-class MOutFunctionality(AttrsInstance):
+class MInFunctionality(AttrsInstance):
     name: str
+    converters: List[str]
+    codes: List[int]
 
 
 @define
-class MInFunctionality(AttrsInstance):
+class MOutFunctionality(AttrsInstance):
     # MIDI & Modes
     name: str
     indexes: List[List[int]]
@@ -255,7 +257,7 @@ class MInFunctionality(AttrsInstance):
     def get_exe(self) -> int:
         return self._exe_
 
-    def update_offsets_with_lab(self, lab: str, by: int) -> "MInFunctionality":
+    def update_offsets_with_lab(self, lab: str, by: int) -> "MOutFunctionality":
         if lab in self.labels:
             off_int = self.labels.index(lab)
             if off_int < len(self.data):
@@ -321,22 +323,22 @@ class MInFunctionality(AttrsInstance):
     def get_vis_label(self) -> str:
         return self.labels[self.vis_ind[1]]
 
-    def new(self, lock: bool) -> "MInFunctionality":
+    def new(self, lock: bool) -> "MOutFunctionality":
         new = deepcopy(self)
         new._lock_ = lock
         return new
 
-    def new_with_indexes(self, indexes: List[List[int]]) -> "MInFunctionality":
+    def new_with_indexes(self, indexes: List[List[int]]) -> "MOutFunctionality":
         new_mode = self.new(lock=False)
         new_mode = new_mode.set_indexes(indexes=deepcopy(indexes))
         return new_mode
 
-    def new_with_off(self, off: str, ind: int, exe: Optional[int]) -> "MInFunctionality":
+    def new_with_off(self, off: str, ind: int, exe: Optional[int]) -> "MOutFunctionality":
         new_mode = self.new(lock=False)
         new_mode.set_indexes_with_off(off=off, ind=ind, exe=exe)
         return new_mode
 
-    def set_data_with_lab(self, lab: str, data: List[str]) -> "MInFunctionality":
+    def set_data_with_lab(self, lab: str, data: List[str]) -> "MOutFunctionality":
         if lab in self.labels:
             ind = self.labels.index(lab)
             self.data[ind] = data
@@ -346,7 +348,7 @@ class MInFunctionality(AttrsInstance):
 
     def set_indexes_with_off(
         self, off: str, ind: int, exe: Optional[int] = None
-    ) -> "MInFunctionality":
+    ) -> "MOutFunctionality":
         if self._lock_:
             raise PermissionError(f"{self.name} mode is locked!")
         if off in self.labels:
@@ -361,7 +363,7 @@ class MInFunctionality(AttrsInstance):
             raise ValueError(f"Offset {off} not found!")
         return self
 
-    def set_indexes(self, indexes: List[List[int]]) -> "MInFunctionality":
+    def set_indexes(self, indexes: List[List[int]]) -> "MOutFunctionality":
         if self._lock_:
             raise PermissionError(f"{self.name} mode is locked!")
         for i in range(len(indexes)):

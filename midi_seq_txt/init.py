@@ -14,6 +14,7 @@ from .functionalities import (
     EPartS,
     EStepS,
     MapNameS,
+    MOutFunctionality,
     MInFunctionality,
     MMapping,
     MMappings,
@@ -64,9 +65,9 @@ def create_motions() -> List[str]:
     return button_motions
 
 
-VOICE_1 = MInFunctionality(
-    name="GeVo1",
-    comment="Generic MIDI start and stop of a note.",
+VOICE_1_OUT = MOutFunctionality(
+    name="GeVo1Out",
+    comment="Generic MIDI start and stop of a note",
     indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
     offsets=[1, 1 + 8 * 2, 6, 1, 0],
     labels=["Code", "Note", "Velocity", "Length", "Scale"],
@@ -84,9 +85,9 @@ VOICE_1 = MInFunctionality(
     ],
 )
 
-VOICE_2 = MInFunctionality(
-    name="GeVo2",
-    comment="Generic MIDI start and stop of a note.",
+VOICE_2_OUT = MOutFunctionality(
+    name="GeVo2Out",
+    comment="Generic MIDI start and stop of a note",
     indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
     offsets=[1, 1 + 8 * 2, 6, 1, 0],
     labels=["Code", "Note", "Velocity", "Length", "Scale"],
@@ -104,9 +105,9 @@ VOICE_2 = MInFunctionality(
     ],
 )
 
-CUTOFF_EG_INT = MInFunctionality(
-    name="VBCuEgIn",
-    comment="Volca Bass Cutoff EG Int CC.",
+CUTOFF_EG_INT_OUT = MOutFunctionality(
+    name="VBCutEGIOut",
+    comment="Volca Bass Cutoff EG Intensity CC",
     indexes=[[1, 0]],
     offsets=[1, 1],
     labels=["Code", "Cutoff"],
@@ -118,6 +119,11 @@ CUTOFF_EG_INT = MInFunctionality(
     ],
 )
 
+MIDI_CLOCK_IN = MInFunctionality(
+    name="MidiClockIn",
+    codes=[0xF8],
+    converters=[],
+)
 
 MMAPPINGS_00 = MMappings(
     name="Mappings_00",
@@ -228,11 +234,11 @@ def init_settings(
     }
 
 
-def init_modes_mem() -> Dict[str, MInFunctionality]:
+def init_modes_mem() -> Dict[str, MOutFunctionality]:
     return {
-        VOICE_1.name: VOICE_1,
-        VOICE_2.name: VOICE_2,
-        CUTOFF_EG_INT.name: CUTOFF_EG_INT,
+        VOICE_1_OUT.name: VOICE_1_OUT,
+        VOICE_2_OUT.name: VOICE_2_OUT,
+        CUTOFF_EG_INT_OUT.name: CUTOFF_EG_INT_OUT,
     }
 
 

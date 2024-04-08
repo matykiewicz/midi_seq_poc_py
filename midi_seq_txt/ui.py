@@ -6,7 +6,7 @@ from textual.widgets import Label, Sparkline, Static
 from .configs import InitConfig
 from .const import ValidButtons, ValidNav, ValidSettings
 from .engine import Engine
-from .functionalities import MInFunctionality, SFunctionality
+from .functionalities import MOutFunctionality, SFunctionality
 from .init import create_notes, init_nav
 from .presets import write_preset_type
 
@@ -98,7 +98,7 @@ class KeysUI(Static):
         self.update_top()
         self.update_bottom()
 
-    def config_mode(self, key_ind: int) -> MInFunctionality:
+    def config_mode(self, key_ind: int) -> MOutFunctionality:
         valid_mode = str(self.sequencer.settings[ValidSettings.E_MODE].get_value())
         mode = self.sequencer.modes[valid_mode]
         main_label = mode.get_vis_label()
@@ -285,6 +285,7 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.PRESETS_L_MAP] = self.load_map
         nav_actions[ValidButtons.PRESETS_S_MUSIC] = self.save_music
         nav_actions[ValidButtons.PRESETS_S_MAP] = self.save_map
+        nav_actions[ValidButtons.PRESETS_S_MAP] = self.edit_map
         return nav_actions
 
     def presets_on_music(self) -> None:
@@ -334,6 +335,9 @@ class NavigationUI(Static):
         map_name = str(self.sequencer.settings[ValidSettings.MAP_NAME].get_value())
         self.sequencer.mappings.name = map_name
         write_preset_type(preset=self.sequencer.mappings, loc=self.loc)
+
+    def edit_map(self) -> None:
+        pass
 
     def next_music_name(self) -> None:
         self.change_setting(valid_setting=ValidSettings.MUS_NAME, direction=1)
@@ -423,13 +427,13 @@ class NavigationUI(Static):
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
-    def next_length(self) -> MInFunctionality:
+    def next_length(self) -> MOutFunctionality:
         return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Length", by=1)
 
-    def next_velocity(self) -> MInFunctionality:
+    def next_velocity(self) -> MOutFunctionality:
         return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Velocity", by=1)
 
-    def next_scale(self) -> MInFunctionality:
+    def next_scale(self) -> MOutFunctionality:
         mode = self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Scale", by=1)
         scale = mode.get_single_value_by_off(off="Scale", ind=0)
         mode = self.sequencer.get_current_proto_mode().set_data_with_lab(
@@ -576,12 +580,22 @@ class NavigationUI(Static):
         current_map_name = self.sequencer.settings[ValidSettings.MAP_NAME].get_value()
         mus_match = "*" if current_mus_name == loaded_mus_name else " "
         map_match = "*" if current_map_name == loaded_map_name else " "
-        if setting.get_value() == ValidButtons.PRESETS_ON_MUSIC:
-            text += f"Music: {current_mus_name}{mus_match}|"
-        elif setting.get_value() == ValidButtons.PRESETS_ON_MAP:
-            text += f"Mapping: {current_map_name}{map_match}|"
+        if setting.get_value() in [
+            ValidButtons.PRESETS_OFF_MUSIC,
+            ValidButtons.PRESETS_ON_MUSIC,
+            ValidButtons.PRESETS_S_MUSIC,
+            ValidButtons.PRESETS_L_MUSIC,
+        ]:
+            text += f"Mus: {current_mus_name}{mus_match}|"
+        elif setting.get_value() in [
+            ValidButtons.PRESETS_ON_MAP,
+            ValidButtons.PRESETS_OFF_MAP,
+            ValidButtons.PRESETS_L_MAP,
+            ValidButtons.PRESETS_S_MAP,
+        ]:
+            text += f"Map: {current_map_name}{map_match}|"
         else:
-            text += f"Music: {current_mus_name}{mus_match}|"
+            text += f"___: ___|"
         self.name_vis.update(text)
 
     def update_keys_vis(self) -> None:

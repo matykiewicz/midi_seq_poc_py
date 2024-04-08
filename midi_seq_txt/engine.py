@@ -6,7 +6,7 @@ from typing import Any, Dict
 import attrs
 
 from .const import ValidButtons, ValidSettings
-from .functionalities import MInFunctionality, MMiDi, SFunctionality
+from .functionalities import MOutFunctionality, MMiDi, SFunctionality
 from .sequencer import MiDiIn, MiDiOut, Sequencer
 
 
@@ -18,7 +18,7 @@ class Engine(Sequencer):
 
     def __init__(self, loc: str):
         super().__init__(loc=loc)
-        self.modes: Dict[str, MInFunctionality] = dict()
+        self.modes: Dict[str, MOutFunctionality] = dict()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.midi_ins: Dict[int, MiDiIn] = self.create_midi_ins()
         self.midi_outs: Dict[int, MiDiOut] = self.create_midi_outs()
@@ -80,13 +80,13 @@ class Engine(Sequencer):
         setting_value.update_with_ind(int(setting_dict["ind"]))
         return setting_value
 
-    def convert_to_mode(self, mode_dict: Dict[str, Any]) -> MInFunctionality:
+    def convert_to_mode(self, mode_dict: Dict[str, Any]) -> MOutFunctionality:
         valid_mode = mode_dict["name"]
         mode_value = self.modes[valid_mode].new(lock=False)
         mode_value.set_indexes(mode_dict["indexes"])
         return mode_value
 
-    def send_mode(self, mode: MInFunctionality) -> None:
+    def send_mode(self, mode: MOutFunctionality) -> None:
         self.set_step(mode=mode)
         self.func_queue.put(attrs.asdict(mode))
 

@@ -9,7 +9,7 @@ from rtmidi import MidiIn, MidiOut
 
 from .configs import InitConfig
 from .const import ValidButtons, ValidSettings
-from .functionalities import MInFunctionality, MMappings, MMiDi, MMusic, SFunctionality
+from .functionalities import MOutFunctionality, MMappings, MMiDi, MMusic, SFunctionality
 from .init import init_mappings_mem, init_modes_mem, init_music_mem, init_settings
 from .presets import read_preset_type
 
@@ -27,7 +27,7 @@ class Sequencer:
         self.detached = False
         self.internal_config = InitConfig()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
-        self.modes: Dict[str, MInFunctionality] = dict()
+        self.modes: Dict[str, MOutFunctionality] = dict()
         self.valid_modes: List[str] = list()
         self.midi_out_ids: List[int] = list()
         self.mappings: MMappings = init_mappings_mem()
@@ -155,7 +155,7 @@ class Sequencer:
                 return next_set
         return None
 
-    def get_first_step_mode(self, valid_mode: Optional[str] = None) -> MInFunctionality:
+    def get_first_step_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
@@ -164,7 +164,7 @@ class Sequencer:
         first_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return first_mode
 
-    def get_current_e_step_mode(self, valid_mode: Optional[str] = None) -> MInFunctionality:
+    def get_current_e_step_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
@@ -172,7 +172,7 @@ class Sequencer:
         current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return current_mode
 
-    def get_current_v_step_mode(self, valid_mode: Optional[str] = None) -> MInFunctionality:
+    def get_current_v_step_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
         midi, channel, part, step, mode = self.get_current_v_pos()
         if valid_mode is None:
             valid_mode = mode
@@ -180,14 +180,14 @@ class Sequencer:
         current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
         return current_mode
 
-    def get_current_new_mode(self, valid_mode: Optional[str] = None) -> MInFunctionality:
+    def get_current_new_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
         current_mode = self.modes[valid_mode].new(lock=False)
         return current_mode
 
-    def get_current_proto_mode(self, valid_mode: Optional[str] = None) -> MInFunctionality:
+    def get_current_proto_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
@@ -201,7 +201,7 @@ class Sequencer:
         all_values = [current_mode.name] + mode_values
         return all_labels, all_values
 
-    def set_step(self, mode: MInFunctionality) -> None:
+    def set_step(self, mode: MOutFunctionality) -> None:
         positions_to_set: List[Tuple[int, int, int, int, str]] = list()
         if self.settings[ValidSettings.RECORD].get_value() == ValidButtons.ON:
             positions_to_set += self.get_record_positions(mode=mode)
@@ -212,7 +212,7 @@ class Sequencer:
             self.sequences.data[midi][channel][part][step][valid_mode] = mode.get_indexes()
         self.debug_sequence() if DEBUG else None
 
-    def get_record_positions(self, mode: MInFunctionality) -> List[Tuple[int, int, int, int, str]]:
+    def get_record_positions(self, mode: MOutFunctionality) -> List[Tuple[int, int, int, int, str]]:
         main_label = mode.get_vis_label()
         positions_to_record: List[Tuple[int, int, int, int, str]] = list()
         if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
@@ -225,7 +225,7 @@ class Sequencer:
                     positions_to_record += [position_to_record]
         return positions_to_record
 
-    def get_copy_positions(self, mode: MInFunctionality) -> List[Tuple[int, int, int, int, str]]:
+    def get_copy_positions(self, mode: MOutFunctionality) -> List[Tuple[int, int, int, int, str]]:
         main_label = mode.get_vis_label()
         positions_to_copy: List[Tuple[int, int, int, int, str]] = list()
         if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
@@ -395,8 +395,8 @@ class MiDiOut:
         self.midi_out: Optional[MidiOut] = None
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
-        self.scheduled_steps: Dict[float, Dict[int, List[MInFunctionality]]] = dict()
-        self.scheduled_notes: Dict[float, Dict[int, MInFunctionality]] = dict()
+        self.scheduled_steps: Dict[float, Dict[int, List[MOutFunctionality]]] = dict()
+        self.scheduled_notes: Dict[float, Dict[int, MOutFunctionality]] = dict()
 
     def debug_prep(self):
         file_name = f"{self.__class__.__name__}.midi.{self.midi_id}.{self.port_id}.txt"
@@ -430,7 +430,7 @@ class MiDiOut:
 
     # - - NOTES - - #
 
-    def add_note_to_note_schedule(self, mode: MInFunctionality) -> None:
+    def add_note_to_note_schedule(self, mode: MOutFunctionality) -> None:
         if mode is not None:
             main_label = mode.get_vis_label()
             if (
@@ -479,7 +479,7 @@ class MiDiOut:
 
     def play_step_schedule(self, offset_time: float = 0.0) -> None:
         old_schedule: Dict[float, Dict[int, List[int]]] = defaultdict(lambda: defaultdict(list))
-        new_schedule: Dict[float, Dict[int, List[MInFunctionality]]] = defaultdict(
+        new_schedule: Dict[float, Dict[int, List[MOutFunctionality]]] = defaultdict(
             lambda: defaultdict(list)
         )
         if self.midi_out is not None and not self.midi_out.is_port_open():
@@ -524,7 +524,7 @@ class MiDiOut:
     def update_step_schedule(
         self,
         old_schedule: Dict[float, Dict[int, List[int]]],
-        new_schedule: Dict[float, Dict[int, List[MInFunctionality]]],
+        new_schedule: Dict[float, Dict[int, List[MOutFunctionality]]],
     ) -> None:
         if len(old_schedule) or len(new_schedule):
             for step_tick in self.scheduled_steps.keys():

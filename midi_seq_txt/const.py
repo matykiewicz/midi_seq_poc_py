@@ -58,6 +58,7 @@ class ValidButtons(StrEnum):
     PRESETS_L_MAP = "LoMap"
     PRESETS_N_MAP = "+Map"
     PRESETS_S_MAP = "SaMap"
+    PRESETS_E_MAP = "EdMap"
 
 
 BUT_PRES = (
@@ -81,10 +82,10 @@ BUT_PRES = (
     ValidButtons.PRESETS_N_MAP,
     ValidButtons.PRESETS_L_MAP,
     ValidButtons.PRESETS_S_MAP,
-    ValidButtons.MIDI,
-    ValidButtons.CHANNEL,
-    ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.PRESETS_E_MAP,
+    ValidButtons.EMPTY,
+    ValidButtons.EMPTY,
+    ValidButtons.EMPTY,
 )
 
 BUT_TEMPO = (
