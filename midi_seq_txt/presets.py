@@ -2,13 +2,12 @@ import os
 from argparse import Namespace
 from glob import iglob
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple, Union, Type
+from typing import Any, Dict, List, Set, Tuple, Type, Union
 
 import attrs
 import yaml
 
 from .functionalities import MFunctionality, MMappings, MMusic
-
 
 PRESET_TYPES: Dict[str, Union[Type[MFunctionality], Type[MMappings], Type[MMusic]]] = {
     "MMappings": MMappings,

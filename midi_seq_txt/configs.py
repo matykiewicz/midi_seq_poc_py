@@ -22,4 +22,5 @@ class InitConfig:
     velocity_step: int = 20
     velocity_max: int = 6
     init_scale: str = "C"
-    name_count: int = 16
+    map_count: int = 16
+    music_count: int = 16

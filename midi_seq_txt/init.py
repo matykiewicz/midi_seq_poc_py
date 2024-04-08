@@ -13,10 +13,12 @@ from .functionalities import (
     EModeS,
     EPartS,
     EStepS,
+    MapNameS,
     MFunctionality,
     MMapping,
     MMappings,
     MMusic,
+    MusNameS,
     NFunctionality,
     PlayFS,
     PlayN,
@@ -26,7 +28,6 @@ from .functionalities import (
     RecordN,
     RecordS,
     SFunctionality,
-    NameS,
     TempoN,
     TempoS,
     VChannelS,
@@ -119,7 +120,7 @@ CUTOFF_EG_INT = MFunctionality(
 
 
 MMAPPINGS_00 = MMappings(
-    name="MMappings_00",
+    name="Mappings_00",
     comment="",
     mappings=[
         MMapping(
@@ -154,7 +155,7 @@ MMAPPINGS_00 = MMappings(
 )
 
 MMAPPINGS_01 = MMappings(
-    name="MMappings_01",
+    name="Mappings_01",
     comment="",
     mappings=[
         MMapping(
@@ -222,7 +223,8 @@ def init_settings(
         ValidSettings.PLAY_SHOW: PlaySS(),
         ValidSettings.PLAY_FUNCTION: PlayFS(),
         ValidSettings.PRESETS: PresetsS(),
-        ValidSettings.NAME: NameS(),
+        ValidSettings.MAP_NAME: MapNameS(),
+        ValidSettings.MUS_NAME: MusNameS(),
     }
 
 

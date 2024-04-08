@@ -48,31 +48,43 @@ class ValidButtons(StrEnum):
     VIEW_PLAY = "VPlay"
     ON = "On"
     OFF = "Off"
-    PRESETS_ON = "PrstOn"
-    PRESETS_OFF = "PrstOff"
-    PRESETS_LO_MUSIC = "LoMusic"
-    PRESETS_NL_MUSIC = "+LoMusic"
-    PRESETS_SA_MUSIC = "SaMusic"
-    PRESETS_NS_MUSIC = "+SaMusic"
+    PRESETS_OFF_MUSIC = "MusOff"
+    PRESETS_ON_MUSIC = "MusOn"
+    PRESETS_L_MUSIC = "LoMusic"
+    PRESETS_N_MUSIC = "+Music"
+    PRESETS_S_MUSIC = "SaMusic"
+    PRESETS_OFF_MAP = "MapOff"
+    PRESETS_ON_MAP = "MapOn"
+    PRESETS_L_MAP = "LoMap"
+    PRESETS_N_MAP = "+Map"
+    PRESETS_S_MAP = "SaMap"
 
 
 BUT_PRES = (
     ValidButtons.OPT_DOWN,
     ValidButtons.OPT_UP,
-    ValidButtons.PRESETS_ON,
-    ValidButtons.EMPTY,
+    ValidButtons.PRESETS_ON_MUSIC,
+    ValidButtons.PRESETS_ON_MAP,
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
     ValidButtons.MODE,
-    ValidButtons.PRESETS_OFF,
-    ValidButtons.PRESETS_NL_MUSIC,
-    ValidButtons.PRESETS_LO_MUSIC,
-    ValidButtons.PRESETS_NS_MUSIC,
-    ValidButtons.PRESETS_SA_MUSIC,
-    ValidButtons.EMPTY,
-    ValidButtons.EMPTY,
-    ValidButtons.EMPTY,
+    ValidButtons.PRESETS_OFF_MUSIC,
+    ValidButtons.PRESETS_N_MUSIC,
+    ValidButtons.PRESETS_L_MUSIC,
+    ValidButtons.PRESETS_S_MUSIC,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
+    ValidButtons.PRESETS_OFF_MAP,
+    ValidButtons.PRESETS_N_MAP,
+    ValidButtons.PRESETS_L_MAP,
+    ValidButtons.PRESETS_S_MAP,
+    ValidButtons.MIDI,
+    ValidButtons.CHANNEL,
+    ValidButtons.PART,
+    ValidButtons.MODE,
 )
 
 BUT_TEMPO = (
@@ -191,7 +203,8 @@ class ValidSettings(StrEnum):
     COPY = "COPY"
     TEMPO = "Tempo"
     PRESETS = "Presets"
-    NAME = "Name"
+    MUS_NAME = "MusName"
+    MAP_NAME = "MapName"
 
 
 class ValidInstruments(StrEnum):

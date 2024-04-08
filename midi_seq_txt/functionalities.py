@@ -565,20 +565,27 @@ class PresetsS(SFunctionality):
             name=ValidSettings.PRESETS.value,
             ind=0,
             values=[
-                ValidButtons.OFF,
-                ValidButtons.ON,
-                ValidButtons.PRESETS_LO_MUSIC,
-                ValidButtons.PRESETS_SA_MUSIC,
-                ValidButtons.PRESETS_NL_MUSIC,
-                ValidButtons.PRESETS_NS_MUSIC,
+                ValidButtons.PRESETS_OFF_MUSIC,
+                ValidButtons.PRESETS_OFF_MAP,
+                ValidButtons.PRESETS_ON_MUSIC,
+                ValidButtons.PRESETS_ON_MAP,
             ],
         )
 
 
-class NameS(SFunctionality):
+class MusNameS(SFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidSettings.PRESETS.value,
+            name=ValidSettings.MUS_NAME.value,
             ind=0,
-            values=[f"#NAME#_{i:02}" for i in range(InitConfig().name_count)],
+            values=[f"Music_{i:02}" for i in range(InitConfig().music_count)],
+        )
+
+
+class MapNameS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.MAP_NAME.value,
+            ind=0,
+            values=[f"Mappings_{i:02}" for i in range(InitConfig().map_count)],
         )
