@@ -4,11 +4,10 @@ from multiprocessing import Process, Queue
 from typing import Any, Dict
 
 import attrs
-import rtmidi
 
 from .const import ValidButtons, ValidSettings
-from .functionalities import MFunctionality, SFunctionality
-from .sequencer import MiDiO, Sequencer
+from .functionalities import MInFunctionality, MMiDi, SFunctionality
+from .sequencer import MiDiIn, MiDiOut, Sequencer
 
 
 class Engine(Sequencer):
@@ -19,26 +18,30 @@ class Engine(Sequencer):
 
     def __init__(self, loc: str):
         super().__init__(loc=loc)
-        self.modes: Dict[str, MFunctionality] = dict()
+        self.modes: Dict[str, MInFunctionality] = dict()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
-        self.midis: Dict[int, MiDiO] = self.init_midis()
-        self.midi_ids = sorted(self.midis.keys())
+        self.midi_ins: Dict[int, MiDiIn] = self.create_midi_ins()
+        self.midi_outs: Dict[int, MiDiOut] = self.create_midi_outs()
+        self.midi_out_ids = sorted(self.midi_outs.keys())
         from midi_seq_txt.sequencer import DEBUG
 
         self.process = Process(target=self.start, args=(DEBUG,))
         self.func_queue: Queue[Dict[str, Any]] = Queue()
         self.current_step_id: Queue[int] = Queue()
 
-    def init_midis(self) -> Dict[int, MiDiO]:
-        midis: Dict[int, MiDiO] = dict()
-        midi_out = rtmidi.MidiOut()
-        port_names = midi_out.get_ports()
-        ports_midis = self.mappings.filter_midis(port_names=port_names)
-        for port_id, midi_id in ports_midis:
-            midis[midi_id] = MiDiO(port_id=port_id, midi_id=midi_id)
-        if not len(midis):
-            raise ValueError("At least 1 usb midi device is needed")
-        return midis
+    def create_midi_ins(self) -> Dict[int, MiDiIn]:
+        midis: Dict[int, MMiDi] = self.mappings.init_midi_ins()
+        midi_ins: Dict[int, MiDiIn] = dict()
+        for midi_id in midis.keys():
+            midi_ins[midi_id] = MiDiIn(midi=midis[midi_id])
+        return midi_ins
+
+    def create_midi_outs(self) -> Dict[int, MiDiOut]:
+        midis: Dict[int, MMiDi] = self.mappings.init_midi_outs()
+        midi_outs: Dict[int, MiDiOut] = dict()
+        for midi_id in midis.keys():
+            midi_outs[midi_id] = MiDiOut(midi=midis[midi_id])
+        return midi_outs
 
     def detach(self) -> None:
         self.process.start()
@@ -49,8 +52,8 @@ class Engine(Sequencer):
 
         setattr(midi_seq_txt.sequencer, "DEBUG", debug)
         self.init_data()
-        for midi_id in self.midis.keys():
-            self.midis[midi_id].attach(sequencer=self)
+        for midi_id in self.midi_outs.keys():
+            self.midi_outs[midi_id].attach(sequencer=self)
         self.run_sequencer_schedule()
 
     def run_sequencer_schedule(self) -> None:
@@ -62,13 +65,13 @@ class Engine(Sequencer):
                     mode = self.convert_to_mode(func_dict)
                     self.set_step(mode=mode)
                     midi_id = int(self.settings[ValidSettings.E_MIDI_O].get_value())
-                    self.midis[midi_id].add_note_to_note_schedule(mode)
+                    self.midi_outs[midi_id].add_note_to_note_schedule(mode)
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
-            for midi_id in self.midis.keys():
-                self.midis[midi_id].add_parts_to_step_schedule()
-                self.midis[midi_id].run_note_and_step_schedule()
+            for midi_id in self.midi_outs.keys():
+                self.midi_outs[midi_id].add_parts_to_step_schedule()
+                self.midi_outs[midi_id].run_note_and_step_schedule()
             time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:
@@ -77,13 +80,13 @@ class Engine(Sequencer):
         setting_value.update_with_ind(int(setting_dict["ind"]))
         return setting_value
 
-    def convert_to_mode(self, mode_dict: Dict[str, Any]) -> MFunctionality:
+    def convert_to_mode(self, mode_dict: Dict[str, Any]) -> MInFunctionality:
         valid_mode = mode_dict["name"]
         mode_value = self.modes[valid_mode].new(lock=False)
         mode_value.set_indexes(mode_dict["indexes"])
         return mode_value
 
-    def send_mode(self, mode: MFunctionality) -> None:
+    def send_mode(self, mode: MInFunctionality) -> None:
         self.set_step(mode=mode)
         self.func_queue.put(attrs.asdict(mode))
 

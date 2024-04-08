@@ -6,7 +6,7 @@ from textual.widgets import Label, Sparkline, Static
 from .configs import InitConfig
 from .const import ValidButtons, ValidNav, ValidSettings
 from .engine import Engine
-from .functionalities import MFunctionality, SFunctionality
+from .functionalities import MInFunctionality, SFunctionality
 from .init import create_notes, init_nav
 from .presets import write_preset_type
 
@@ -98,7 +98,7 @@ class KeysUI(Static):
         self.update_top()
         self.update_bottom()
 
-    def config_mode(self, key_ind: int) -> MFunctionality:
+    def config_mode(self, key_ind: int) -> MInFunctionality:
         valid_mode = str(self.sequencer.settings[ValidSettings.E_MODE].get_value())
         mode = self.sequencer.modes[valid_mode]
         main_label = mode.get_vis_label()
@@ -423,13 +423,13 @@ class NavigationUI(Static):
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
-    def next_length(self) -> MFunctionality:
+    def next_length(self) -> MInFunctionality:
         return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Length", by=1)
 
-    def next_velocity(self) -> MFunctionality:
+    def next_velocity(self) -> MInFunctionality:
         return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Velocity", by=1)
 
-    def next_scale(self) -> MFunctionality:
+    def next_scale(self) -> MInFunctionality:
         mode = self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Scale", by=1)
         scale = mode.get_single_value_by_off(off="Scale", ind=0)
         mode = self.sequencer.get_current_proto_mode().set_data_with_lab(

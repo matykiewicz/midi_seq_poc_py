@@ -3,6 +3,7 @@ from copy import deepcopy
 from typing import Dict, List, Optional, Tuple, Union
 
 import mingus.core.scales as scales
+import rtmidi
 from attrs import AttrsInstance, define
 from mingus.containers import Note
 
@@ -40,37 +41,98 @@ def create_notes(scale: str) -> List[str]:
 
 
 @define
+class MMiDi(AttrsInstance):
+    midi_id: int
+    port_id: int
+    port_name: str
+    is_out: bool
+
+
+@define
 class MMapping(AttrsInstance):
     midi_id: int
-    port_name: str
-    channel: int
-    is_out: bool
-    instruments: List[str]
+    port_name: str = ""
+    channel: int = -1
+    is_out: bool = True
+    instruments: List[str] = list()
 
 
 @define
 class MMappings(AttrsInstance):
-    name: str
-    comment: str
-    mappings: List[MMapping]
+    name: str = ""
+    comment: str = ""
+    mappings: List[MMapping] = [MMapping(i) for i in range(InitConfig().max_instruments)]
 
-    def filter_midis(self, port_names) -> List[Tuple[int, int]]:
+    def __attrs_post_init__(self):
+        missing = InitConfig().max_instruments - len(self.mappings)
+        if missing:
+            max_midi_id = max([mapping.midi_id for mapping in self.mappings])
+            for i in range(missing):
+                self.mappings.append(MMapping(midi_id=max_midi_id + 1 + i))
+
+    def filter_midis(
+        self, port_names_outs: List[Tuple[str, bool]]
+    ) -> List[Tuple[int, int, str, bool]]:
         found_ports: List[int] = list()
         found_mappings: List[int] = list()
         found_midis: List[int] = list()
-        for i, port_name in enumerate(port_names):
+        found_names: List[str] = list()
+        found_outs: List[bool] = list()
+        for i, port_name_out in enumerate(port_names_outs):
+            port_name, out = port_name_out
             for j, mapping in enumerate(self.mappings):
                 if (
                     port_name == mapping.port_name
+                    and out == mapping.is_out
                     and i not in found_ports
                     and j not in found_mappings
                 ):
                     found_ports.append(i)
                     found_mappings.append(j)
                     found_midis.append(self.mappings[j].midi_id)
-        return list(zip(found_ports, found_midis))
+                    found_names.append(port_name)
+                    found_outs.append(out)
+        return list(zip(found_ports, found_midis, found_names, found_outs))
 
-    def to_dict(self, modes: Dict[str, "MFunctionality"]) -> Dict[int, Dict[int, List[str]]]:
+    def init_midi_ins(self) -> Dict[int, MMiDi]:
+        midi_out = rtmidi.MidiOut()
+        midi_in = rtmidi.MidiIn()
+        midi_ins: Dict[int, MMiDi] = dict()
+        out_port_names = midi_out.get_ports()
+        in_port_names = midi_in.get_ports()
+        port_names_outs = list(zip(out_port_names, [True] * len(out_port_names))) + list(
+            zip(in_port_names, [False] * len(in_port_names))
+        )
+        ports_midis_names_outs = self.filter_midis(port_names_outs=port_names_outs)
+        for port_id, midi_id, port_name, is_out in ports_midis_names_outs:
+            if not is_out:
+                midi_ins[midi_id] = MMiDi(
+                    port_id=port_id, midi_id=midi_id, port_name=port_name, is_out=False
+                )
+        if not len(midi_ins):
+            midi_ins[0] = MMiDi(port_id=0, midi_id=0, port_name="DEBUG", is_out=False)
+        return midi_ins
+
+    def init_midi_outs(self) -> Dict[int, MMiDi]:
+        midi_out = rtmidi.MidiOut()
+        midi_in = rtmidi.MidiIn()
+        midi_outs: Dict[int, MMiDi] = dict()
+        out_port_names = midi_out.get_ports()
+        in_port_names = midi_in.get_ports()
+        port_names_outs = list(zip(out_port_names, [True] * len(out_port_names))) + list(
+            zip(in_port_names, [False] * len(in_port_names))
+        )
+        ports_midis_names_outs = self.filter_midis(port_names_outs=port_names_outs)
+        for port_id, midi_id, port_name, is_out in ports_midis_names_outs:
+            if is_out:
+                midi_outs[midi_id] = MMiDi(
+                    port_id=port_id, midi_id=midi_id, port_name=port_name, is_out=True
+                )
+        if not len(midi_outs):
+            midi_outs[1] = MMiDi(port_id=0, midi_id=1, port_name="DEBUG", is_out=True)
+        return midi_outs
+
+    def to_dict(self, modes: Dict[str, "MInFunctionality"]) -> Dict[int, Dict[int, List[str]]]:
         mappings_dict: Dict[int, Dict[int, List[str]]] = defaultdict(lambda: defaultdict(list))
         instruments_dict: Dict[str, List[str]] = defaultdict(list)
         for valid_mode in modes.keys():
@@ -172,7 +234,12 @@ class SFunctionality(AttrsInstance):
 
 
 @define
-class MFunctionality(AttrsInstance):
+class MOutFunctionality(AttrsInstance):
+    name: str
+
+
+@define
+class MInFunctionality(AttrsInstance):
     # MIDI & Modes
     name: str
     indexes: List[List[int]]
@@ -188,7 +255,7 @@ class MFunctionality(AttrsInstance):
     def get_exe(self) -> int:
         return self._exe_
 
-    def update_offsets_with_lab(self, lab: str, by: int) -> "MFunctionality":
+    def update_offsets_with_lab(self, lab: str, by: int) -> "MInFunctionality":
         if lab in self.labels:
             off_int = self.labels.index(lab)
             if off_int < len(self.data):
@@ -254,22 +321,22 @@ class MFunctionality(AttrsInstance):
     def get_vis_label(self) -> str:
         return self.labels[self.vis_ind[1]]
 
-    def new(self, lock: bool) -> "MFunctionality":
+    def new(self, lock: bool) -> "MInFunctionality":
         new = deepcopy(self)
         new._lock_ = lock
         return new
 
-    def new_with_indexes(self, indexes: List[List[int]]) -> "MFunctionality":
+    def new_with_indexes(self, indexes: List[List[int]]) -> "MInFunctionality":
         new_mode = self.new(lock=False)
         new_mode = new_mode.set_indexes(indexes=deepcopy(indexes))
         return new_mode
 
-    def new_with_off(self, off: str, ind: int, exe: Optional[int]) -> "MFunctionality":
+    def new_with_off(self, off: str, ind: int, exe: Optional[int]) -> "MInFunctionality":
         new_mode = self.new(lock=False)
         new_mode.set_indexes_with_off(off=off, ind=ind, exe=exe)
         return new_mode
 
-    def set_data_with_lab(self, lab: str, data: List[str]) -> "MFunctionality":
+    def set_data_with_lab(self, lab: str, data: List[str]) -> "MInFunctionality":
         if lab in self.labels:
             ind = self.labels.index(lab)
             self.data[ind] = data
@@ -279,7 +346,7 @@ class MFunctionality(AttrsInstance):
 
     def set_indexes_with_off(
         self, off: str, ind: int, exe: Optional[int] = None
-    ) -> "MFunctionality":
+    ) -> "MInFunctionality":
         if self._lock_:
             raise PermissionError(f"{self.name} mode is locked!")
         if off in self.labels:
@@ -294,7 +361,7 @@ class MFunctionality(AttrsInstance):
             raise ValueError(f"Offset {off} not found!")
         return self
 
-    def set_indexes(self, indexes: List[List[int]]) -> "MFunctionality":
+    def set_indexes(self, indexes: List[List[int]]) -> "MInFunctionality":
         if self._lock_:
             raise PermissionError(f"{self.name} mode is locked!")
         for i in range(len(indexes)):

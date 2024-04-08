@@ -24,3 +24,4 @@ class InitConfig:
     init_scale: str = "C"
     map_count: int = 16
     music_count: int = 16
+    max_instruments: int = 16

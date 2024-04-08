@@ -14,7 +14,7 @@ from .functionalities import (
     EPartS,
     EStepS,
     MapNameS,
-    MFunctionality,
+    MInFunctionality,
     MMapping,
     MMappings,
     MMusic,
@@ -64,7 +64,7 @@ def create_motions() -> List[str]:
     return button_motions
 
 
-VOICE_1 = MFunctionality(
+VOICE_1 = MInFunctionality(
     name="GeVo1",
     comment="Generic MIDI start and stop of a note.",
     indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
@@ -84,7 +84,7 @@ VOICE_1 = MFunctionality(
     ],
 )
 
-VOICE_2 = MFunctionality(
+VOICE_2 = MInFunctionality(
     name="GeVo2",
     comment="Generic MIDI start and stop of a note.",
     indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
@@ -104,7 +104,7 @@ VOICE_2 = MFunctionality(
     ],
 )
 
-CUTOFF_EG_INT = MFunctionality(
+CUTOFF_EG_INT = MInFunctionality(
     name="VBCuEgIn",
     comment="Volca Bass Cutoff EG Int CC.",
     indexes=[[1, 0]],
@@ -228,7 +228,7 @@ def init_settings(
     }
 
 
-def init_modes_mem() -> Dict[str, MFunctionality]:
+def init_modes_mem() -> Dict[str, MInFunctionality]:
     return {
         VOICE_1.name: VOICE_1,
         VOICE_2.name: VOICE_2,

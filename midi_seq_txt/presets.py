@@ -7,29 +7,29 @@ from typing import Any, Dict, List, Set, Tuple, Type, Union
 import attrs
 import yaml
 
-from .functionalities import MFunctionality, MMappings, MMusic
+from .functionalities import MInFunctionality, MMappings, MMusic
 
-PRESET_TYPES: Dict[str, Union[Type[MFunctionality], Type[MMappings], Type[MMusic]]] = {
+PRESET_TYPES: Dict[str, Union[Type[MInFunctionality], Type[MMappings], Type[MMusic]]] = {
     "MMappings": MMappings,
-    "MFunctionality": MFunctionality,
+    "MInFunctionality": MInFunctionality,
     "MMusic": MMusic,
 }
 
 
 def read_all_presets(
     args: Namespace,
-) -> Tuple[List[MFunctionality], Set[str], List[MMappings], List[MMusic]]:
+) -> Tuple[List[MInFunctionality], Set[str], List[MMappings], List[MMusic]]:
     loc: str = args.dir
-    all_modes: List[MFunctionality] = list()
+    all_modes: List[MInFunctionality] = list()
     all_mappings: List[MMappings] = list()
     all_music: List[MMusic] = list()
     all_instruments: Set[str] = set()
     for file_path in iglob(f"{loc}/*/*.yaml"):
         path = Path(file_path)
         class_name = path.parts[-2]
-        if class_name == "MFunctionality":
+        if class_name == "MInFunctionality":
             mode_dict = read_preset(file_path=file_path)
-            mode = MFunctionality(**mode_dict)
+            mode = MInFunctionality(**mode_dict)
             all_modes.append(mode)
             for instrument in mode.instruments:
                 all_instruments.add(instrument)
@@ -50,18 +50,18 @@ def read_preset(file_path: str) -> Dict[str, Any]:
     return preset_dict
 
 
-def read_preset_type(file_path: str) -> Union[MMappings, MFunctionality, MMusic]:
+def read_preset_type(file_path: str) -> Union[MMappings, MInFunctionality, MMusic]:
     path = Path(file_path)
     class_name = path.parts[-2]
     with open(file_path, "r") as fh:
         preset_dict = yaml.load(fh, yaml.Loader)
-    preset_type: Union[Type[MFunctionality], Type[MMappings], Type[MMusic]] = PRESET_TYPES[
+    preset_type: Union[Type[MInFunctionality], Type[MMappings], Type[MMusic]] = PRESET_TYPES[
         class_name
     ]
     return preset_type(**preset_dict)
 
 
-def write_preset_type(preset: Union[MMappings, MFunctionality, MMusic], loc: str) -> None:
+def write_preset_type(preset: Union[MMappings, MInFunctionality, MMusic], loc: str) -> None:
     preset_type = preset.__class__.__name__
     preset_dict = attrs.asdict(preset)
     os.makedirs(f"{loc}/{preset_type}", exist_ok=True)
@@ -77,11 +77,11 @@ def write_all_presets(args: Namespace) -> None:
     loc: str = args.dir
     import midi_seq_txt.init
 
-    presets: List[Union[MMappings, MFunctionality, MMusic]] = list()
+    presets: List[Union[MMappings, MInFunctionality, MMusic]] = list()
     for obj_name in dir(midi_seq_txt.init):
         if "_" in obj_name:
             obj = getattr(midi_seq_txt.init, obj_name)
-            if obj.__class__.__name__ in ["MMappings", "MFunctionality", "MMusic"]:
+            if obj.__class__.__name__ in ["MMappings", "MInFunctionality", "MMusic"]:
                 presets.append(obj)
     for preset in presets:
         write_preset_type(preset=preset, loc=loc)
