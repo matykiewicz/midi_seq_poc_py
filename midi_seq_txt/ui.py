@@ -314,8 +314,10 @@ class NavigationUI(Static):
         self.sequencer.send_setting(presets)
 
     def load_music(self) -> None:
-        music_name = str(self.sequencer.settings[ValidSettings.MUS_NAME].get_value())
-        pass
+        presets = self.config_setting(
+            ValidSettings.PRESETS, str(ValidButtons.PRESETS_L_MUSIC.value)
+        )
+        self.sequencer.send_setting(presets)
 
     def save_music(self) -> None:
         music_name = str(self.sequencer.settings[ValidSettings.MUS_NAME].get_value())
@@ -323,8 +325,10 @@ class NavigationUI(Static):
         write_preset_type(preset=self.sequencer.sequences, loc=self.loc)
 
     def load_map(self) -> None:
-        map_name = str(self.sequencer.settings[ValidSettings.MAP_NAME].get_value())
-        pass
+        presets = self.config_setting(
+            ValidSettings.PRESETS, str(ValidButtons.PRESETS_L_MUSIC.value)
+        )
+        self.sequencer.send_setting(presets)
 
     def save_map(self) -> None:
         map_name = str(self.sequencer.settings[ValidSettings.MAP_NAME].get_value())

@@ -88,7 +88,7 @@ async def test_record_and_copy(command_line_args):
 
 
 @pytest.mark.asyncio
-async def test_record_and_scale(command_line_args):
+async def test_presets(command_line_args):
     import midi_seq_txt.sequencer
 
     setattr(midi_seq_txt.sequencer, "DEBUG", True)
@@ -96,16 +96,15 @@ async def test_record_and_scale(command_line_args):
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
         time.sleep(0.01)
-        await pilot.press("9")  # next mode (Vo2)
+        await pilot.press("a")  # presets
         time.sleep(0.01)
-        await pilot.press("9")  # next mode (Scale)
+        await pilot.press("c")  # music
         time.sleep(0.01)
-        await pilot.press("c")  # record on
+        await pilot.press("d")  # save music
         time.sleep(0.01)
-        await pilot.press("l")  # next keys
+        await pilot.press("c")  # load music
         time.sleep(0.01)
-        await pilot.press("e")  # key 1
-        time.sleep(0.01)
+    ms_app.sequencer.process.kill()
 
 
 @pytest.mark.asyncio

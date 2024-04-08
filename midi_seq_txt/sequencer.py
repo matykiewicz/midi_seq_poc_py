@@ -11,12 +11,14 @@ from .configs import InitConfig
 from .const import ValidButtons, ValidSettings
 from .functionalities import MFunctionality, MMappings, MMusic, SFunctionality
 from .init import init_mappings_mem, init_modes_mem, init_music_mem, init_settings
+from .presets import read_preset_type
 
 DEBUG: bool = False
 
 
 class Sequencer:
-    def __init__(self):
+    def __init__(self, loc: str):
+        self.loc = loc
         self.internal_config = InitConfig()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.modes: Dict[str, MFunctionality] = dict()
@@ -32,7 +34,6 @@ class Sequencer:
         self.step_interval: float = 0.0
         self.part_interval: float = 0.0
         self.reset_intervals()
-        self.reset_scale()
 
     def debug_sequence(self) -> None:
         import json
@@ -47,9 +48,6 @@ class Sequencer:
         self.quant_interval = round((1 / (self.tempo / 60)) / self.internal_config.n_quants, 4)
         self.step_interval = self.quant_interval * self.internal_config.n_quants
         self.part_interval = self.step_interval * self.internal_config.n_steps
-
-    def reset_scale(self):
-        pass
 
     def init_data(self) -> None:
         self.modes = init_modes_mem()
@@ -237,6 +235,24 @@ class Sequencer:
     def set_option(self, option: SFunctionality) -> None:
         valid_setting = ValidSettings(option.name)
         self.settings[valid_setting].update_with_ind(option.get_ind())
+        if self.settings[valid_setting].get_value() == ValidButtons.PRESETS_L_MUSIC:
+            self.load_music()
+        elif self.settings[valid_setting].get_value() == ValidButtons.PRESETS_L_MAP:
+            self.load_map()
+
+    def load_music(self):
+        music_name = str(self.settings[ValidSettings.MUS_NAME].get_value())
+        file_path = f"{self.loc}/{MMusic.__name__}/{music_name}.yaml"
+        preset = read_preset_type(file_path=file_path)
+        if isinstance(preset, MMusic):
+            self.sequences = preset
+
+    def load_map(self):
+        map_name = str(self.settings[ValidSettings.MAP_NAME].get_value())
+        file_path = f"{self.loc}/{MMappings.__class__.__name__}/{map_name}.yaml"
+        preset = read_preset_type(file_path=file_path)
+        if isinstance(preset, MMappings):
+            self.mappings = preset
 
     def find_all_to_play(self) -> Dict[int, Dict[int, Dict[int, bool]]]:
         all_to_play: Dict[int, Dict[int, Dict[int, bool]]] = defaultdict(lambda: defaultdict(dict))

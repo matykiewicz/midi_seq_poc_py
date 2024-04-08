@@ -2,26 +2,30 @@ comment: ''
 mappings:
 - channel: 1
   instruments:
-  - Generic
-  is_out: true
-  midi_id: 1
-  port_name: USB MIDI Interface
-- channel: 1
-  instruments:
+  - Volca Drum
   - Generic
   is_out: true
   midi_id: 0
-  port_name: USB2.0-MIDI Port 2
+  port_name: ''
 - channel: 1
   instruments:
+  - Volca Bass
   - Generic
   is_out: true
-  midi_id: 3
-  port_name: USB MIDI Interface
+  midi_id: 1
+  port_name: ''
 - channel: 1
   instruments:
+  - Volca Keys
   - Generic
   is_out: true
   midi_id: 2
-  port_name: USB2.0-MIDI Port 2
-name: MMappings_00
+  port_name: ''
+- channel: 1
+  instruments:
+  - Volca FM2
+  - Generic
+  is_out: true
+  midi_id: 3
+  port_name: ''
+name: Mappings_01

@@ -50,19 +50,6 @@ def read_preset(file_path: str) -> Dict[str, Any]:
     return preset_dict
 
 
-def read_all_preset_type(loc: str):
-    pass
-    # for file_path in iglob(f"{loc}/*/*.yaml"):
-    #    path = Path(file_path)
-    #    class_name = path.parts[-2]
-    #    if class_name == "MFunctionality":
-    #        mode_dict = read_preset(file_path=file_path)
-    #        mode = MFunctionality(**mode_dict)
-    #        all_modes.append(mode)
-    #        for instrument in mode.instruments:
-    #            all_instruments.add(instrument)
-
-
 def read_preset_type(file_path: str) -> Union[MMappings, MFunctionality, MMusic]:
     path = Path(file_path)
     class_name = path.parts[-2]

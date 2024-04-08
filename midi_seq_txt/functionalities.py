@@ -569,6 +569,8 @@ class PresetsS(SFunctionality):
                 ValidButtons.PRESETS_OFF_MAP,
                 ValidButtons.PRESETS_ON_MUSIC,
                 ValidButtons.PRESETS_ON_MAP,
+                ValidButtons.PRESETS_L_MUSIC,
+                ValidButtons.PRESETS_L_MAP,
             ],
         )
 

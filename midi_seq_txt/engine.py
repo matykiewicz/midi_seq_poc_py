@@ -18,8 +18,7 @@ class Engine(Sequencer):
     """
 
     def __init__(self, loc: str):
-        super().__init__()
-        self.loc = loc
+        super().__init__(loc=loc)
         self.modes: Dict[str, MFunctionality] = dict()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.midis: Dict[int, MiDiO] = self.init_midis()
