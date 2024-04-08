@@ -595,7 +595,7 @@ class NavigationUI(Static):
         ]:
             text += f"Map: {current_map_name}{map_match}|"
         else:
-            text += f"___: ___|"
+            text += "___: ___ |"
         self.name_vis.update(text)
 
     def update_keys_vis(self) -> None:

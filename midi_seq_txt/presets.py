@@ -7,9 +7,11 @@ from typing import Any, Dict, List, Set, Tuple, Type, Union
 import attrs
 import yaml
 
-from .functionalities import MOutFunctionality, MMappings, MMusic, MInFunctionality
+from .functionalities import MInFunctionality, MMappings, MMusic, MOutFunctionality
 
-PRESET_TYPES: Dict[str, Union[Type[MOutFunctionality], Type[MMappings], Type[MMusic], Type[MInFunctionality]]] = {
+PRESET_TYPES: Dict[
+    str, Union[Type[MOutFunctionality], Type[MMappings], Type[MMusic], Type[MInFunctionality]]
+] = {
     "MMappings": MMappings,
     "MOutFunctionality": MOutFunctionality,
     "MInFunctionality": MInFunctionality,
@@ -19,7 +21,9 @@ PRESET_TYPES: Dict[str, Union[Type[MOutFunctionality], Type[MMappings], Type[MMu
 
 def read_all_presets(
     args: Namespace,
-) -> Tuple[List[MOutFunctionality], Set[str], List[MInFunctionality], List[MMappings], List[MMusic]]:
+) -> Tuple[
+    List[MOutFunctionality], Set[str], List[MInFunctionality], List[MMappings], List[MMusic]
+]:
     loc: str = args.dir
     all_modes: List[MOutFunctionality] = list()
     all_messages: List[MInFunctionality] = list()
@@ -56,14 +60,16 @@ def read_preset(file_path: str) -> Dict[str, Any]:
     return preset_dict
 
 
-def read_preset_type(file_path: str) -> Union[MMappings, MOutFunctionality, MMusic]:
+def read_preset_type(
+    file_path: str,
+) -> Union[MMappings, MOutFunctionality, MMusic, MInFunctionality]:
     path = Path(file_path)
     class_name = path.parts[-2]
     with open(file_path, "r") as fh:
         preset_dict = yaml.load(fh, yaml.Loader)
-    preset_type: Union[Type[MOutFunctionality], Type[MMappings], Type[MMusic]] = PRESET_TYPES[
-        class_name
-    ]
+    preset_type: Union[
+        Type[MOutFunctionality], Type[MMappings], Type[MMusic], Type[MInFunctionality]
+    ] = PRESET_TYPES[class_name]
     return preset_type(**preset_dict)  # noqa
 
 
@@ -87,7 +93,12 @@ def write_all_presets(args: Namespace) -> None:
     for obj_name in dir(midi_seq_txt.init):
         if "_" in obj_name:
             obj = getattr(midi_seq_txt.init, obj_name)
-            if obj.__class__.__name__ in ["MMappings", "MOutFunctionality", "MMusic", "MInFunctionality"]:
+            if obj.__class__.__name__ in [
+                "MMappings",
+                "MOutFunctionality",
+                "MMusic",
+                "MInFunctionality",
+            ]:
                 presets.append(obj)
     for preset in presets:
         write_preset_type(preset=preset, loc=loc)

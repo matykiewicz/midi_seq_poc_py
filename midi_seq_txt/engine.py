@@ -6,7 +6,7 @@ from typing import Any, Dict
 import attrs
 
 from .const import ValidButtons, ValidSettings
-from .functionalities import MOutFunctionality, MMiDi, SFunctionality
+from .functionalities import MMiDi, MOutFunctionality, SFunctionality
 from .sequencer import MiDiIn, MiDiOut, Sequencer
 
 

@@ -9,7 +9,7 @@ from rtmidi import MidiIn, MidiOut
 
 from .configs import InitConfig
 from .const import ValidButtons, ValidSettings
-from .functionalities import MOutFunctionality, MMappings, MMiDi, MMusic, SFunctionality
+from .functionalities import MMappings, MMiDi, MMusic, MOutFunctionality, SFunctionality
 from .init import init_mappings_mem, init_modes_mem, init_music_mem, init_settings
 from .presets import read_preset_type
 
