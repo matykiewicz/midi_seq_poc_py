@@ -222,6 +222,11 @@ class ValidSettings(StrEnum):
     PRESETS = "Presets"
     MUS_NAME = "MusName"
     MAP_NAME = "MapName"
+    MAP_E_CON = "MapEditCon"
+    MAP_E_DIR = "MapEditDir"
+    MAP_E_CH = "MapEditCh"
+    MAP_E_PNAME = "MapEditPortName"
+    MAP_E_INSTR = "MapEditInstr"
 
 
 class ValidInstruments(StrEnum):

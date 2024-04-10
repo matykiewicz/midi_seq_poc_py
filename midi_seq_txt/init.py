@@ -13,6 +13,9 @@ from .functionalities import (
     EModeS,
     EPartS,
     EStepS,
+    MapEChS,
+    MapEConS,
+    MapEDirS,
     MapNameS,
     MConn,
     MInFunctionality,
@@ -231,6 +234,9 @@ def init_settings(
         ValidSettings.PRESETS: PresetsS(),
         ValidSettings.MAP_NAME: MapNameS(),
         ValidSettings.MUS_NAME: MusNameS(),
+        ValidSettings.MAP_E_CON: MapEConS(),
+        ValidSettings.MAP_E_DIR: MapEDirS(),
+        ValidSettings.MAP_E_CH: MapEChS(),
     }
 
 

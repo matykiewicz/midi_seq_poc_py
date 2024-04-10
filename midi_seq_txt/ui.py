@@ -92,12 +92,18 @@ class KeysUI(Static):
 
     def update_mappings(self) -> None:
         text = ""
-        for mapping in self.sequencer.mappings.get_sorted():
-            out_in = "out" if mapping.is_out else "in"
-            port_id = self.sequencer.midi_id_to_port_id(mapping.midi_id)
+        edit_con = self.sequencer.settings[ValidSettings.MAP_E_CON].get_value()
+        edit_on = (
+            self.sequencer.settings[ValidSettings.PRESETS].get_value()
+            == ValidButtons.PRESETS_E_MAP_ON
+        )
+        for conn in self.sequencer.mappings.get_sorted():
+            out_in = "out" if conn.is_out else "in"
+            port_id = self.sequencer.midi_id_to_port_id(conn.midi_id)
+            cur_edit = "!" if edit_on and conn.midi_id == edit_con else " "
             text += (
-                f"{out_in}:{mapping.midi_id} -> N:'{mapping.port_name}' C:{mapping.channel} "
-                f"I:{mapping.instruments} -> {port_id}\n"
+                f"{cur_edit}{out_in}:{conn.midi_id} -> N:'{conn.port_name}' C:{conn.channel} "
+                f"I:{conn.instruments} -> {port_id if port_id > -1 else 'off'}\n"
             )
 
         text = text[:-1]
@@ -304,6 +310,13 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.PRESETS_S_MAP] = self.save_map
         nav_actions[ValidButtons.PRESETS_E_MAP_ON] = self.edit_map_on
         nav_actions[ValidButtons.PRESETS_E_MAP_OFF] = self.edit_map_off
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_CON] = self.edit_next_con
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_DIR] = self.edit_next_dir
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_CH] = self.edit_next_channel
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_PNAME] = self.edit_next_port_name
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_INST1] = self.edit_next_instr_1
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_INST2] = self.edit_next_instr_2
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_INST3] = self.edit_next_instr_3
         return nav_actions
 
     def presets_on_music(self) -> None:
@@ -371,6 +384,30 @@ class NavigationUI(Static):
             ValidSettings.PRESETS, str(ValidButtons.PRESETS_E_MAP_OFF.value)
         )
         self.sequencer.send_setting(presets)
+
+    def edit_next_con(self) -> None:
+        self.change_setting(valid_setting=ValidSettings.MAP_E_CON, direction=1)
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.MAP_E_CON])
+
+    def edit_next_dir(self) -> None:
+        self.change_setting(valid_setting=ValidSettings.MAP_E_DIR, direction=1)
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.MAP_E_DIR])
+
+    def edit_next_channel(self) -> None:
+        self.change_setting(valid_setting=ValidSettings.MAP_E_CH, direction=1)
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.MAP_E_CH])
+
+    def edit_next_port_name(self) -> None:
+        pass
+
+    def edit_next_instr_1(self) -> None:
+        pass
+
+    def edit_next_instr_2(self) -> None:
+        pass
+
+    def edit_next_instr_3(self) -> None:
+        pass
 
     def next_music_name(self) -> None:
         self.change_setting(valid_setting=ValidSettings.MUS_NAME, direction=1)
@@ -626,7 +663,7 @@ class NavigationUI(Static):
             ValidButtons.PRESETS_S_MUSIC,
             ValidButtons.PRESETS_L_MUSIC,
         ]:
-            text += f"Mus: {current_mus_name}{mus_loaded_edit}|"
+            text += f"{mus_loaded_edit}Mus: {current_mus_name}|"
         elif setting.get_value() in [
             ValidButtons.PRESETS_ON_MAP,
             ValidButtons.PRESETS_OFF_MAP,
@@ -635,7 +672,7 @@ class NavigationUI(Static):
             ValidButtons.PRESETS_E_MAP_ON,
             ValidButtons.PRESETS_E_MAP_OFF,
         ]:
-            text += f"Map: {current_map_name}{map_loaded_edit}|"
+            text += f"{mus_loaded_edit}Map: {current_map_name}|"
         else:
             text += "___: ___ |"
         self.name_vis.update(text)

@@ -670,3 +670,30 @@ class MapNameS(SFunctionality):
             ind=0,
             values=[f"Mappings_{i:02}" for i in range(InitConfig().map_count)],
         )
+
+
+class MapEConS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.MAP_E_CON.value,
+            ind=0,
+            values=[i for i in range(InitConfig().max_conns)],
+        )
+
+
+class MapEDirS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.MAP_E_DIR.value,
+            ind=0,
+            values=["True", "False"],
+        )
+
+
+class MapEChS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.MAP_E_CH.value,
+            ind=0,
+            values=[ch for ch in range(InitConfig().n_channels)],
+        )

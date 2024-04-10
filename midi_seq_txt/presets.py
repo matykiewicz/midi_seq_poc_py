@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Set, Tuple, Type, Union
 
 import attrs
 import yaml
+from cattr import structure
 
 from .functionalities import MInFunctionality, MMappings, MMusic, MOutFunctionality
 
@@ -74,7 +75,16 @@ def read_preset_type(
     preset_type: Union[
         Type[MOutFunctionality], Type[MMappings], Type[MMusic], Type[MInFunctionality]
     ] = PRESET_TYPES[class_name]
-    return preset_type(**preset_dict)  # noqa
+    struct = structure(preset_dict, preset_type)
+    if (
+        isinstance(struct, MMappings)
+        or isinstance(struct, MOutFunctionality)
+        or isinstance(struct, MInFunctionality)
+        or isinstance(struct, MMusic)
+    ):
+        return struct
+    else:
+        raise TypeError("Type mismatch!")
 
 
 def write_preset_type(preset: Union[MMappings, MOutFunctionality, MMusic], loc: str) -> None:

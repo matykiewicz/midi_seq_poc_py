@@ -106,6 +106,10 @@ async def test_map_presets(command_line_args):
         time.sleep(0.01)
         await pilot.press("c")  # load mapping
         time.sleep(0.01)
+        await pilot.press("4")  # edit mapping
+        time.sleep(0.01)
+        await pilot.press("b")  # next conn
+        time.sleep(0.01)
     ms_app.sequencer.process.kill()
 
 
