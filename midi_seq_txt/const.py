@@ -58,7 +58,15 @@ class ValidButtons(StrEnum):
     PRESETS_L_MAP = "LoMap"
     PRESETS_N_MAP = "+Map"
     PRESETS_S_MAP = "SaMap"
-    PRESETS_E_MAP = "EdMap"
+    PRESETS_E_MAP_ON = "EdMaOn"
+    PRESETS_E_MAP_OFF = "EdMaOff"
+    PRESETS_E_MAP_N_CON = "+Con"
+    PRESETS_E_MAP_N_DIR = "+Dir"
+    PRESETS_E_MAP_N_PNAME = "+PName"
+    PRESETS_E_MAP_N_CH = "+Chan"
+    PRESETS_E_MAP_N_INST1 = "+Ins1"
+    PRESETS_E_MAP_N_INST2 = "+Ins2"
+    PRESETS_E_MAP_N_INST3 = "+Ins3"
 
 
 BUT_PRES = (
@@ -82,10 +90,18 @@ BUT_PRES = (
     ValidButtons.PRESETS_N_MAP,
     ValidButtons.PRESETS_L_MAP,
     ValidButtons.PRESETS_S_MAP,
-    ValidButtons.PRESETS_E_MAP,
+    ValidButtons.PRESETS_E_MAP_ON,
     ValidButtons.EMPTY,
     ValidButtons.EMPTY,
     ValidButtons.EMPTY,
+    ValidButtons.PRESETS_E_MAP_OFF,
+    ValidButtons.PRESETS_E_MAP_N_CON,
+    ValidButtons.PRESETS_E_MAP_N_DIR,
+    ValidButtons.PRESETS_E_MAP_N_PNAME,
+    ValidButtons.PRESETS_E_MAP_N_CH,
+    ValidButtons.PRESETS_E_MAP_N_INST1,
+    ValidButtons.PRESETS_E_MAP_N_INST2,
+    ValidButtons.PRESETS_E_MAP_N_INST3,
 )
 
 BUT_TEMPO = (

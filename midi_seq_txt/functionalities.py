@@ -49,26 +49,36 @@ class MMiDi(AttrsInstance):
 
 
 @define
-class MMapping(AttrsInstance):
+class MConn(AttrsInstance):
     midi_id: int
     port_name: str = ""
     channel: int = -1
     is_out: bool = True
     instruments: List[str] = list()
 
+    def __attrs_post_init__(self):
+        max_instr = InitConfig().max_instr
+        if len(self.instruments) > max_instr:
+            self.instruments = self.instruments[0:3]
+        elif len(self.instruments) < max_instr:
+            self.instruments += [""] * (max_instr - len(self.instruments))
+
 
 @define
 class MMappings(AttrsInstance):
     name: str = ""
     comment: str = ""
-    mappings: List[MMapping] = [MMapping(i) for i in range(InitConfig().max_instruments)]
+    conns: List[MConn] = [MConn(i) for i in range(InitConfig().max_conns)]
+
+    def get_sorted(self) -> List[MConn]:
+        return sorted(self.conns, key=lambda m: m.midi_id)
 
     def __attrs_post_init__(self):
-        missing = InitConfig().max_instruments - len(self.mappings)
+        missing = InitConfig().max_conns - len(self.conns)
         if missing:
-            max_midi_id = max([mapping.midi_id for mapping in self.mappings])
+            max_midi_id = max([mapping.midi_id for mapping in self.conns])
             for i in range(missing):
-                self.mappings.append(MMapping(midi_id=max_midi_id + 1 + i))
+                self.conns.append(MConn(midi_id=max_midi_id + 1 + i))
 
     def filter_midis(
         self, port_names_outs: List[Tuple[str, bool]]
@@ -80,7 +90,7 @@ class MMappings(AttrsInstance):
         found_outs: List[bool] = list()
         for i, port_name_out in enumerate(port_names_outs):
             port_name, out = port_name_out
-            for j, mapping in enumerate(self.mappings):
+            for j, mapping in enumerate(self.conns):
                 if (
                     port_name == mapping.port_name
                     and out == mapping.is_out
@@ -89,7 +99,7 @@ class MMappings(AttrsInstance):
                 ):
                     found_ports.append(i)
                     found_mappings.append(j)
-                    found_midis.append(self.mappings[j].midi_id)
+                    found_midis.append(self.conns[j].midi_id)
                     found_names.append(port_name)
                     found_outs.append(out)
         return list(zip(found_ports, found_midis, found_names, found_outs))
@@ -109,8 +119,6 @@ class MMappings(AttrsInstance):
                 midi_ins[midi_id] = MMiDi(
                     port_id=port_id, midi_id=midi_id, port_name=port_name, is_out=False
                 )
-        if not len(midi_ins):
-            midi_ins[0] = MMiDi(port_id=0, midi_id=0, port_name="DEBUG", is_out=False)
         return midi_ins
 
     def init_midi_outs(self) -> Dict[int, MMiDi]:
@@ -128,8 +136,6 @@ class MMappings(AttrsInstance):
                 midi_outs[midi_id] = MMiDi(
                     port_id=port_id, midi_id=midi_id, port_name=port_name, is_out=True
                 )
-        if not len(midi_outs):
-            midi_outs[1] = MMiDi(port_id=0, midi_id=1, port_name="DEBUG", is_out=True)
         return midi_outs
 
     def to_dict(self, modes: Dict[str, "MOutFunctionality"]) -> Dict[int, Dict[int, List[str]]]:
@@ -139,7 +145,7 @@ class MMappings(AttrsInstance):
             mode = modes[valid_mode]
             for instrument in mode.instruments:
                 instruments_dict[instrument].append(valid_mode)
-        for mapping in self.mappings:
+        for mapping in self.conns:
             midi_id = mapping.midi_id
             channel = mapping.channel
             instruments = mapping.instruments
@@ -566,9 +572,9 @@ class ViewFS(SFunctionality):
             name=ValidSettings.VIEW_FUNCTION.value,
             ind=0,
             values=[
-                ValidButtons.VIEW_ONLY,
-                ValidButtons.VIEW_PLAY,
-                ValidButtons.VIEW_REC,
+                ValidButtons.VIEW_ONLY.value,
+                ValidButtons.VIEW_PLAY.value,
+                ValidButtons.VIEW_REC.value,
             ],
         )
 
@@ -588,10 +594,10 @@ class PlayFS(SFunctionality):
             name=ValidSettings.PLAY_FUNCTION.value,
             ind=0,
             values=[
-                ValidButtons.NA,
-                ValidButtons.PLAY_PART,
-                ValidButtons.PLAY_PARTS,
-                ValidButtons.PLAY_ALL,
+                ValidButtons.NA.value,
+                ValidButtons.PLAY_PART.value,
+                ValidButtons.PLAY_PARTS.value,
+                ValidButtons.PLAY_ALL.value,
             ],
         )
 
@@ -634,12 +640,16 @@ class PresetsS(SFunctionality):
             name=ValidSettings.PRESETS.value,
             ind=0,
             values=[
-                ValidButtons.PRESETS_OFF_MUSIC,
-                ValidButtons.PRESETS_OFF_MAP,
-                ValidButtons.PRESETS_ON_MUSIC,
-                ValidButtons.PRESETS_ON_MAP,
-                ValidButtons.PRESETS_L_MUSIC,
-                ValidButtons.PRESETS_L_MAP,
+                ValidButtons.PRESETS_OFF_MUSIC.value,
+                ValidButtons.PRESETS_OFF_MAP.value,
+                ValidButtons.PRESETS_ON_MUSIC.value,
+                ValidButtons.PRESETS_ON_MAP.value,
+                ValidButtons.PRESETS_L_MUSIC.value,
+                ValidButtons.PRESETS_S_MUSIC.value,
+                ValidButtons.PRESETS_L_MAP.value,
+                ValidButtons.PRESETS_S_MAP.value,
+                ValidButtons.PRESETS_E_MAP_ON.value,
+                ValidButtons.PRESETS_E_MAP_OFF.value,
             ],
         )
 

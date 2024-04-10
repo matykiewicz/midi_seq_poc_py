@@ -14,8 +14,8 @@ from .functionalities import (
     EPartS,
     EStepS,
     MapNameS,
+    MConn,
     MInFunctionality,
-    MMapping,
     MMappings,
     MMusic,
     MOutFunctionality,
@@ -128,29 +128,29 @@ MIDI_CLOCK_IN = MInFunctionality(
 MMAPPINGS_00 = MMappings(
     name="Mappings_00",
     comment="",
-    mappings=[
-        MMapping(
+    conns=[
+        MConn(
             midi_id=1,
             port_name="USB MIDI Interface",
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.GENERIC)],
         ),
-        MMapping(
+        MConn(
             midi_id=0,
             port_name="USB2.0-MIDI Port 2",
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.GENERIC)],
         ),
-        MMapping(
+        MConn(
             midi_id=3,
             port_name="USB MIDI Interface",
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.GENERIC)],
         ),
-        MMapping(
+        MConn(
             midi_id=2,
             port_name="USB2.0-MIDI Port 2",
             channel=1,
@@ -163,29 +163,29 @@ MMAPPINGS_00 = MMappings(
 MMAPPINGS_01 = MMappings(
     name="Mappings_01",
     comment="",
-    mappings=[
-        MMapping(
+    conns=[
+        MConn(
             midi_id=0,
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.VOLCA_DRUM), str(ValidInstruments.GENERIC)],
             port_name="",
         ),
-        MMapping(
+        MConn(
             midi_id=1,
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.VOLCA_BASS), str(ValidInstruments.GENERIC)],
             port_name="",
         ),
-        MMapping(
+        MConn(
             midi_id=2,
             channel=1,
             is_out=True,
             instruments=[str(ValidInstruments.VOLCA_KEYS), str(ValidInstruments.GENERIC)],
             port_name="",
         ),
-        MMapping(
+        MConn(
             midi_id=3,
             channel=1,
             is_out=True,

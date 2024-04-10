@@ -88,7 +88,29 @@ async def test_record_and_copy(command_line_args):
 
 
 @pytest.mark.asyncio
-async def test_presets(command_line_args):
+async def test_map_presets(command_line_args):
+    import midi_seq_txt.sequencer
+
+    setattr(midi_seq_txt.sequencer, "DEBUG", True)
+    ms_app: MSApp = main()
+    pilot: Pilot
+    async with ms_app.run_test() as pilot:  # noqa
+        time.sleep(0.01)
+        await pilot.press("a")  # presets
+        time.sleep(0.01)
+        await pilot.press("d")  # conns
+        time.sleep(0.01)
+        await pilot.press("b")  # next conns
+        time.sleep(0.01)
+        await pilot.press("d")  # save mapping
+        time.sleep(0.01)
+        await pilot.press("c")  # load mapping
+        time.sleep(0.01)
+    ms_app.sequencer.process.kill()
+
+
+@pytest.mark.asyncio
+async def test_music_presets(command_line_args):
     import midi_seq_txt.sequencer
 
     setattr(midi_seq_txt.sequencer, "DEBUG", True)

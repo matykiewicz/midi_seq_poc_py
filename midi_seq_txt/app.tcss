@@ -13,16 +13,20 @@ Label {
     margin: 0;
     border: white;
     display: block;
-    align: center middle;
     content-align: center middle;
+}
+
+.mappings {
+    dock: right;
+    display: block;
 }
 
 KeysUI {
     margin: 0;
     min-width: 50;
+    min-height: 20;
     padding: 0;
     border: white;
-    display: block;
     align: center middle;
     content-align: center middle;
 }

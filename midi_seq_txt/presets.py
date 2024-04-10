@@ -55,8 +55,10 @@ def read_all_presets(
 
 
 def read_preset(file_path: str) -> Dict[str, Any]:
-    with open(file_path, "r") as fh:
-        preset_dict = yaml.load(fh, yaml.Loader)
+    preset_dict: Dict[str, Any] = dict()
+    if os.path.exists(file_path):
+        with open(file_path, "r") as fh:
+            preset_dict = yaml.load(fh, yaml.Loader)
     return preset_dict
 
 
@@ -65,8 +67,10 @@ def read_preset_type(
 ) -> Union[MMappings, MOutFunctionality, MMusic, MInFunctionality]:
     path = Path(file_path)
     class_name = path.parts[-2]
-    with open(file_path, "r") as fh:
-        preset_dict = yaml.load(fh, yaml.Loader)
+    preset_dict: Dict[str, Any] = dict()
+    if os.path.exists(file_path):
+        with open(file_path, "r") as fh:
+            preset_dict = yaml.load(fh, yaml.Loader)
     preset_type: Union[
         Type[MOutFunctionality], Type[MMappings], Type[MMusic], Type[MInFunctionality]
     ] = PRESET_TYPES[class_name]

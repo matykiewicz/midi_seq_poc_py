@@ -43,6 +43,13 @@ class Engine(Sequencer):
             midi_outs[midi_id] = MiDiOut(midi=midis[midi_id])
         return midi_outs
 
+    def midi_id_to_port_id(self, midi_id: int) -> int:
+        if midi_id in self.midi_outs:
+            return self.midi_outs[midi_id].port_id
+        if midi_id in self.midi_ins:
+            return self.midi_ins[midi_id].port_id
+        return -1
+
     def detach(self) -> None:
         self.process.start()
 

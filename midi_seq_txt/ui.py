@@ -26,6 +26,8 @@ class KeysUI(Static):
         self.data_vis_top = Sparkline(data=[0] * self.internal_config.n_steps)
         self.pos_bottom_label = Label("")
         self.data_vis_bottom = Sparkline(data=[0] * self.internal_config.n_steps)
+        self.mappings_label = Label("")
+        self.mappings_label.add_class("mappings")
         self.navigation_ui: Optional[NavigationUI] = None
         self.seq_step: int = 1
         self.update_all()
@@ -88,15 +90,30 @@ class KeysUI(Static):
         )
         self.pos_bottom_label.update(pos_label)
 
+    def update_mappings(self) -> None:
+        text = ""
+        for mapping in self.sequencer.mappings.get_sorted():
+            out_in = "out" if mapping.is_out else "in"
+            port_id = self.sequencer.midi_id_to_port_id(mapping.midi_id)
+            text += (
+                f"{out_in}:{mapping.midi_id} -> N:'{mapping.port_name}' C:{mapping.channel} "
+                f"I:{mapping.instruments} -> {port_id}\n"
+            )
+
+        text = text[:-1]
+        self.mappings_label.update(text)
+
     def compose(self) -> ComposeResult:
         yield self.pos_top_label
         yield self.data_vis_top
         yield self.pos_bottom_label
         yield self.data_vis_bottom
+        yield self.mappings_label
 
     def update_all(self) -> None:
         self.update_top()
         self.update_bottom()
+        self.update_mappings()
 
     def config_mode(self, key_ind: int) -> MOutFunctionality:
         valid_mode = str(self.sequencer.settings[ValidSettings.E_MODE].get_value())
@@ -285,7 +302,8 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.PRESETS_L_MAP] = self.load_map
         nav_actions[ValidButtons.PRESETS_S_MUSIC] = self.save_music
         nav_actions[ValidButtons.PRESETS_S_MAP] = self.save_map
-        nav_actions[ValidButtons.PRESETS_S_MAP] = self.edit_map
+        nav_actions[ValidButtons.PRESETS_E_MAP_ON] = self.edit_map_on
+        nav_actions[ValidButtons.PRESETS_E_MAP_OFF] = self.edit_map_off
         return nav_actions
 
     def presets_on_music(self) -> None:
@@ -324,20 +342,35 @@ class NavigationUI(Static):
         music_name = str(self.sequencer.settings[ValidSettings.MUS_NAME].get_value())
         self.sequencer.sequences.name = music_name
         write_preset_type(preset=self.sequencer.sequences, loc=self.loc)
+        presets = self.config_setting(
+            ValidSettings.PRESETS, str(ValidButtons.PRESETS_S_MUSIC.value)
+        )
+        self.sequencer.send_setting(presets)
 
     def load_map(self) -> None:
-        presets = self.config_setting(
-            ValidSettings.PRESETS, str(ValidButtons.PRESETS_L_MUSIC.value)
-        )
+        presets = self.config_setting(ValidSettings.PRESETS, str(ValidButtons.PRESETS_L_MAP.value))
         self.sequencer.send_setting(presets)
 
     def save_map(self) -> None:
         map_name = str(self.sequencer.settings[ValidSettings.MAP_NAME].get_value())
         self.sequencer.mappings.name = map_name
         write_preset_type(preset=self.sequencer.mappings, loc=self.loc)
+        presets = self.config_setting(ValidSettings.PRESETS, str(ValidButtons.PRESETS_S_MAP.value))
+        self.sequencer.send_setting(presets)
 
-    def edit_map(self) -> None:
-        pass
+    def edit_map_on(self) -> None:
+        self.navigate(direction=1)
+        presets = self.config_setting(
+            ValidSettings.PRESETS, str(ValidButtons.PRESETS_E_MAP_ON.value)
+        )
+        self.sequencer.send_setting(presets)
+
+    def edit_map_off(self) -> None:
+        self.navigate(direction=-1)
+        presets = self.config_setting(
+            ValidSettings.PRESETS, str(ValidButtons.PRESETS_E_MAP_OFF.value)
+        )
+        self.sequencer.send_setting(presets)
 
     def next_music_name(self) -> None:
         self.change_setting(valid_setting=ValidSettings.MUS_NAME, direction=1)
@@ -574,26 +607,35 @@ class NavigationUI(Static):
     def update_name_vis(self) -> None:
         text = "|"
         setting = self.sequencer.settings[ValidSettings.PRESETS]
+        mus_edit = self.sequencer.settings[ValidSettings.RECORD].get_value() == ValidButtons.ON
+        map_edit = (
+            self.sequencer.settings[ValidSettings.PRESETS].get_value()
+            == ValidButtons.PRESETS_E_MAP_ON
+        )
+        mus_loaded_edit = "!" if mus_edit else "*"
+        map_loaded_edit = "!" if map_edit else "*"
         loaded_map_name = self.sequencer.mappings.name
         loaded_mus_name = self.sequencer.sequences.name
         current_mus_name = self.sequencer.settings[ValidSettings.MUS_NAME].get_value()
         current_map_name = self.sequencer.settings[ValidSettings.MAP_NAME].get_value()
-        mus_match = "*" if current_mus_name == loaded_mus_name else " "
-        map_match = "*" if current_map_name == loaded_map_name else " "
+        mus_loaded_edit = mus_loaded_edit if current_mus_name == loaded_mus_name else " "
+        map_loaded_edit = map_loaded_edit if current_map_name == loaded_map_name else " "
         if setting.get_value() in [
             ValidButtons.PRESETS_OFF_MUSIC,
             ValidButtons.PRESETS_ON_MUSIC,
             ValidButtons.PRESETS_S_MUSIC,
             ValidButtons.PRESETS_L_MUSIC,
         ]:
-            text += f"Mus: {current_mus_name}{mus_match}|"
+            text += f"Mus: {current_mus_name}{mus_loaded_edit}|"
         elif setting.get_value() in [
             ValidButtons.PRESETS_ON_MAP,
             ValidButtons.PRESETS_OFF_MAP,
             ValidButtons.PRESETS_L_MAP,
             ValidButtons.PRESETS_S_MAP,
+            ValidButtons.PRESETS_E_MAP_ON,
+            ValidButtons.PRESETS_E_MAP_OFF,
         ]:
-            text += f"Map: {current_map_name}{map_match}|"
+            text += f"Map: {current_map_name}{map_loaded_edit}|"
         else:
             text += "___: ___ |"
         self.name_vis.update(text)

@@ -249,7 +249,7 @@ class Sequencer:
 
     def load_map(self):
         map_name = str(self.settings[ValidSettings.MAP_NAME].get_value())
-        file_path = f"{self.loc}/{MMappings.__class__.__name__}/{map_name}.yaml"
+        file_path = f"{self.loc}/{MMappings.__name__}/{map_name}.yaml"
         preset = read_preset_type(file_path=file_path)
         if isinstance(preset, MMappings):
             self.mappings = preset
