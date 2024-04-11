@@ -9,8 +9,15 @@ from rtmidi import MidiIn, MidiOut
 
 from .configs import InitConfig
 from .const import ValidButtons, ValidSettings
-from .functionalities import MMappings, MMiDi, MMusic, MOutFunctionality, SFunctionality
-from .init import init_mappings_mem, init_modes_mem, init_music_mem, init_settings
+from .functionalities import (
+    MInFunctionality,
+    MMappings,
+    MMiDi,
+    MMusic,
+    MOutFunctionality,
+    SFunctionality,
+)
+from .init import init_mappings_mem, init_modes_and_instruments_mem, init_music_mem, init_settings
 from .presets import read_preset_type
 
 DEBUG: bool = False
@@ -27,9 +34,14 @@ class Sequencer:
         self.detached = False
         self.internal_config = InitConfig()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
-        self.modes: Dict[str, MOutFunctionality] = dict()
+        self.in_modes: Dict[str, MInFunctionality] = dict()
+        self.out_modes: Dict[str, MOutFunctionality] = dict()
+        self.in_instruments: List[str] = list()
+        self.out_instruments: List[str] = list()
+        self.midi_outs_ids: List[int] = list()
+        self.midi_ins_ids: List[int] = list()
         self.valid_modes: List[str] = list()
-        self.midi_out_ids: List[int] = list()
+        self.port_names_comb: List[Tuple[str, bool]] = list()
         self.mappings: MMappings = init_mappings_mem()
         self.sequences: MMusic = MMusic("", "", "", dict())
         self.tempo = self.internal_config.init_tempo
@@ -50,9 +62,18 @@ class Sequencer:
         self.part_interval = self.step_interval * self.internal_config.n_steps
 
     def init_data(self) -> None:
-        self.modes = init_modes_mem()
-        self.valid_modes = list(self.modes.keys())
-        self.settings = init_settings(midi_ids=self.midi_out_ids, valid_modes=self.valid_modes)
+        self.port_names_comb = self.mappings.get_port_names_comb()
+        self.out_modes, self.out_instruments, self.in_modes, self.in_instruments = (
+            init_modes_and_instruments_mem()
+        )
+        self.valid_modes = list(self.out_modes.keys())
+        self.settings = init_settings(
+            midi_ids=self.midi_outs_ids,
+            valid_modes=self.valid_modes,
+            port_names_comb=self.port_names_comb,
+            out_instruments=self.out_instruments,
+            in_instruments=self.in_instruments,
+        )
         self.sequences = init_music_mem(mappings=self.mappings)
 
     def get_current_e_pos(self) -> Tuple[int, int, int, int, str]:
@@ -161,7 +182,7 @@ class Sequencer:
             valid_mode = mode
         first_step = int(self.settings[ValidSettings.E_STEP].get_first_value())
         indexes = self.sequences.data[midi][channel][part][first_step][valid_mode]
-        first_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
+        first_mode = self.out_modes[valid_mode].new_with_indexes(indexes=indexes)
         return first_mode
 
     def get_current_e_step_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
@@ -169,7 +190,7 @@ class Sequencer:
         if valid_mode is None:
             valid_mode = mode
         indexes = self.sequences.data[midi][channel][part][step][valid_mode]
-        current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
+        current_mode = self.out_modes[valid_mode].new_with_indexes(indexes=indexes)
         return current_mode
 
     def get_current_v_step_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
@@ -177,21 +198,21 @@ class Sequencer:
         if valid_mode is None:
             valid_mode = mode
         indexes = self.sequences.data[midi][channel][part][step][valid_mode]
-        current_mode = self.modes[valid_mode].new_with_indexes(indexes=indexes)
+        current_mode = self.out_modes[valid_mode].new_with_indexes(indexes=indexes)
         return current_mode
 
     def get_current_new_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
-        current_mode = self.modes[valid_mode].new(lock=False)
+        current_mode = self.out_modes[valid_mode].new(lock=False)
         return current_mode
 
     def get_current_proto_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
         midi, channel, part, step, mode = self.get_current_e_pos()
         if valid_mode is None:
             valid_mode = mode
-        return self.modes[valid_mode]
+        return self.out_modes[valid_mode]
 
     def get_sound_properties(self) -> Tuple[List[str], List[str]]:
         current_mode = self.get_current_e_step_mode()
@@ -239,6 +260,36 @@ class Sequencer:
             self.load_music()
         elif self.settings[valid_setting].get_value() == ValidButtons.PRESETS_L_MAP:
             self.load_map()
+        elif valid_setting in [
+            ValidSettings.MAP_E_DIR,
+            ValidSettings.MAP_E_CH,
+            ValidSettings.MAP_E_INSTR_O,
+            ValidSettings.MAP_E_PNAME_O,
+            ValidSettings.MAP_E_INSTR_I,
+            ValidSettings.MAP_E_PNAME_I,
+        ]:
+            self.edit_mappings()
+
+    def edit_mappings(self):
+        midi_id = int(self.settings[ValidSettings.MAP_E_CON].get_value())
+        is_out = str(self.settings[ValidSettings.MAP_E_DIR].get_value()) == "True"
+        channel = int(self.settings[ValidSettings.MAP_E_CH].get_value())
+        port_name_out = str(self.settings[ValidSettings.MAP_E_PNAME_O].get_value())
+        port_name_in = str(self.settings[ValidSettings.MAP_E_PNAME_I].get_value())
+        instr_out = str(self.settings[ValidSettings.MAP_E_INSTR_O].get_value())
+        instr_in = str(self.settings[ValidSettings.MAP_E_INSTR_I].get_value())
+        conns = self.mappings.get_sorted()
+        if conns[midi_id].is_out != is_out:
+            conns[midi_id].port_name = ""
+            conns[midi_id].instruments = [""] * self.internal_config.max_instr
+        conns[midi_id].is_out = is_out
+        conns[midi_id].channel = channel
+        if is_out:
+            conns[midi_id].port_name = port_name_out
+            conns[midi_id].instruments[0] = instr_out
+        else:
+            conns[midi_id].port_name = port_name_in
+            conns[midi_id].instruments[0] = instr_in
 
     def load_music(self):
         music_name = str(self.settings[ValidSettings.MUS_NAME].get_value())

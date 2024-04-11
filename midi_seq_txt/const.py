@@ -62,11 +62,11 @@ class ValidButtons(StrEnum):
     PRESETS_E_MAP_OFF = "EdMaOff"
     PRESETS_E_MAP_N_CON = "+Con"
     PRESETS_E_MAP_N_DIR = "+Dir"
-    PRESETS_E_MAP_N_PNAME = "+PName"
     PRESETS_E_MAP_N_CH = "+Chan"
-    PRESETS_E_MAP_N_INST1 = "+Ins1"
-    PRESETS_E_MAP_N_INST2 = "+Ins2"
-    PRESETS_E_MAP_N_INST3 = "+Ins3"
+    PRESETS_E_MAP_N_PNAME_O = "+PNmOut"
+    PRESETS_E_MAP_N_INSTR_O = "+InsOut"
+    PRESETS_E_MAP_N_PNAME_I = "+PNmIn"
+    PRESETS_E_MAP_N_INSTR_I = "+InsIn"
 
 
 BUT_PRES = (
@@ -97,11 +97,11 @@ BUT_PRES = (
     ValidButtons.PRESETS_E_MAP_OFF,
     ValidButtons.PRESETS_E_MAP_N_CON,
     ValidButtons.PRESETS_E_MAP_N_DIR,
-    ValidButtons.PRESETS_E_MAP_N_PNAME,
     ValidButtons.PRESETS_E_MAP_N_CH,
-    ValidButtons.PRESETS_E_MAP_N_INST1,
-    ValidButtons.PRESETS_E_MAP_N_INST2,
-    ValidButtons.PRESETS_E_MAP_N_INST3,
+    ValidButtons.PRESETS_E_MAP_N_PNAME_O,
+    ValidButtons.PRESETS_E_MAP_N_INSTR_O,
+    ValidButtons.PRESETS_E_MAP_N_PNAME_I,
+    ValidButtons.PRESETS_E_MAP_N_INSTR_I,
 )
 
 BUT_TEMPO = (
@@ -225,8 +225,10 @@ class ValidSettings(StrEnum):
     MAP_E_CON = "MapEditCon"
     MAP_E_DIR = "MapEditDir"
     MAP_E_CH = "MapEditCh"
-    MAP_E_PNAME = "MapEditPortName"
-    MAP_E_INSTR = "MapEditInstr"
+    MAP_E_PNAME_O = "MapEditPortNameOut"
+    MAP_E_INSTR_O = "MapEditInstrOut"
+    MAP_E_PNAME_I = "MapEditPortNameIn"
+    MAP_E_INSTR_I = "MapEditInstrIn"
 
 
 class ValidInstruments(StrEnum):

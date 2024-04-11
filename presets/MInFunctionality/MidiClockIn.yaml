@@ -1,4 +1,7 @@
 codes:
 - 248
 converters: []
+instruments:
+- !!python/object/apply:midi_seq_txt.const.ValidInstruments
+  - Generic
 name: MidiClockIn

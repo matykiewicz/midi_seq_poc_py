@@ -18,11 +18,11 @@ class Engine(Sequencer):
 
     def __init__(self, loc: str):
         super().__init__(loc=loc)
-        self.modes: Dict[str, MOutFunctionality] = dict()
         self.settings: Dict[ValidSettings, SFunctionality] = dict()
         self.midi_ins: Dict[int, MiDiIn] = self.create_midi_ins()
         self.midi_outs: Dict[int, MiDiOut] = self.create_midi_outs()
-        self.midi_out_ids = sorted(self.midi_outs.keys())
+        self.midi_outs_ids = sorted(self.midi_outs.keys())
+        self.midi_ins_ids = sorted(self.midi_ins.keys())
         from midi_seq_txt.sequencer import DEBUG
 
         self.process = Process(target=self.start, args=(DEBUG,))
@@ -69,7 +69,7 @@ class Engine(Sequencer):
             if not self.func_queue.empty():
                 func_dict: Dict[str, Any] = self.func_queue.get()
                 if "indexes" in func_dict:
-                    mode = self.convert_to_mode(func_dict)
+                    mode = self.convert_to_out_mode(func_dict)
                     self.set_step(mode=mode)
                     midi_id = int(self.settings[ValidSettings.E_MIDI_O].get_value())
                     self.midi_outs[midi_id].add_note_to_note_schedule(mode)
@@ -87,13 +87,13 @@ class Engine(Sequencer):
         setting_value.update_with_ind(int(setting_dict["ind"]))
         return setting_value
 
-    def convert_to_mode(self, mode_dict: Dict[str, Any]) -> MOutFunctionality:
+    def convert_to_out_mode(self, mode_dict: Dict[str, Any]) -> MOutFunctionality:
         valid_mode = mode_dict["name"]
-        mode_value = self.modes[valid_mode].new(lock=False)
+        mode_value = self.out_modes[valid_mode].new(lock=False)
         mode_value.set_indexes(mode_dict["indexes"])
         return mode_value
 
-    def send_mode(self, mode: MOutFunctionality) -> None:
+    def send_out_mode(self, mode: MOutFunctionality) -> None:
         self.set_step(mode=mode)
         self.func_queue.put(attrs.asdict(mode))
 
@@ -103,8 +103,8 @@ class Engine(Sequencer):
 
     def send_delete(self) -> None:
         midi, channel, part, step, valid_mode = self.get_current_e_pos()
-        mode = self.modes[valid_mode].new(lock=True)
-        self.send_mode(mode=mode)
+        mode = self.out_modes[valid_mode].new(lock=True)
+        self.send_out_mode(mode=mode)
 
     def send_reset_step(self) -> None:
         self.settings[ValidSettings.E_STEP].update_with_ind(0)
@@ -138,6 +138,6 @@ class Engine(Sequencer):
                 step_setting = self.settings[ValidSettings.V_STEP].update_with_value(t_step)
                 t_mode = t_mode.set_indexes(f_sequence)
                 self.send_setting(step_setting)
-                self.send_mode(t_mode)
+                self.send_out_mode(t_mode)
         step_setting = self.settings[ValidSettings.V_STEP].update_with_value(1)
         self.send_setting(step_setting)

@@ -121,9 +121,9 @@ class KeysUI(Static):
         self.update_bottom()
         self.update_mappings()
 
-    def config_mode(self, key_ind: int) -> MOutFunctionality:
+    def config_out_mode(self, key_ind: int) -> MOutFunctionality:
         valid_mode = str(self.sequencer.settings[ValidSettings.E_MODE].get_value())
-        mode = self.sequencer.modes[valid_mode]
+        mode = self.sequencer.out_modes[valid_mode]
         main_label = mode.get_vis_label()
         return (
             mode.new_with_off(off=main_label, ind=key_ind, exe=None)
@@ -132,15 +132,15 @@ class KeysUI(Static):
         )
 
     def key_1(self):
-        mode = self.config_mode(key_ind=0)
-        self.sequencer.send_mode(mode=mode)
+        mode = self.config_out_mode(key_ind=0)
+        self.sequencer.send_out_mode(mode=mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_2(self):
-        mode = self.config_mode(key_ind=1)
-        self.sequencer.send_mode(mode=mode)
+        mode = self.config_out_mode(key_ind=1)
+        self.sequencer.send_out_mode(mode=mode)
         main_label = mode.get_vis_label()
         mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
         if mode_value == ValidButtons.NEXT:
@@ -152,8 +152,8 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_3(self):
-        mode = self.config_mode(key_ind=2)
-        self.sequencer.send_mode(mode=mode)
+        mode = self.config_out_mode(key_ind=2)
+        self.sequencer.send_out_mode(mode=mode)
         main_label = mode.get_vis_label()
         mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
         if mode_value == ValidButtons.NEXT:
@@ -165,8 +165,8 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_4(self):
-        mode = self.config_mode(key_ind=3)
-        self.sequencer.send_mode(mode=mode)
+        mode = self.config_out_mode(key_ind=3)
+        self.sequencer.send_out_mode(mode=mode)
         main_label = mode.get_vis_label()
         mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
         if mode_value == ValidButtons.NEXT:
@@ -178,8 +178,8 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_5(self):
-        mode = self.config_mode(key_ind=4)
-        self.sequencer.send_mode(mode=mode)
+        mode = self.config_out_mode(key_ind=4)
+        self.sequencer.send_out_mode(mode=mode)
         main_label = mode.get_vis_label()
         mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
         if mode_value == ValidButtons.NEXT:
@@ -191,8 +191,8 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_6(self):
-        mode = self.config_mode(key_ind=5)
-        self.sequencer.send_mode(mode=mode)
+        mode = self.config_out_mode(key_ind=5)
+        self.sequencer.send_out_mode(mode=mode)
         main_label = mode.get_vis_label()
         mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
         if mode_value == ValidButtons.NEXT:
@@ -204,8 +204,8 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_7(self):
-        mode = self.config_mode(key_ind=6)
-        self.sequencer.send_mode(mode=mode)
+        mode = self.config_out_mode(key_ind=6)
+        self.sequencer.send_out_mode(mode=mode)
         main_label = mode.get_vis_label()
         mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
         if mode_value == ValidButtons.NEXT:
@@ -217,8 +217,8 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_8(self):
-        mode = self.config_mode(key_ind=7)
-        self.sequencer.send_mode(mode=mode)
+        mode = self.config_out_mode(key_ind=7)
+        self.sequencer.send_out_mode(mode=mode)
         main_label = mode.get_vis_label()
         mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
         if mode_value == ValidButtons.NEXT:
@@ -313,10 +313,10 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.PRESETS_E_MAP_N_CON] = self.edit_next_con
         nav_actions[ValidButtons.PRESETS_E_MAP_N_DIR] = self.edit_next_dir
         nav_actions[ValidButtons.PRESETS_E_MAP_N_CH] = self.edit_next_channel
-        nav_actions[ValidButtons.PRESETS_E_MAP_N_PNAME] = self.edit_next_port_name
-        nav_actions[ValidButtons.PRESETS_E_MAP_N_INST1] = self.edit_next_instr_1
-        nav_actions[ValidButtons.PRESETS_E_MAP_N_INST2] = self.edit_next_instr_2
-        nav_actions[ValidButtons.PRESETS_E_MAP_N_INST3] = self.edit_next_instr_3
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_PNAME_O] = self.edit_next_port_name_out
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_INSTR_O] = self.edit_next_instr_out
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_PNAME_I] = self.edit_next_port_name_in
+        nav_actions[ValidButtons.PRESETS_E_MAP_N_INSTR_I] = self.edit_next_instr_in
         return nav_actions
 
     def presets_on_music(self) -> None:
@@ -397,17 +397,21 @@ class NavigationUI(Static):
         self.change_setting(valid_setting=ValidSettings.MAP_E_CH, direction=1)
         self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.MAP_E_CH])
 
-    def edit_next_port_name(self) -> None:
-        pass
+    def edit_next_port_name_out(self) -> None:
+        self.change_setting(valid_setting=ValidSettings.MAP_E_PNAME_O, direction=1)
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.MAP_E_PNAME_O])
 
-    def edit_next_instr_1(self) -> None:
-        pass
+    def edit_next_instr_out(self) -> None:
+        self.change_setting(valid_setting=ValidSettings.MAP_E_INSTR_O, direction=1)
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.MAP_E_INSTR_O])
 
-    def edit_next_instr_2(self) -> None:
-        pass
+    def edit_next_port_name_in(self) -> None:
+        self.change_setting(valid_setting=ValidSettings.MAP_E_PNAME_I, direction=1)
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.MAP_E_PNAME_I])
 
-    def edit_next_instr_3(self) -> None:
-        pass
+    def edit_next_instr_in(self) -> None:
+        self.change_setting(valid_setting=ValidSettings.MAP_E_INSTR_I, direction=1)
+        self.sequencer.send_setting(setting=self.sequencer.settings[ValidSettings.MAP_E_INSTR_I])
 
     def next_music_name(self) -> None:
         self.change_setting(valid_setting=ValidSettings.MUS_NAME, direction=1)

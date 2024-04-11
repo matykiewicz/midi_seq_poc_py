@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from mingus.core import keys
 
@@ -16,6 +16,10 @@ from .functionalities import (
     MapEChS,
     MapEConS,
     MapEDirS,
+    MapEInstrIS,
+    MapEInstrOS,
+    MapEPNameIS,
+    MapEPNameOS,
     MapNameS,
     MConn,
     MInFunctionality,
@@ -123,9 +127,7 @@ CUTOFF_EG_INT_OUT = MOutFunctionality(
 )
 
 MIDI_CLOCK_IN = MInFunctionality(
-    name="MidiClockIn",
-    codes=[0xF8],
-    converters=[],
+    name="MidiClockIn", codes=[0xF8], converters=[], instruments=[ValidInstruments.GENERIC]
 )
 
 MMAPPINGS_00 = MMappings(
@@ -211,7 +213,11 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
 
 
 def init_settings(
-    midi_ids: List[int], valid_modes: List[str]
+    midi_ids: List[int],
+    valid_modes: List[str],
+    port_names_comb: List[Tuple[str, bool]],
+    out_instruments: List[str],
+    in_instruments: List[str],
 ) -> Dict[ValidSettings, SFunctionality]:
     return {
         ValidSettings.E_MIDI_O: EMiDiOS(midi_ids=midi_ids),
@@ -237,15 +243,33 @@ def init_settings(
         ValidSettings.MAP_E_CON: MapEConS(),
         ValidSettings.MAP_E_DIR: MapEDirS(),
         ValidSettings.MAP_E_CH: MapEChS(),
+        ValidSettings.MAP_E_PNAME_O: MapEPNameOS(port_names_comb=port_names_comb),
+        ValidSettings.MAP_E_INSTR_O: MapEInstrOS(out_instruments=out_instruments),
+        ValidSettings.MAP_E_PNAME_I: MapEPNameIS(port_names_comb=port_names_comb),
+        ValidSettings.MAP_E_INSTR_I: MapEInstrIS(in_instruments=in_instruments),
     }
 
 
-def init_modes_mem() -> Dict[str, MOutFunctionality]:
-    return {
+def init_modes_and_instruments_mem() -> (
+    Tuple[Dict[str, MOutFunctionality], List[str], Dict[str, MInFunctionality], List[str]]
+):
+    out_modes: Dict[str, MOutFunctionality] = {
         VOICE_1_OUT.name: VOICE_1_OUT,
         VOICE_2_OUT.name: VOICE_2_OUT,
         CUTOFF_EG_INT_OUT.name: CUTOFF_EG_INT_OUT,
     }
+    in_modes: Dict[str, MInFunctionality] = {
+        MIDI_CLOCK_IN.name: MIDI_CLOCK_IN,
+    }
+    out_instruments: List[str] = list()
+    in_instruments: List[str] = list()
+    for out_mode in out_modes.values():
+        out_instruments += out_mode.instruments
+    for in_mode in in_modes.values():
+        in_instruments += in_mode.instruments
+    out_instruments = list(set(out_instruments))
+    in_instruments = list(set(in_instruments))
+    return out_modes, out_instruments, in_modes, in_instruments
 
 
 def init_mappings_mem() -> MMappings:
@@ -256,16 +280,16 @@ def init_music_mem(mappings: MMappings) -> MMusic:
     sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     )
-    modes = init_modes_mem()
-    mappings_dict = mappings.to_dict(modes=modes)
+    out_modes, _, _, _ = init_modes_and_instruments_mem()
+    mappings_dict = mappings.to_out_dict(out_modes=out_modes)
     for midi_id in sorted(mappings_dict.keys()):
         for channel in EChannelS().values:
             if int(channel) in mappings_dict[int(midi_id)]:
                 for part in EPartS().values:
                     for step in EStepS().values:
-                        for valid_mode in modes.keys():
+                        for valid_mode in out_modes.keys():
                             if valid_mode in mappings_dict[int(midi_id)][int(channel)]:
-                                mode = modes[valid_mode].new(lock=False)
+                                mode = out_modes[valid_mode].new(lock=False)
                                 sequences[int(midi_id)][int(channel)][int(part)][int(step)][
                                     valid_mode
                                 ] = mode.get_indexes()

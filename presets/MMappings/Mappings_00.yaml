@@ -4,14 +4,12 @@ conns:
   instruments:
   - Generic
   - ''
-  - ''
   is_out: true
   midi_id: 1
   port_name: USB MIDI Interface
 - channel: 1
   instruments:
   - Generic
-  - ''
   - ''
   is_out: true
   midi_id: 0
@@ -20,7 +18,6 @@ conns:
   instruments:
   - Generic
   - ''
-  - ''
   is_out: true
   midi_id: 3
   port_name: USB MIDI Interface
@@ -28,13 +25,11 @@ conns:
   instruments:
   - Generic
   - ''
-  - ''
   is_out: true
   midi_id: 2
   port_name: USB2.0-MIDI Port 2
 - channel: -1
   instruments:
-  - ''
   - ''
   - ''
   is_out: true
@@ -44,13 +39,11 @@ conns:
   instruments:
   - ''
   - ''
-  - ''
   is_out: true
   midi_id: 5
   port_name: ''
 - channel: -1
   instruments:
-  - ''
   - ''
   - ''
   is_out: true
@@ -60,13 +53,11 @@ conns:
   instruments:
   - ''
   - ''
-  - ''
   is_out: true
   midi_id: 7
   port_name: ''
 - channel: -1
   instruments:
-  - ''
   - ''
   - ''
   is_out: true
@@ -76,13 +67,11 @@ conns:
   instruments:
   - ''
   - ''
-  - ''
   is_out: true
   midi_id: 9
   port_name: ''
 - channel: -1
   instruments:
-  - ''
   - ''
   - ''
   is_out: true
@@ -92,13 +81,11 @@ conns:
   instruments:
   - ''
   - ''
-  - ''
   is_out: true
   midi_id: 11
   port_name: ''
 - channel: -1
   instruments:
-  - ''
   - ''
   - ''
   is_out: true
@@ -108,7 +95,6 @@ conns:
   instruments:
   - ''
   - ''
-  - ''
   is_out: true
   midi_id: 13
   port_name: ''
@@ -116,13 +102,11 @@ conns:
   instruments:
   - ''
   - ''
-  - ''
   is_out: true
   midi_id: 14
   port_name: ''
 - channel: -1
   instruments:
-  - ''
   - ''
   - ''
   is_out: true
