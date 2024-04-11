@@ -162,6 +162,20 @@ MMAPPINGS_00 = MMappings(
             is_out=True,
             instruments=[str(ValidInstruments.GENERIC)],
         ),
+        MConn(
+            midi_id=1,
+            port_name="USB MIDI Interface",
+            channel=1,
+            is_out=True,
+            instruments=[str(ValidInstruments.GENERIC)],
+        ),
+        MConn(
+            midi_id=5,
+            port_name="USB MIDI Interface",
+            channel=1,
+            is_out=False,
+            instruments=[str(ValidInstruments.GENERIC)],
+        ),
     ],
 )
 
@@ -215,7 +229,7 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
 def init_settings(
     midi_ids: List[int],
     valid_modes: List[str],
-    port_names_comb: List[Tuple[str, bool]],
+    port_names_comb: List[Tuple[int, str, bool]],
     out_instruments: List[str],
     in_instruments: List[str],
 ) -> Dict[ValidSettings, SFunctionality]:

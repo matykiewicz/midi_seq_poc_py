@@ -59,6 +59,8 @@ class Engine(Sequencer):
 
         setattr(midi_seq_txt.sequencer, "DEBUG", debug)
         self.init_data()
+        for midi_id in self.midi_ins.keys():
+            self.midi_ins[midi_id].attach(sequencer=self)
         for midi_id in self.midi_outs.keys():
             self.midi_outs[midi_id].attach(sequencer=self)
         self.run_sequencer_schedule()
@@ -76,9 +78,12 @@ class Engine(Sequencer):
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
+            for midi_id in self.midi_ins.keys():
+                self.midi_ins[midi_id].run_message_bus()
             for midi_id in self.midi_outs.keys():
                 self.midi_outs[midi_id].add_parts_to_step_schedule()
-                self.midi_outs[midi_id].run_note_and_step_schedule()
+                self.midi_outs[midi_id].run_message_bus()
+
             time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:

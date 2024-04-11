@@ -28,20 +28,20 @@ conns:
   is_out: true
   midi_id: 2
   port_name: USB2.0-MIDI Port 2
-- channel: -1
+- channel: 1
   instruments:
-  - ''
+  - Generic
   - ''
   is_out: true
-  midi_id: 4
-  port_name: ''
-- channel: -1
+  midi_id: 1
+  port_name: USB MIDI Interface
+- channel: 1
   instruments:
+  - Generic
   - ''
-  - ''
-  is_out: true
+  is_out: false
   midi_id: 5
-  port_name: ''
+  port_name: USB MIDI Interface
 - channel: -1
   instruments:
   - ''

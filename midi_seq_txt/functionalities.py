@@ -81,23 +81,23 @@ class MMappings(AttrsInstance):
                 self.conns.append(MConn(midi_id=max_midi_id + 1 + i))
 
     def filter_midis(
-        self, port_names_comb: List[Tuple[str, bool]]
+        self, port_names_comb: List[Tuple[int, str, bool]]
     ) -> List[Tuple[int, int, str, bool]]:
         found_ports: List[int] = list()
         found_mappings: List[int] = list()
         found_midis: List[int] = list()
         found_names: List[str] = list()
         found_is_outs: List[bool] = list()
-        for i, port_name_is_out in enumerate(port_names_comb):
-            port_name, is_out = port_name_is_out
+        for i, port_id_name_is_out in enumerate(port_names_comb):
+            port_id, port_name, is_out = port_id_name_is_out
             for j, mapping in enumerate(self.conns):
                 if (
                     port_name == mapping.port_name
                     and is_out == mapping.is_out
-                    and i not in found_ports
+                    and port_id not in found_ports
                     and j not in found_mappings
                 ):
-                    found_ports.append(i)
+                    found_ports.append(port_id)
                     found_mappings.append(j)
                     found_midis.append(self.conns[j].midi_id)
                     found_names.append(port_name)
@@ -116,14 +116,16 @@ class MMappings(AttrsInstance):
         return midi_ins
 
     @staticmethod
-    def get_port_names_comb() -> List[Tuple[str, bool]]:
+    def get_port_names_comb() -> List[Tuple[int, str, bool]]:
         midi_out = rtmidi.MidiOut()
         midi_in = rtmidi.MidiIn()
         out_port_names = midi_out.get_ports()
+        out_port_ids = list(range(len(out_port_names)))
         in_port_names = midi_in.get_ports()
-        port_names_comb = list(zip(out_port_names, [True] * len(out_port_names))) + list(
-            zip(in_port_names, [False] * len(in_port_names))
-        )
+        in_port_ids = list(range(len(in_port_names)))
+        port_names_comb = list(
+            zip(out_port_ids, out_port_names, [True] * len(out_port_names))
+        ) + list(zip(in_port_ids, in_port_names, [False] * len(in_port_names)))
         return port_names_comb
 
     def init_midi_outs(self) -> Dict[int, MMiDi]:
@@ -702,10 +704,10 @@ class MapEChS(SFunctionality):
 
 
 class MapEPNameOS(SFunctionality):
-    def __init__(self, port_names_comb: List[Tuple[str, bool]]):
+    def __init__(self, port_names_comb: List[Tuple[int, str, bool]]):
         port_names: List[Union[str, int]] = list()
-        for i, port_name_is_out in enumerate(port_names_comb):
-            port_name, is_out = port_name_is_out
+        for i, port_id_name_is_out in enumerate(port_names_comb):
+            port_id, port_name, is_out = port_id_name_is_out
             if is_out:
                 port_names.append(port_name)
         super().__init__(
@@ -726,10 +728,10 @@ class MapEInstrOS(SFunctionality):
 
 
 class MapEPNameIS(SFunctionality):
-    def __init__(self, port_names_comb: List[Tuple[str, bool]]):
+    def __init__(self, port_names_comb: List[Tuple[int, str, bool]]):
         port_names: List[Union[str, int]] = list()
         for i, port_name_is_out in enumerate(port_names_comb):
-            port_name, is_out = port_name_is_out
+            port_id, port_name, is_out = port_name_is_out
             if not is_out:
                 port_names.append(port_name)
         super().__init__(

@@ -41,7 +41,7 @@ class Sequencer:
         self.midi_outs_ids: List[int] = list()
         self.midi_ins_ids: List[int] = list()
         self.valid_modes: List[str] = list()
-        self.port_names_comb: List[Tuple[str, bool]] = list()
+        self.port_names_comb: List[Tuple[int, str, bool]] = list()
         self.mappings: MMappings = init_mappings_mem()
         self.sequences: MMusic = MMusic("", "", "", dict())
         self.tempo = self.internal_config.init_tempo
@@ -435,7 +435,18 @@ class MiDiIn:
         self.port_id = midi.port_id
         self.midi_id = midi.midi_id
         self.port_name = midi.port_name
+        self.internal_config = InitConfig()
+        self.sequencer: Optional[Sequencer] = None
         self.midi_in: Optional[MidiIn] = None
+
+    def attach(self, sequencer: Sequencer) -> None:
+        self.sequencer = sequencer
+        self.midi_in = rtmidi.MidiIn()
+        self.midi_in.open_port(self.port_id)
+
+    def run_message_bus(self) -> None:
+        if self.sequencer is not None and self.midi_in is not None:
+            message = self.midi_in.get_message()
 
 
 class MiDiOut:
@@ -591,12 +602,11 @@ class MiDiOut:
 
     # - - BOTH - - #
 
-    def run_note_and_step_schedule(self) -> None:
+    def run_message_bus(self) -> None:
         if self.sequencer is not None:
+            self.add_parts_to_step_schedule()
             self.play_note_schedule(offset_time=self.sequencer.clock_sync)
             self.play_step_schedule(offset_time=self.sequencer.clock_sync)
-            pass
-            pass
 
     @staticmethod
     def channel_message(midi_out: MidiOut, command: int, data: List[int], ch=None):
