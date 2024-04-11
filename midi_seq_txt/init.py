@@ -10,7 +10,7 @@ from .functionalities import (
     CopyS,
     EChannelS,
     EMiDiOS,
-    EModeS,
+    EOModeS,
     EPartS,
     EStepS,
     MapEChS,
@@ -43,7 +43,7 @@ from .functionalities import (
     ViewN,
     ViewSS,
     VMiDiOS,
-    VModeS,
+    VOModeS,
     VPartS,
     VStepS,
     create_notes,
@@ -228,7 +228,7 @@ def init_nav() -> Dict[ValidNav, NFunctionality]:
 
 def init_settings(
     midi_ids: List[int],
-    valid_modes: List[str],
+    valid_out_modes: List[str],
     port_names_comb: List[Tuple[int, str, bool]],
     out_instruments: List[str],
     in_instruments: List[str],
@@ -238,12 +238,12 @@ def init_settings(
         ValidSettings.E_CHANNEL: EChannelS(),
         ValidSettings.E_PART: EPartS(),
         ValidSettings.E_STEP: EStepS(),
-        ValidSettings.E_MODE: EModeS(valid_modes=valid_modes),
+        ValidSettings.E_O_MODE: EOModeS(valid_out_modes=valid_out_modes),
         ValidSettings.V_MIDI_O: VMiDiOS(midi_ids=midi_ids),
         ValidSettings.V_CHANNEL: VChannelS(),
         ValidSettings.V_PART: VPartS(),
         ValidSettings.V_STEP: VStepS(),
-        ValidSettings.V_MODE: VModeS(valid_modes=valid_modes),
+        ValidSettings.V_O_MODE: VOModeS(valid_out_modes=valid_out_modes),
         ValidSettings.TEMPO: TempoS(),
         ValidSettings.RECORD: RecordS(),
         ValidSettings.COPY: CopyS(),
@@ -264,7 +264,7 @@ def init_settings(
     }
 
 
-def init_modes_and_instruments_mem() -> (
+def init_io_modes_and_instruments_mem() -> (
     Tuple[Dict[str, MOutFunctionality], List[str], Dict[str, MInFunctionality], List[str]]
 ):
     out_modes: Dict[str, MOutFunctionality] = {
@@ -294,19 +294,19 @@ def init_music_mem(mappings: MMappings) -> MMusic:
     sequences: Dict[int, Dict[int, Dict[int, Dict[int, Dict[str, List[List[int]]]]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     )
-    out_modes, _, _, _ = init_modes_and_instruments_mem()
+    out_modes, _, _, _ = init_io_modes_and_instruments_mem()
     mappings_dict = mappings.to_out_dict(out_modes=out_modes)
     for midi_id in sorted(mappings_dict.keys()):
         for channel in EChannelS().values:
             if int(channel) in mappings_dict[int(midi_id)]:
                 for part in EPartS().values:
                     for step in EStepS().values:
-                        for valid_mode in out_modes.keys():
-                            if valid_mode in mappings_dict[int(midi_id)][int(channel)]:
-                                mode = out_modes[valid_mode].new(lock=False)
+                        for valid_out_mode in out_modes.keys():
+                            if valid_out_mode in mappings_dict[int(midi_id)][int(channel)]:
+                                out_mode = out_modes[valid_out_mode].new(lock=False)
                                 sequences[int(midi_id)][int(channel)][int(part)][int(step)][
-                                    valid_mode
-                                ] = mode.get_indexes()
+                                    valid_out_mode
+                                ] = out_mode.get_indexes()
     m_music = MMusic(
         name="Music_00", data=sequences, mappings_name=mappings.name, comment="Starter package"
     )

@@ -31,7 +31,7 @@ class ValidButtons(StrEnum):
     MIDI = "Midi"
     CHANNEL = "Channel"
     PART = "Part"
-    MODE = "Mode"
+    O_MODE = "OMode"
     TEMPO_UP = "Temp+"
     TEMPO_DOWN = "Temp-"
     NEXT = "Next"
@@ -77,7 +77,7 @@ BUT_PRES = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
     ValidButtons.PRESETS_OFF_MUSIC,
     ValidButtons.PRESETS_N_MUSIC,
     ValidButtons.PRESETS_L_MUSIC,
@@ -85,7 +85,7 @@ BUT_PRES = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
     ValidButtons.PRESETS_OFF_MAP,
     ValidButtons.PRESETS_N_MAP,
     ValidButtons.PRESETS_L_MAP,
@@ -112,7 +112,7 @@ BUT_TEMPO = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
 )
 
 BUT_REC = (
@@ -123,7 +123,7 @@ BUT_REC = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
     ValidButtons.REC_OFF,
     ValidButtons.VELOCITY,
     ValidButtons.LENGTH,
@@ -131,7 +131,7 @@ BUT_REC = (
     ValidButtons.SKIP,
     ValidButtons.DELETE,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
 )
 
 BUT_PLAY = (
@@ -142,7 +142,7 @@ BUT_PLAY = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
     ValidButtons.PLAY_OFF,
     ValidButtons.PLAY_PART,
     ValidButtons.PLAY_PARTS,
@@ -150,7 +150,7 @@ BUT_PLAY = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
 )
 
 BUT_VIEW = (
@@ -161,7 +161,7 @@ BUT_VIEW = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
     ValidButtons.VIEW_OFF,
     ValidButtons.VIEW_ONLY,
     ValidButtons.VIEW_REC,
@@ -169,7 +169,7 @@ BUT_VIEW = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
 )
 
 BUT_COPY = (
@@ -180,7 +180,7 @@ BUT_COPY = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
     ValidButtons.COPY_OFF,
     ValidButtons.C_RANDOM,
     ValidButtons.C_REVERSE,
@@ -188,7 +188,7 @@ BUT_COPY = (
     ValidButtons.MIDI,
     ValidButtons.CHANNEL,
     ValidButtons.PART,
-    ValidButtons.MODE,
+    ValidButtons.O_MODE,
 )
 
 
@@ -206,12 +206,12 @@ class ValidSettings(StrEnum):
     E_PART = "EPart"
     E_STEP = "EStep"
     E_CHANNEL = "EChannel"
-    E_MODE = "EMode"
+    E_O_MODE = "EOMode"
     V_MIDI_O = "VMiDiO"
     V_PART = "VPart"
     V_STEP = "VStep"
     V_CHANNEL = "VChannel"
-    V_MODE = "VMode"
+    V_O_MODE = "VOMode"
     VIEW_SHOW = "ViewS"
     VIEW_FUNCTION = "ViewF"
     PLAY_SHOW = "PlayS"

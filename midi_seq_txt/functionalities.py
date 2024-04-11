@@ -84,21 +84,20 @@ class MMappings(AttrsInstance):
         self, port_names_comb: List[Tuple[int, str, bool]]
     ) -> List[Tuple[int, int, str, bool]]:
         found_ports: List[int] = list()
-        found_mappings: List[int] = list()
         found_midis: List[int] = list()
         found_names: List[str] = list()
         found_is_outs: List[bool] = list()
+        de_dup: List[Tuple[int, str, bool]] = list()
         for i, port_id_name_is_out in enumerate(port_names_comb):
             port_id, port_name, is_out = port_id_name_is_out
             for j, mapping in enumerate(self.conns):
                 if (
                     port_name == mapping.port_name
                     and is_out == mapping.is_out
-                    and port_id not in found_ports
-                    and j not in found_mappings
+                    and (port_id, port_name, is_out) not in de_dup
                 ):
+                    de_dup.append((port_id, port_name, is_out))
                     found_ports.append(port_id)
-                    found_mappings.append(j)
                     found_midis.append(self.conns[j].midi_id)
                     found_names.append(port_name)
                     found_is_outs.append(is_out)
@@ -144,17 +143,17 @@ class MMappings(AttrsInstance):
     ) -> Dict[int, Dict[int, List[str]]]:
         mappings_dict: Dict[int, Dict[int, List[str]]] = defaultdict(lambda: defaultdict(list))
         instruments_dict: Dict[str, List[str]] = defaultdict(list)
-        for valid_mode in out_modes.keys():
-            mode = out_modes[valid_mode]
-            for instrument in mode.instruments:
-                instruments_dict[instrument].append(valid_mode)
+        for valid_out_mode in out_modes.keys():
+            out_mode = out_modes[valid_out_mode]
+            for instrument in out_mode.instruments:
+                instruments_dict[instrument].append(valid_out_mode)
         for mapping in self.conns:
             midi_id = mapping.midi_id
             channel = mapping.channel
             instruments = mapping.instruments
             for instrument in instruments:
-                for valid_mode in instruments_dict[instrument]:
-                    mappings_dict[midi_id][channel].append(valid_mode)
+                for valid_out_mode in instruments_dict[instrument]:
+                    mappings_dict[midi_id][channel].append(valid_out_mode)
         return mappings_dict
 
 
@@ -230,9 +229,6 @@ class SFunctionality(AttrsInstance):
     def get_value(self) -> Union[str, int]:
         return self.values[self.ind]
 
-    def get_first_value(self) -> Union[str, int]:
-        return self.values[0]
-
     def next_ind(self) -> "SFunctionality":
         ind = self.ind
         ind += 1
@@ -244,6 +240,7 @@ class SFunctionality(AttrsInstance):
 
 @define
 class MInFunctionality(AttrsInstance):
+    # MIDI & In Modes
     name: str
     converters: List[str]
     codes: List[int]
@@ -252,7 +249,7 @@ class MInFunctionality(AttrsInstance):
 
 @define
 class MOutFunctionality(AttrsInstance):
-    # MIDI & Modes
+    # MIDI & Out Modes
     name: str
     indexes: List[List[int]]
     labels: List[str]
@@ -339,14 +336,14 @@ class MOutFunctionality(AttrsInstance):
         return new
 
     def new_with_indexes(self, indexes: List[List[int]]) -> "MOutFunctionality":
-        new_mode = self.new(lock=False)
-        new_mode = new_mode.set_indexes(indexes=deepcopy(indexes))
-        return new_mode
+        new_out_mode = self.new(lock=False)
+        new_out_mode = new_out_mode.set_indexes(indexes=deepcopy(indexes))
+        return new_out_mode
 
     def new_with_off(self, off: str, ind: int, exe: Optional[int]) -> "MOutFunctionality":
-        new_mode = self.new(lock=False)
-        new_mode.set_indexes_with_off(off=off, ind=ind, exe=exe)
-        return new_mode
+        new_out_mode = self.new(lock=False)
+        new_out_mode.set_indexes_with_off(off=off, ind=ind, exe=exe)
+        return new_out_mode
 
     def set_data_with_lab(self, lab: str, data: List[str]) -> "MOutFunctionality":
         if lab in self.labels:
@@ -360,7 +357,7 @@ class MOutFunctionality(AttrsInstance):
         self, off: str, ind: int, exe: Optional[int] = None
     ) -> "MOutFunctionality":
         if self._lock_:
-            raise PermissionError(f"{self.name} mode is locked!")
+            raise PermissionError(f"{self.name} out_mode is locked!")
         if off in self.labels:
             off_int = self.labels.index(off)
             ind = self.offsets[off_int] + ind
@@ -375,7 +372,7 @@ class MOutFunctionality(AttrsInstance):
 
     def set_indexes(self, indexes: List[List[int]]) -> "MOutFunctionality":
         if self._lock_:
-            raise PermissionError(f"{self.name} mode is locked!")
+            raise PermissionError(f"{self.name} out_mode is locked!")
         for i in range(len(indexes)):
             for j in range(len(indexes[i])):
                 if i < len(self.indexes):
@@ -385,7 +382,7 @@ class MOutFunctionality(AttrsInstance):
 
     def get_message(self) -> List[int]:
         if self._lock_:
-            raise PermissionError(f"{self.name} mode is locked!")
+            raise PermissionError(f"{self.name} out_mode is locked!")
 
         def convert_value_to_int(lab: str, value: str) -> int:
             value_int = 0
@@ -501,12 +498,12 @@ class EChannelS(SFunctionality):
         )
 
 
-class EModeS(SFunctionality):
-    def __init__(self, valid_modes: List[str]):
+class EOModeS(SFunctionality):
+    def __init__(self, valid_out_modes: List[str]):
         super().__init__(
-            name=ValidSettings.E_MODE.value,
+            name=ValidSettings.E_O_MODE.value,
             ind=0,
-            values=[k for k in valid_modes],
+            values=[k for k in valid_out_modes],
         )
 
 
@@ -549,12 +546,12 @@ class VChannelS(SFunctionality):
         )
 
 
-class VModeS(SFunctionality):
-    def __init__(self, valid_modes: List[str]):
+class VOModeS(SFunctionality):
+    def __init__(self, valid_out_modes: List[str]):
         super().__init__(
-            name=ValidSettings.V_MODE.value,
+            name=ValidSettings.V_O_MODE.value,
             ind=0,
-            values=[k for k in valid_modes],
+            values=[k for k in valid_out_modes],
         )
 
 

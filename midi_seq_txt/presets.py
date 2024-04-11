@@ -23,27 +23,35 @@ PRESET_TYPES: Dict[
 def read_all_presets(
     args: Namespace,
 ) -> Tuple[
-    List[MOutFunctionality], Set[str], List[MInFunctionality], List[MMappings], List[MMusic]
+    List[MOutFunctionality],
+    Set[str],
+    List[MInFunctionality],
+    Set[str],
+    List[MMappings],
+    List[MMusic],
 ]:
     loc: str = args.dir
-    all_modes: List[MOutFunctionality] = list()
-    all_messages: List[MInFunctionality] = list()
+    all_out_modes: List[MOutFunctionality] = list()
+    all_in_modes: List[MInFunctionality] = list()
     all_mappings: List[MMappings] = list()
     all_music: List[MMusic] = list()
-    all_instruments: Set[str] = set()
+    all_in_instruments: Set[str] = set()
+    all_out_instruments: Set[str] = set()
     for file_path in iglob(f"{loc}/*/*.yaml"):
         path = Path(file_path)
         class_name = path.parts[-2]
         if class_name == "MOutFunctionality":
-            mode_dict = read_preset(file_path=file_path)
-            mode = MOutFunctionality(**mode_dict)
-            all_modes.append(mode)
-            for instrument in mode.instruments:
-                all_instruments.add(instrument)
+            out_mode_dict = read_preset(file_path=file_path)
+            out_mode = MOutFunctionality(**out_mode_dict)
+            all_out_modes.append(out_mode)
+            for instrument in out_mode.instruments:
+                all_out_instruments.add(instrument)
         elif class_name == "MInFunctionality":
-            message_dict = read_preset(file_path=file_path)
-            message = MInFunctionality(**message_dict)
-            all_messages.append(message)
+            in_mode_dict = read_preset(file_path=file_path)
+            in_mode = MInFunctionality(**in_mode_dict)
+            all_in_modes.append(in_mode)
+            for instrument in in_mode.instruments:
+                all_in_instruments.add(instrument)
         elif class_name == "MMappings":
             mappings_dict = read_preset(file_path=file_path)
             mapping = MMappings(**mappings_dict)
@@ -52,7 +60,14 @@ def read_all_presets(
             music_dict = read_preset(file_path=file_path)
             music = MMusic(**music_dict)
             all_music.append(music)
-    return all_modes, all_instruments, all_messages, all_mappings, all_music
+    return (
+        all_out_modes,
+        all_out_instruments,
+        all_in_modes,
+        all_in_instruments,
+        all_mappings,
+        all_music,
+    )
 
 
 def read_preset(file_path: str) -> Dict[str, Any]:

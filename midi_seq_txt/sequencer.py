@@ -17,7 +17,12 @@ from .functionalities import (
     MOutFunctionality,
     SFunctionality,
 )
-from .init import init_mappings_mem, init_modes_and_instruments_mem, init_music_mem, init_settings
+from .init import (
+    init_io_modes_and_instruments_mem,
+    init_mappings_mem,
+    init_music_mem,
+    init_settings,
+)
 from .presets import read_preset_type
 
 DEBUG: bool = False
@@ -40,7 +45,8 @@ class Sequencer:
         self.out_instruments: List[str] = list()
         self.midi_outs_ids: List[int] = list()
         self.midi_ins_ids: List[int] = list()
-        self.valid_modes: List[str] = list()
+        self.valid_out_modes: List[str] = list()
+        self.valid_in_modes: List[str] = list()
         self.port_names_comb: List[Tuple[int, str, bool]] = list()
         self.mappings: MMappings = init_mappings_mem()
         self.sequences: MMusic = MMusic("", "", "", dict())
@@ -64,12 +70,13 @@ class Sequencer:
     def init_data(self) -> None:
         self.port_names_comb = self.mappings.get_port_names_comb()
         self.out_modes, self.out_instruments, self.in_modes, self.in_instruments = (
-            init_modes_and_instruments_mem()
+            init_io_modes_and_instruments_mem()
         )
-        self.valid_modes = list(self.out_modes.keys())
+        self.valid_out_modes = list(self.out_modes.keys())
+        self.valid_in_modes = list(self.in_modes.keys())
         self.settings = init_settings(
             midi_ids=self.midi_outs_ids,
-            valid_modes=self.valid_modes,
+            valid_out_modes=self.valid_out_modes,
             port_names_comb=self.port_names_comb,
             out_instruments=self.out_instruments,
             in_instruments=self.in_instruments,
@@ -81,31 +88,31 @@ class Sequencer:
         channel = int(self.settings[ValidSettings.E_CHANNEL].get_value())
         part = int(self.settings[ValidSettings.E_PART].get_value())
         step = int(self.settings[ValidSettings.E_STEP].get_value())
-        valid_mode = str(self.settings[ValidSettings.E_MODE].get_value())
-        return midi, channel, part, step, valid_mode
+        valid_out_mode = str(self.settings[ValidSettings.E_O_MODE].get_value())
+        return midi, channel, part, step, valid_out_mode
 
     def get_current_v_pos(self) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.V_MIDI_O].get_value())
         channel = int(self.settings[ValidSettings.V_CHANNEL].get_value())
         part = int(self.settings[ValidSettings.V_PART].get_value())
         step = int(self.settings[ValidSettings.V_STEP].get_value())
-        valid_mode = str(self.settings[ValidSettings.V_MODE].get_value())
-        return midi, channel, part, step, valid_mode
+        valid_out_mode = str(self.settings[ValidSettings.V_O_MODE].get_value())
+        return midi, channel, part, step, valid_out_mode
 
     def next_e_pos(self, valid_setting: ValidSettings) -> Optional["SFunctionality"]:
-        c_midi, c_channel, c_part, c_step, c_valid_mode = self.get_current_e_pos()
+        c_midi, c_channel, c_part, c_step, c_valid_out_mode = self.get_current_e_pos()
         n_midi_set = self.settings[ValidSettings.E_MIDI_O].new()
         n_channel_set = self.settings[ValidSettings.E_CHANNEL].new()
         n_part_set = self.settings[ValidSettings.E_PART].new()
         n_step_set = self.settings[ValidSettings.E_STEP].new()
-        n_mode_set = self.settings[ValidSettings.E_MODE].new()
+        n_out_mode_set = self.settings[ValidSettings.E_O_MODE].new()
         exists_in = False
         check_map: Dict[ValidSettings, Dict] = {
             ValidSettings.E_MIDI_O: self.sequences.data,
             ValidSettings.E_CHANNEL: self.sequences.data[int(c_midi)],
             ValidSettings.E_PART: self.sequences.data[int(c_midi)][int(c_channel)],
             ValidSettings.E_STEP: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)],
-            ValidSettings.E_MODE: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
+            ValidSettings.E_O_MODE: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
                 int(c_step)
             ],
         }
@@ -114,14 +121,14 @@ class Sequencer:
             ValidSettings.E_CHANNEL: n_channel_set,
             ValidSettings.E_PART: n_part_set,
             ValidSettings.E_STEP: n_step_set,
-            ValidSettings.E_MODE: n_mode_set,
+            ValidSettings.E_O_MODE: n_out_mode_set,
         }
         conv_map: Dict[ValidSettings, Type[Union[str, int]]] = {
             ValidSettings.E_MIDI_O: int,
             ValidSettings.E_CHANNEL: int,
             ValidSettings.E_PART: int,
             ValidSettings.E_STEP: int,
-            ValidSettings.E_MODE: str,
+            ValidSettings.E_O_MODE: str,
         }
         while not exists_in:
             check_in = check_map[valid_setting]
@@ -135,19 +142,19 @@ class Sequencer:
         return None
 
     def next_v_pos(self, valid_setting: ValidSettings) -> Optional["SFunctionality"]:
-        c_midi, c_channel, c_part, c_step, c_valid_mode = self.get_current_e_pos()
+        c_midi, c_channel, c_part, c_step, c_valid_out_mode = self.get_current_e_pos()
         n_midi_set = self.settings[ValidSettings.V_MIDI_O].new()
         n_channel_set = self.settings[ValidSettings.V_CHANNEL].new()
         n_part_set = self.settings[ValidSettings.V_PART].new()
         n_step_set = self.settings[ValidSettings.V_STEP].new()
-        n_mode_set = self.settings[ValidSettings.V_MODE].new()
+        n_out_mode_set = self.settings[ValidSettings.V_O_MODE].new()
         exists_in = False
         check_map: Dict[ValidSettings, Dict] = {
             ValidSettings.V_MIDI_O: self.sequences.data,
             ValidSettings.V_CHANNEL: self.sequences.data[int(c_midi)],
             ValidSettings.V_PART: self.sequences.data[int(c_midi)][int(c_channel)],
             ValidSettings.V_STEP: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)],
-            ValidSettings.V_MODE: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
+            ValidSettings.V_O_MODE: self.sequences.data[int(c_midi)][int(c_channel)][int(c_part)][
                 int(c_step)
             ],
         }
@@ -156,14 +163,14 @@ class Sequencer:
             ValidSettings.V_CHANNEL: n_channel_set,
             ValidSettings.V_PART: n_part_set,
             ValidSettings.V_STEP: n_step_set,
-            ValidSettings.V_MODE: n_mode_set,
+            ValidSettings.V_O_MODE: n_out_mode_set,
         }
         conv_map: Dict[ValidSettings, Type[Union[str, int]]] = {
             ValidSettings.V_MIDI_O: int,
             ValidSettings.V_CHANNEL: int,
             ValidSettings.V_PART: int,
             ValidSettings.V_STEP: int,
-            ValidSettings.V_MODE: str,
+            ValidSettings.V_O_MODE: str,
         }
         while not exists_in:
             check_in = check_map[valid_setting]
@@ -176,67 +183,58 @@ class Sequencer:
                 return next_set
         return None
 
-    def get_first_step_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
-        midi, channel, part, step, mode = self.get_current_e_pos()
-        if valid_mode is None:
-            valid_mode = mode
-        first_step = int(self.settings[ValidSettings.E_STEP].get_first_value())
-        indexes = self.sequences.data[midi][channel][part][first_step][valid_mode]
-        first_mode = self.out_modes[valid_mode].new_with_indexes(indexes=indexes)
-        return first_mode
+    def get_current_e_step_out_mode(self, valid_out_mode: Optional[str] = None) -> MOutFunctionality:
+        midi, channel, part, step, out_mode = self.get_current_e_pos()
+        if valid_out_mode is None:
+            valid_out_mode = out_mode
+        indexes = self.sequences.data[midi][channel][part][step][valid_out_mode]
+        current_out_mode = self.out_modes[valid_out_mode].new_with_indexes(indexes=indexes)
+        return current_out_mode
 
-    def get_current_e_step_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
-        midi, channel, part, step, mode = self.get_current_e_pos()
-        if valid_mode is None:
-            valid_mode = mode
-        indexes = self.sequences.data[midi][channel][part][step][valid_mode]
-        current_mode = self.out_modes[valid_mode].new_with_indexes(indexes=indexes)
-        return current_mode
+    def get_current_v_step_out_mode(self, valid_out_mode: Optional[str] = None) -> MOutFunctionality:
+        midi, channel, part, step, out_mode = self.get_current_v_pos()
+        if valid_out_mode is None:
+            valid_out_mode = out_mode
+        indexes = self.sequences.data[midi][channel][part][step][valid_out_mode]
+        current_out_mode = self.out_modes[valid_out_mode].new_with_indexes(indexes=indexes)
+        return current_out_mode
 
-    def get_current_v_step_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
-        midi, channel, part, step, mode = self.get_current_v_pos()
-        if valid_mode is None:
-            valid_mode = mode
-        indexes = self.sequences.data[midi][channel][part][step][valid_mode]
-        current_mode = self.out_modes[valid_mode].new_with_indexes(indexes=indexes)
-        return current_mode
+    def get_current_new_out_mode(self, valid_out_mode: Optional[str] = None) -> MOutFunctionality:
+        midi, channel, part, step, out_mode = self.get_current_e_pos()
+        if valid_out_mode is None:
+            valid_out_mode = out_mode
+        current_out_mode = self.out_modes[valid_out_mode].new(lock=False)
+        return current_out_mode
 
-    def get_current_new_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
-        midi, channel, part, step, mode = self.get_current_e_pos()
-        if valid_mode is None:
-            valid_mode = mode
-        current_mode = self.out_modes[valid_mode].new(lock=False)
-        return current_mode
-
-    def get_current_proto_mode(self, valid_mode: Optional[str] = None) -> MOutFunctionality:
-        midi, channel, part, step, mode = self.get_current_e_pos()
-        if valid_mode is None:
-            valid_mode = mode
-        return self.out_modes[valid_mode]
+    def get_current_proto_mode(self, valid_out_mode: Optional[str] = None) -> MOutFunctionality:
+        midi, channel, part, step, out_mode = self.get_current_e_pos()
+        if valid_out_mode is None:
+            valid_out_mode = out_mode
+        return self.out_modes[valid_out_mode]
 
     def get_sound_properties(self) -> Tuple[List[str], List[str]]:
-        current_mode = self.get_current_e_step_mode()
-        mode_values = current_mode.get_row_values(exe=0)
-        mode_labels = current_mode.get_labels()
-        all_labels = ["Mode"] + mode_labels
-        all_values = [current_mode.name] + mode_values
+        current_out_mode = self.get_current_e_step_out_mode()
+        out_mode_values = current_out_mode.get_row_values(exe=0)
+        out_mode_labels = current_out_mode.get_labels()
+        all_labels = ["Mode"] + out_mode_labels
+        all_values = [current_out_mode.name] + out_mode_values
         return all_labels, all_values
 
-    def set_step(self, mode: MOutFunctionality) -> None:
+    def set_step(self, out_mode: MOutFunctionality) -> None:
         positions_to_set: List[Tuple[int, int, int, int, str]] = list()
         if self.settings[ValidSettings.RECORD].get_value() == ValidButtons.ON:
-            positions_to_set += self.get_record_positions(mode=mode)
+            positions_to_set += self.get_record_positions(out_mode=out_mode)
         elif self.settings[ValidSettings.COPY].get_value() == ValidButtons.ON:
-            positions_to_set += self.get_copy_positions(mode=mode)
+            positions_to_set += self.get_copy_positions(out_mode=out_mode)
         for position_to_set in positions_to_set:
-            midi, channel, part, step, valid_mode = position_to_set
-            self.sequences.data[midi][channel][part][step][valid_mode] = mode.get_indexes()
+            midi, channel, part, step, valid_out_mode = position_to_set
+            self.sequences.data[midi][channel][part][step][valid_out_mode] = out_mode.get_indexes()
         self.debug_sequence() if DEBUG else None
 
-    def get_record_positions(self, mode: MOutFunctionality) -> List[Tuple[int, int, int, int, str]]:
-        main_label = mode.get_vis_label()
+    def get_record_positions(self, out_mode: MOutFunctionality) -> List[Tuple[int, int, int, int, str]]:
+        main_label = out_mode.get_vis_label()
         positions_to_record: List[Tuple[int, int, int, int, str]] = list()
-        if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
+        if out_mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
             positions_to_record += [self.get_current_e_pos()]
             self.settings[ValidSettings.E_STEP].next_ind()
             if self.settings[ValidSettings.VIEW_FUNCTION].get_value() == ValidButtons.VIEW_REC:
@@ -246,10 +244,10 @@ class Sequencer:
                     positions_to_record += [position_to_record]
         return positions_to_record
 
-    def get_copy_positions(self, mode: MOutFunctionality) -> List[Tuple[int, int, int, int, str]]:
-        main_label = mode.get_vis_label()
+    def get_copy_positions(self, out_mode: MOutFunctionality) -> List[Tuple[int, int, int, int, str]]:
+        main_label = out_mode.get_vis_label()
         positions_to_copy: List[Tuple[int, int, int, int, str]] = list()
-        if mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
+        if out_mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
             positions_to_copy += [self.get_current_v_pos()]
         return positions_to_copy
 
@@ -314,14 +312,14 @@ class Sequencer:
             for channel in self.sequences.data[midi_id].keys():
                 for part in self.sequences.data[midi_id][channel].keys():
                     for step in self.sequences.data[midi_id][channel][part].keys():
-                        for valid_mode in self.sequences.data[midi_id][channel][part][step].keys():
+                        for valid_out_mode in self.sequences.data[midi_id][channel][part][step].keys():
                             self.apply_vis_element(
                                 midi_id=midi_id,
                                 channel=channel,
                                 part=part,
                                 parts=parts,
                                 step_data=self.sequences.data[midi_id][channel][part][step],
-                                valid_mode=valid_mode,
+                                valid_out_mode=valid_out_mode,
                                 midi_channel=midi_channel,
                                 midis=midis,
                             )
@@ -333,17 +331,17 @@ class Sequencer:
 
     def find_part_to_play(self) -> Dict[int, Dict[int, Dict[int, bool]]]:
         part_to_play: Dict[int, Dict[int, Dict[int, bool]]] = defaultdict(lambda: defaultdict(dict))
-        midi, channel, part, step, valid_mode = self.get_current_e_pos()
+        midi, channel, part, step, valid_out_mode = self.get_current_e_pos()
         part_to_play[midi][channel][part] = True
         if self.settings[ValidSettings.VIEW_FUNCTION].get_value() == ValidButtons.VIEW_PLAY:
-            midi, channel, part, step, valid_mode = self.get_current_v_pos()
+            midi, channel, part, step, valid_out_mode = self.get_current_v_pos()
             part_to_play[midi][channel][part] = True
         return part_to_play
 
     def find_view_to_play(self) -> Dict[int, Dict[int, Dict[int, bool]]]:
         part_to_play: Dict[int, Dict[int, Dict[int, bool]]] = defaultdict(lambda: defaultdict(dict))
         if self.settings[ValidSettings.VIEW_FUNCTION].get_value() == ValidButtons.VIEW_PLAY:
-            midi, channel, part, step, valid_mode = self.get_current_v_pos()
+            midi, channel, part, step, valid_out_mode = self.get_current_v_pos()
             part_to_play[midi][channel][part] = True
         return part_to_play
 
@@ -352,16 +350,16 @@ class Sequencer:
         midi_id: int,
         channel: int,
         part: int,
-        valid_mode: str,
+        valid_out_mode: str,
         step_data: Dict[str, List[List[int]]],
         midis: Set[int],
         midi_channel: Dict[int, Set[int]],
         parts: Set[int],
     ) -> bool:
-        indexes = step_data[valid_mode]
-        mode = self.get_current_proto_mode(valid_mode=valid_mode)
+        indexes = step_data[valid_out_mode]
+        out_mode = self.get_current_proto_mode(valid_out_mode=valid_out_mode)
         has_vis_element = False
-        vis_index_1, vis_index_2 = mode.get_vis_ind()
+        vis_index_1, vis_index_2 = out_mode.get_vis_ind()
         has_note = indexes[vis_index_1][vis_index_2]
         if has_note > 0:
             midis.add(midi_id)
@@ -438,15 +436,55 @@ class MiDiIn:
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
         self.midi_in: Optional[MidiIn] = None
+        self.allowed_in_modes: List[MInFunctionality] = list()
 
     def attach(self, sequencer: Sequencer) -> None:
         self.sequencer = sequencer
         self.midi_in = rtmidi.MidiIn()
         self.midi_in.open_port(self.port_id)
+        self.reset_in_modes()
+
+    def reset_in_modes(self):
+        allowed_instruments: List[str] = list()
+        for conn in self.sequencer.mappings.get_sorted():
+            if not conn.is_out and conn.midi_id == self.midi_id:
+                for instrument in conn.instruments:
+                    allowed_instruments.append(instrument)
+        for in_mode in self.sequencer.in_modes.values():
+            for instrument in in_mode.instruments:
+                if instrument in allowed_instruments:
+                    self.allowed_in_modes.append(in_mode)
 
     def run_message_bus(self) -> None:
         if self.sequencer is not None and self.midi_in is not None:
-            message = self.midi_in.get_message()
+            messages: List[List[int]] = list()
+            ts: List[float] = list()
+            while True:
+                message_t = self.midi_in.get_message()
+                if message_t is None:
+                    break
+                else:
+                    message, t = message_t
+                    messages.append(message)
+                    ts.append(t)
+            modes = self.translate_ins_to_outs(messages=messages, ts=ts)
+            for mode in modes:
+                self.sequencer.set_step(mode=mode)
+
+    def translate_ins_to_outs(
+        self, messages: List[List[int]], ts: List[float]
+    ) -> List[MOutFunctionality]:
+        out_modes: List[MOutFunctionality] = list()
+        while len(messages):
+            out_mode = self.translate_ins_to_out(messages=messages, ts=ts)
+            out_modes.append(out_mode)
+        return out_modes
+
+    def translate_ins_to_out(self, messages: List[List[int]], ts: List[float]) -> MOutFunctionality:
+        while True:
+            message = messages.pop()
+            for in_mode in self.allowed_in_modes:
+                pass
 
 
 class MiDiOut:
@@ -457,8 +495,8 @@ class MiDiOut:
         self.midi_out: Optional[MidiOut] = None
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
+        self.allowed_out_modes: List[MOutFunctionality] = list()
         self.scheduled_steps: Dict[float, Dict[int, List[MOutFunctionality]]] = dict()
-        self.scheduled_notes: Dict[float, Dict[int, MOutFunctionality]] = dict()
 
     def debug_prep(self):
         file_name = f"{self.__class__.__name__}.midi.{self.midi_id}.{self.port_id}.txt"
@@ -486,9 +524,20 @@ class MiDiOut:
     def attach(self, sequencer: Sequencer) -> None:
         self.sequencer = sequencer
         self.scheduled_steps = defaultdict(lambda: defaultdict(list))
-        self.scheduled_notes = defaultdict(dict)
         self.midi_out = rtmidi.MidiOut()
         self.midi_out.open_port(self.port_id)
+        self.reset_out_modes()
+
+    def reset_out_modes(self):
+        allowed_instruments: List[str] = list()
+        for conn in self.sequencer.mappings.get_sorted():
+            if conn.is_out and conn.midi_id == self.midi_id:
+                for instrument in conn.instruments:
+                    allowed_instruments.append(instrument)
+        for out_mode in self.sequencer.out_modes.values():
+            for instrument in out_mode.instruments:
+                if instrument in allowed_instruments:
+                    self.allowed_out_modes.append(out_mode)
 
     # - - NOTES - - #
 

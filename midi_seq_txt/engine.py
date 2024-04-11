@@ -67,23 +67,21 @@ class Engine(Sequencer):
 
     def run_sequencer_schedule(self) -> None:
         while True:
-            mode = None
+            out_mode = None
             if not self.func_queue.empty():
                 func_dict: Dict[str, Any] = self.func_queue.get()
                 if "indexes" in func_dict:
-                    mode = self.convert_to_out_mode(func_dict)
-                    self.set_step(mode=mode)
+                    out_mode = self.convert_to_out_mode(func_dict)
+                    self.set_step(out_mode=out_mode)
                     midi_id = int(self.settings[ValidSettings.E_MIDI_O].get_value())
-                    self.midi_outs[midi_id].add_note_to_note_schedule(mode)
+                    self.midi_outs[midi_id].add_out_mode_to_schedule(out_mode=out_mode)
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
             for midi_id in self.midi_ins.keys():
                 self.midi_ins[midi_id].run_message_bus()
             for midi_id in self.midi_outs.keys():
-                self.midi_outs[midi_id].add_parts_to_step_schedule()
                 self.midi_outs[midi_id].run_message_bus()
-
             time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:
@@ -92,24 +90,24 @@ class Engine(Sequencer):
         setting_value.update_with_ind(int(setting_dict["ind"]))
         return setting_value
 
-    def convert_to_out_mode(self, mode_dict: Dict[str, Any]) -> MOutFunctionality:
-        valid_mode = mode_dict["name"]
-        mode_value = self.out_modes[valid_mode].new(lock=False)
-        mode_value.set_indexes(mode_dict["indexes"])
-        return mode_value
+    def convert_to_out_mode(self, out_mode_dict: Dict[str, Any]) -> MOutFunctionality:
+        valid_out_mode = out_mode_dict["name"]
+        out_mode_value = self.out_modes[valid_out_mode].new(lock=False)
+        out_mode_value.set_indexes(out_mode_dict["indexes"])
+        return out_mode_value
 
-    def send_out_mode(self, mode: MOutFunctionality) -> None:
-        self.set_step(mode=mode)
-        self.func_queue.put(attrs.asdict(mode))
+    def send_out_mode(self, out_mode: MOutFunctionality) -> None:
+        self.set_step(out_mode=out_mode)
+        self.func_queue.put(attrs.asdict(out_mode))
 
     def send_setting(self, setting: SFunctionality) -> None:
         self.set_option(option=setting)
         self.func_queue.put(attrs.asdict(setting))
 
     def send_delete(self) -> None:
-        midi, channel, part, step, valid_mode = self.get_current_e_pos()
-        mode = self.out_modes[valid_mode].new(lock=True)
-        self.send_out_mode(mode=mode)
+        midi, channel, part, step, valid_out_mode = self.get_current_e_pos()
+        out_mode = self.out_modes[valid_out_mode].new(lock=True)
+        self.send_out_mode(out_mode=out_mode)
 
     def send_reset_step(self) -> None:
         self.settings[ValidSettings.E_STEP].update_with_ind(0)
@@ -124,14 +122,14 @@ class Engine(Sequencer):
         f_midi: int,
         f_channel: int,
         f_part: int,
-        f_mode: str,
+        f_out_mode: str,
         button: ValidButtons,
     ) -> None:
-        t_mode = self.get_current_new_mode()
+        t_out_mode = self.get_current_new_mode()
         shuffle = list(range(1, self.internal_config.n_steps + 1))
         random.shuffle(shuffle)
         for f_step in self.settings[ValidSettings.E_STEP].values:
-            f_sequence = self.sequences.data[f_midi][f_channel][f_part][int(f_step)][f_mode]
+            f_sequence = self.sequences.data[f_midi][f_channel][f_part][int(f_step)][f_out_mode]
             t_step: int = -1
             if button == ValidButtons.C_AS_IS:
                 t_step = int(f_step)
@@ -141,8 +139,8 @@ class Engine(Sequencer):
                 t_step = shuffle[int(f_step) - 1]
             if t_step > 0:
                 step_setting = self.settings[ValidSettings.V_STEP].update_with_value(t_step)
-                t_mode = t_mode.set_indexes(f_sequence)
+                t_out_mode = t_out_mode.set_indexes(f_sequence)
                 self.send_setting(step_setting)
-                self.send_out_mode(t_mode)
+                self.send_out_mode(t_out_mode)
         step_setting = self.settings[ValidSettings.V_STEP].update_with_value(1)
         self.send_setting(step_setting)
