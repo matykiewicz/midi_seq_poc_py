@@ -1,9 +1,0 @@
-codes:
-- 248
-comment: ''
-convert_to: []
-data: []
-instruments:
-- !!python/object/apply:midi_seq_txt.const.ValidInstruments
-  - GenericIn
-name: MidiClockIn
