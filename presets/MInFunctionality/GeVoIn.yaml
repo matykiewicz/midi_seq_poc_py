@@ -1,0 +1,12 @@
+codes:
+- 144
+- 128
+comment: ''
+convert_to:
+- GeVo1Out
+- GeVo2Out
+data: []
+instruments:
+- !!python/object/apply:midi_seq_txt.const.ValidInstruments
+  - GenericIn
+name: GeVoIn

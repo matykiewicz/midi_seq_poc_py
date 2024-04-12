@@ -126,10 +126,10 @@ CUTOFF_EG_INT_OUT = MOutFunctionality(
     ],
 )
 
-MIDI_CLOCK_IN = MInFunctionality(
-    name="MidiClockIn",
-    codes=[0xF8],
-    convert_to=[],
+VOICE_IN = MInFunctionality(
+    name="GeVoIn",
+    codes=[0x90, 0x80],
+    convert_to=["GeVo1Out", "GeVo2Out"],
     instruments=[ValidInstruments.GENERIC_IN],
     comment="",
     data=[],
@@ -282,7 +282,7 @@ def init_io_modes_and_instruments_mem() -> (
         CUTOFF_EG_INT_OUT.name: CUTOFF_EG_INT_OUT,
     }
     in_modes: Dict[str, MInFunctionality] = {
-        MIDI_CLOCK_IN.name: MIDI_CLOCK_IN,
+        VOICE_IN.name: VOICE_IN,
     }
     out_instruments: List[str] = list()
     in_instruments: List[str] = list()
