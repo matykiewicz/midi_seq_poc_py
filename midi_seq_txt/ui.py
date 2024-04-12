@@ -38,30 +38,32 @@ class KeysUI(Static):
         show_as = self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "To"
-        midi, channel, part, step, valid_mode = self.sequencer.get_current_v_pos()
+        midi, channel, part, step, valid_out_mode = self.sequencer.get_current_v_pos()
         data = []
-        vis_index_1, vis_index_2 = self.sequencer.get_current_v_step_mode(
-            valid_mode=valid_mode
+        vis_index_1, vis_index_2 = self.sequencer.get_current_v_step_out_mode(
+            valid_out_mode=valid_out_mode
         ).get_vis_ind()
         for step in range(1, self.internal_config.n_steps + 1):
             if vis_index_1 >= len(
-                self.sequencer.sequences.data[midi][channel][part][step][valid_mode]
+                self.sequencer.sequences.data[midi][channel][part][step][valid_out_mode]
             ):
                 vis_index_1 = 0
             if vis_index_2 >= len(
-                self.sequencer.sequences.data[midi][channel][part][step][valid_mode][vis_index_1]
+                self.sequencer.sequences.data[midi][channel][part][step][valid_out_mode][
+                    vis_index_1
+                ]
             ):
                 vis_index_2 = 0
             data.append(
-                self.sequencer.sequences.data[midi][channel][part][step][valid_mode][vis_index_1][
-                    vis_index_2
-                ]
+                self.sequencer.sequences.data[midi][channel][part][step][valid_out_mode][
+                    vis_index_1
+                ][vis_index_2]
             )
         self.data_vis_top.data = data
         step = int(self.sequencer.settings[ValidSettings.V_STEP].get_value())
         pos_label = (
             f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|"
-            f"{valid_mode}|{self.seq_step:02}"
+            f"{valid_out_mode}|{self.seq_step:02}"
         )
         self.pos_top_label.update(pos_label)
 
@@ -71,22 +73,22 @@ class KeysUI(Static):
         show_as = "Edit"
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "From"
-        midi, channel, part, step, valid_mode = self.sequencer.get_current_e_pos()
+        midi, channel, part, step, valid_out_mode = self.sequencer.get_current_e_pos()
         data = []
-        vis_index_1, vis_index_2 = self.sequencer.get_current_e_step_mode(
-            valid_mode=valid_mode
+        vis_index_1, vis_index_2 = self.sequencer.get_current_e_step_out_mode(
+            valid_out_mode=valid_out_mode
         ).get_vis_ind()
         for step in range(1, self.internal_config.n_steps + 1):
             data.append(
-                self.sequencer.sequences.data[midi][channel][part][step][valid_mode][vis_index_1][
-                    vis_index_2
-                ]
+                self.sequencer.sequences.data[midi][channel][part][step][valid_out_mode][
+                    vis_index_1
+                ][vis_index_2]
             )
         self.data_vis_bottom.data = data
         step = int(self.sequencer.settings[ValidSettings.E_STEP].get_value())
         pos_label = (
             f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|"
-            f"{valid_mode}|{self.seq_step:02}"
+            f"{valid_out_mode}|{self.seq_step:02}"
         )
         self.pos_bottom_label.update(pos_label)
 
@@ -122,28 +124,28 @@ class KeysUI(Static):
         self.update_mappings()
 
     def config_out_mode(self, key_ind: int) -> MOutFunctionality:
-        valid_mode = str(self.sequencer.settings[ValidSettings.E_MODE].get_value())
-        mode = self.sequencer.out_modes[valid_mode]
-        main_label = mode.get_vis_label()
+        valid_out_mode = str(self.sequencer.settings[ValidSettings.E_O_MODE].get_value())
+        out_mode = self.sequencer.out_modes[valid_out_mode]
+        main_label = out_mode.get_vis_label()
         return (
-            mode.new_with_off(off=main_label, ind=key_ind, exe=None)
+            out_mode.new_with_off(off=main_label, ind=key_ind, exe=None)
             .new_with_off(off="Length", ind=0, exe=0)
             .new_with_off(off="Velocity", ind=0, exe=0)
         )
 
     def key_1(self):
-        mode = self.config_out_mode(key_ind=0)
-        self.sequencer.send_out_mode(mode=mode)
+        out_mode = self.config_out_mode(key_ind=0)
+        self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_2(self):
-        mode = self.config_out_mode(key_ind=1)
-        self.sequencer.send_out_mode(mode=mode)
-        main_label = mode.get_vis_label()
-        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
-        if mode_value == ValidButtons.NEXT:
+        out_mode = self.config_out_mode(key_ind=1)
+        self.sequencer.send_out_mode(out_mode=out_mode)
+        main_label = out_mode.get_vis_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
                 lab=main_label, by=self.internal_config.n_buttons
             )
@@ -152,11 +154,11 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_3(self):
-        mode = self.config_out_mode(key_ind=2)
-        self.sequencer.send_out_mode(mode=mode)
-        main_label = mode.get_vis_label()
-        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
-        if mode_value == ValidButtons.NEXT:
+        out_mode = self.config_out_mode(key_ind=2)
+        self.sequencer.send_out_mode(out_mode=out_mode)
+        main_label = out_mode.get_vis_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
                 lab=main_label, by=self.internal_config.n_buttons
             )
@@ -165,11 +167,11 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_4(self):
-        mode = self.config_out_mode(key_ind=3)
-        self.sequencer.send_out_mode(mode=mode)
-        main_label = mode.get_vis_label()
-        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
-        if mode_value == ValidButtons.NEXT:
+        out_mode = self.config_out_mode(key_ind=3)
+        self.sequencer.send_out_mode(out_mode=out_mode)
+        main_label = out_mode.get_vis_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
                 lab=main_label, by=self.internal_config.n_buttons
             )
@@ -178,11 +180,11 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_5(self):
-        mode = self.config_out_mode(key_ind=4)
-        self.sequencer.send_out_mode(mode=mode)
-        main_label = mode.get_vis_label()
-        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
-        if mode_value == ValidButtons.NEXT:
+        out_mode = self.config_out_mode(key_ind=4)
+        self.sequencer.send_out_mode(out_mode=out_mode)
+        main_label = out_mode.get_vis_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
                 lab=main_label, by=self.internal_config.n_buttons
             )
@@ -191,11 +193,11 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_6(self):
-        mode = self.config_out_mode(key_ind=5)
-        self.sequencer.send_out_mode(mode=mode)
-        main_label = mode.get_vis_label()
-        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
-        if mode_value == ValidButtons.NEXT:
+        out_mode = self.config_out_mode(key_ind=5)
+        self.sequencer.send_out_mode(out_mode=out_mode)
+        main_label = out_mode.get_vis_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
                 lab=main_label, by=self.internal_config.n_buttons
             )
@@ -204,11 +206,11 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_7(self):
-        mode = self.config_out_mode(key_ind=6)
-        self.sequencer.send_out_mode(mode=mode)
-        main_label = mode.get_vis_label()
-        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
-        if mode_value == ValidButtons.NEXT:
+        out_mode = self.config_out_mode(key_ind=6)
+        self.sequencer.send_out_mode(out_mode=out_mode)
+        main_label = out_mode.get_vis_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
                 lab=main_label, by=self.internal_config.n_buttons
             )
@@ -217,11 +219,11 @@ class KeysUI(Static):
             self.navigation_ui.update_all()
 
     def key_8(self):
-        mode = self.config_out_mode(key_ind=7)
-        self.sequencer.send_out_mode(mode=mode)
-        main_label = mode.get_vis_label()
-        mode_value = mode.get_single_value_by_lab(exe=0, lab=main_label)
-        if mode_value == ValidButtons.NEXT:
+        out_mode = self.config_out_mode(key_ind=7)
+        self.sequencer.send_out_mode(out_mode=out_mode)
+        main_label = out_mode.get_vis_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
                 lab=main_label, by=self.internal_config.n_buttons
             )
@@ -282,7 +284,7 @@ class NavigationUI(Static):
         nav_actions[ValidButtons.MIDI] = self.next_midi
         nav_actions[ValidButtons.CHANNEL] = self.next_channel
         nav_actions[ValidButtons.PART] = self.next_part
-        nav_actions[ValidButtons.MODE] = self.next_mode
+        nav_actions[ValidButtons.O_MODE] = self.next_out_mode
         nav_actions[ValidButtons.DELETE] = self.delete_note
         nav_actions[ValidButtons.TEMPO_UP] = self.tempo_up
         nav_actions[ValidButtons.TEMPO_DOWN] = self.tempo_down
@@ -490,14 +492,14 @@ class NavigationUI(Static):
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
-    def next_mode(self) -> None:
+    def next_out_mode(self) -> None:
         if (
             self.sequencer.settings[ValidSettings.VIEW_SHOW].get_ind() == 1
             or self.sequencer.settings[ValidSettings.COPY].get_ind()
         ):
-            setting = self.next_v_pos(ValidSettings.V_MODE)
+            setting = self.next_v_pos(ValidSettings.V_O_MODE)
         else:
-            setting = self.next_e_pos(ValidSettings.E_MODE)
+            setting = self.next_e_pos(ValidSettings.E_O_MODE)
         self.sequencer.send_setting(setting=setting)
         self.sequencer.send_reset_step()
 
@@ -508,12 +510,14 @@ class NavigationUI(Static):
         return self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Velocity", by=1)
 
     def next_scale(self) -> MOutFunctionality:
-        mode = self.sequencer.get_current_proto_mode().update_offsets_with_lab(lab="Scale", by=1)
-        scale = mode.get_single_value_by_off(off="Scale", ind=0)
-        mode = self.sequencer.get_current_proto_mode().set_data_with_lab(
+        out_mode = self.sequencer.get_current_proto_mode().update_offsets_with_lab(
+            lab="Scale", by=1
+        )
+        scale = out_mode.get_single_value_by_off(off="Scale", ind=0)
+        out_mode = self.sequencer.get_current_proto_mode().set_data_with_lab(
             lab="Note", data=create_notes(scale=scale)
         )
-        return mode
+        return out_mode
 
     def record_on(self) -> None:
         self.navigate(direction=1)
@@ -568,36 +572,36 @@ class NavigationUI(Static):
         self.sequencer.send_setting(view)
 
     def copy_random(self) -> None:
-        f_midi, f_channel, f_part, f_step, f_mode = self.sequencer.get_current_e_pos()
+        f_midi, f_channel, f_part, f_step, f_out_mode = self.sequencer.get_current_e_pos()
         self.sequencer.send_copy(
             f_midi=f_midi,
             f_channel=f_channel,
             f_part=f_part,
-            f_mode=f_mode,
+            f_out_mode=f_out_mode,
             button=ValidButtons.C_RANDOM,
         )
         if self.keys_ui is not None:
             self.keys_ui.update_all()
 
     def copy_reverse(self) -> None:
-        f_midi, f_channel, f_part, f_step, f_mode = self.sequencer.get_current_e_pos()
+        f_midi, f_channel, f_part, f_step, f_out_mode = self.sequencer.get_current_e_pos()
         self.sequencer.send_copy(
             f_midi=f_midi,
             f_channel=f_channel,
             f_part=f_part,
-            f_mode=f_mode,
+            f_out_mode=f_out_mode,
             button=ValidButtons.C_REVERSE,
         )
         if self.keys_ui is not None:
             self.keys_ui.update_all()
 
     def copy_as_is(self) -> None:
-        f_midi, f_channel, f_part, f_step, f_mode = self.sequencer.get_current_e_pos()
+        f_midi, f_channel, f_part, f_step, f_out_mode = self.sequencer.get_current_e_pos()
         self.sequencer.send_copy(
             f_midi=f_midi,
             f_channel=f_channel,
             f_part=f_part,
-            f_mode=f_mode,
+            f_out_mode=f_out_mode,
             button=ValidButtons.C_AS_IS,
         )
         if self.keys_ui is not None:
@@ -682,17 +686,17 @@ class NavigationUI(Static):
         self.name_vis.update(text)
 
     def update_keys_vis(self) -> None:
-        mode = self.sequencer.get_current_new_mode()
+        out_mode = self.sequencer.get_current_new_out_mode()
         text = "|"
-        if "Length" in mode.get_labels():
-            text += f"L:{mode.get_single_value_by_off(off='Length', ind=0)},"
-        if "Velocity" in mode.get_labels():
-            text += f"V:{mode.get_single_value_by_off(off='Velocity', ind=0)},"
-        if "Scale" in mode.get_labels():
-            text += f"S:{mode.get_single_value_by_off(off='Scale', ind=0)}|"
-        vis_label = mode.get_vis_label()
+        if "Length" in out_mode.get_labels():
+            text += f"L:{out_mode.get_single_value_by_off(off='Length', ind=0)},"
+        if "Velocity" in out_mode.get_labels():
+            text += f"V:{out_mode.get_single_value_by_off(off='Velocity', ind=0)},"
+        if "Scale" in out_mode.get_labels():
+            text += f"S:{out_mode.get_single_value_by_off(off='Scale', ind=0)}|"
+        vis_label = out_mode.get_vis_label()
         for j in range(self.internal_config.n_buttons):
-            text += f"{mode.get_single_value_by_off(off=vis_label, ind=j)}|"
+            text += f"{out_mode.get_single_value_by_off(off=vis_label, ind=j)}|"
         self.keys_vis.update(text)
 
     def update_settings_vis(self) -> None:

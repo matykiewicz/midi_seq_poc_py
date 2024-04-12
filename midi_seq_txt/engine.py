@@ -74,7 +74,6 @@ class Engine(Sequencer):
                     out_mode = self.convert_to_out_mode(func_dict)
                     self.set_step(out_mode=out_mode)
                     midi_id = int(self.settings[ValidSettings.E_MIDI_O].get_value())
-                    self.midi_outs[midi_id].add_out_mode_to_schedule(out_mode=out_mode)
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
@@ -125,7 +124,7 @@ class Engine(Sequencer):
         f_out_mode: str,
         button: ValidButtons,
     ) -> None:
-        t_out_mode = self.get_current_new_mode()
+        t_out_mode = self.get_current_new_out_mode()
         shuffle = list(range(1, self.internal_config.n_steps + 1))
         random.shuffle(shuffle)
         for f_step in self.settings[ValidSettings.E_STEP].values:
