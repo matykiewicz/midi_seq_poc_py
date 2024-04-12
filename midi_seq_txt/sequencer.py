@@ -1,4 +1,3 @@
-import abc
 import math
 import os
 import time
@@ -83,10 +82,6 @@ class Sequencer:
             in_instruments=self.in_instruments,
         )
         self.sequences = init_music_mem(mappings=self.mappings)
-
-    @abc.abstractmethod
-    def get_current_allowed_valid_out_modes(self) -> List[str]:
-        pass
 
     def get_current_e_pos(self) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())
@@ -457,6 +452,7 @@ class MiDiIn:
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
         self.midi_in: Optional[MidiIn] = None
+        self.in_modes: List[MInFunctionality] = list()
         self.allowed_valid_in_modes: List[str] = list()
 
     def attach(self, sequencer: Sequencer) -> None:
@@ -476,10 +472,16 @@ class MiDiIn:
                 for instrument in in_mode.instruments:
                     if instrument in allowed_instruments:
                         self.allowed_valid_in_modes.append(in_mode.name)
+                        if in_mode.name in self.sequencer.in_modes:
+                            self.in_modes.append(
+                                self.sequencer.in_modes[in_mode.name].new(lock=False)
+                            )
 
-    def run_message_bus(self) -> None:
+    def run_message_bus(
+        self, out_midi: int, out_channel: int
+    ) -> List[Tuple[int, int, MOutFunctionality]]:
+        midi_ch_out_modes: List[Tuple[int, int, MOutFunctionality]] = list()
         if self.sequencer is not None and self.midi_in is not None:
-            allowed_valid_out_modes = self.sequencer.get_current_allowed_valid_out_modes()
             messages: List[List[int]] = list()
             ts: List[float] = list()
             while True:
@@ -490,51 +492,57 @@ class MiDiIn:
                     message, t = message_t
                     messages.append(message)
                     ts.append(t)
-            out_modes = self.translate_ins_to_outs(
-                messages=messages, ts=ts, valid_out_modes=allowed_valid_out_modes
-            )
-            for out_mode in out_modes:
-                self.sequencer.set_step(out_mode=out_mode)
+            if len(ts):
+                ts[0] = 0.0
+            for midi, channel, out_mode in self.translate_ins_to_outs(messages=messages, ts=ts):
+                if midi < 0:
+                    midi = out_midi
+                if channel < 0:
+                    channel = out_channel
+                midi_ch_out_modes.append((midi, channel, out_mode))
+        return midi_ch_out_modes
 
     def translate_ins_to_outs(
         self,
         messages: List[List[int]],
         ts: List[float],
-        valid_out_modes: List[str],
-    ) -> List[MOutFunctionality]:
-        out_modes: List[MOutFunctionality] = list()
+    ) -> List[Tuple[int, int, MOutFunctionality]]:
+        midi_ch_out_modes: List[Tuple[int, int, MOutFunctionality]] = list()
         while len(messages):
-            out_mode = self.translate_ins_to_out(
-                messages=messages, ts=ts, valid_out_modes=valid_out_modes
-            )
-            out_modes.append(out_mode)
-        return out_modes
+            midi_ch_out_mode = self.translate_ins_to_out(messages=messages, ts=ts)
+            if midi_ch_out_mode is not None:
+                midi_ch_out_modes.append(midi_ch_out_mode)
+        return midi_ch_out_modes
 
     def translate_ins_to_out(
-        self, messages: List[List[int]], ts: List[float], valid_out_modes: List[str]
-    ) -> MOutFunctionality:
+        self, messages: List[List[int]], ts: List[float]
+    ) -> Optional[Tuple[int, int, MOutFunctionality]]:
         if self.sequencer is not None:
-            in_modes: List[MInFunctionality] = [
-                in_mode.new(lock=False) for in_mode in self.sequencer.in_modes.values()
-            ]
-            out_modes: List[MOutFunctionality] = [
-                out_mode.new(lock=False) for out_mode in self.sequencer.out_modes.values()
-            ]
-            while True:
+            t1 = time.time()
+            while len(messages):
                 message = messages.pop()
-                for in_mode in in_modes:
-                    if in_mode.name in self.allowed_valid_in_modes:
-                        in_mode.set_with_message(message=message)
-                        if in_mode.is_ready():
-                            return in_mode.convert(
-                                valid_out_modes=valid_out_modes, out_modes=out_modes
-                            )
+                self.fix_command_length_channel(message=message)
+                t2 = ts.pop()
+                for in_mode in self.in_modes:
+                    in_mode.set_with_message_and_time(message=message, t=(t1, t2))
+                    if in_mode.is_ready():
+                        return in_mode.convert_with_out_modes_and_tempo(
+                            out_modes=self.sequencer.out_modes,
+                            tempo=self.sequencer.tempo,
+                            n_quants=self.internal_config.n_quants,
+                        )
+            return None
         else:
             raise ValueError("Sequencer is not ready!")
 
     @staticmethod
-    def get_channel(command: int) -> int:
-        return command & 0xF
+    def fix_command_length_channel(message: List[int]) -> None:
+        command = message[0]
+        channel = (command & 0x0F) + 1
+        command = command & 0xF0
+        message[0] = command
+        message.append(0)
+        message.append(channel)
 
 
 class MiDiOut:
@@ -547,6 +555,7 @@ class MiDiOut:
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
         self.allowed_valid_out_modes: List[str] = list()
+        self.unscheduled_step: List[Tuple[int, MOutFunctionality]] = list()
         self.scheduled_steps: Dict[float, Dict[int, List[MOutFunctionality]]] = dict()
 
     def debug_prep(self):
@@ -556,24 +565,21 @@ class MiDiOut:
 
     def debug_midi(
         self,
+        time_now: float,
         midi_id: int,
         channel: int,
-        time_now: float,
-        offset_time: float,
         step_tick: float,
         valid_out_mode: str,
         exe: int,
         message: List[int],
     ) -> None:
         fh = open(f"{self.__class__.__name__}.midi.{self.midi_id}.{self.port_id}.txt", "a")
-        fh.write(
-            f"{time_now} {offset_time} {time_now - (offset_time + step_tick)} | "
-            f"{midi_id} {channel} {step_tick} {valid_out_mode} {exe} {message}\n"
-        )
+        fh.write(f"{time_now} {midi_id} {channel} {step_tick} {valid_out_mode} {exe} {message}\n")
         fh.close()
 
     def attach(self, sequencer: Sequencer) -> None:
         self.sequencer = sequencer
+        self.unscheduled_step = list()
         self.scheduled_steps = defaultdict(lambda: defaultdict(list))
         self.midi_out = rtmidi.MidiOut()
         self.midi_out.open_port(self.port_id)
@@ -627,52 +633,87 @@ class MiDiOut:
                     if out_mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NA:
                         self.scheduled_steps[step_tick][channel].append(out_mode)
 
-    def play_step_schedule(self, offset_time: float = 0.0) -> None:
+    def play_later_and_schedule(self, offset_time: float = 0.0) -> None:
         old_schedule: Dict[float, Dict[int, List[int]]] = defaultdict(lambda: defaultdict(list))
         new_schedule: Dict[float, Dict[int, List[MOutFunctionality]]] = defaultdict(
             lambda: defaultdict(list)
         )
         if self.midi_out is not None and not self.midi_out.is_port_open():
             self.midi_out.open_port(self.port_id)
+        self.add_parts_to_step_schedule()
         for step_tick in sorted(self.scheduled_steps.keys()):
             time_now = time.time()
             if time_now >= (step_tick + offset_time):
                 for channel in self.scheduled_steps[step_tick].keys():
-                    for i, out_mode in enumerate(self.scheduled_steps[step_tick][channel]):
-                        if out_mode.name in self.allowed_valid_out_modes:
-                            message: List[int] = out_mode.get_as_message()
-                            if len(message) >= 3 and min(message) >= 0:
-                                self.channel_message(
-                                    midi_out=self.midi_out,
-                                    command=message[0],
-                                    ch=channel,
-                                    data=message[1:3],
-                                )
-                                (
-                                    self.debug_midi(
-                                        midi_id=self.midi_id,
-                                        channel=channel,
-                                        time_now=time_now,
-                                        offset_time=offset_time,
-                                        step_tick=step_tick,
-                                        exe=out_mode.get_exe(),
-                                        valid_out_mode=out_mode.name,
-                                        message=message,
-                                    )
-                                    if DEBUG
-                                    else None
-                                )
-                            if len(message) > 3 and message[3] > 0 and min(message) >= 0:
-                                if self.sequencer is not None:
-                                    next_tick = step_tick + float(
-                                        message[3] * self.sequencer.quant_interval
-                                    )
-                                    new_schedule[next_tick][channel].append(
-                                        out_mode.new(lock=False)
-                                    )
-                            old_schedule[step_tick][channel].append(i)
+                    self.play_now(
+                        step_tick=step_tick,
+                        time_now=time_now,
+                        channel=channel,
+                        out_modes=self.scheduled_steps[step_tick][channel],
+                        old_schedule=old_schedule,
+                        new_schedule=new_schedule,
+                    )
                 break
         self.update_step_schedule(old_schedule=old_schedule, new_schedule=new_schedule)
+
+    def play_now_and_schedule(self) -> None:
+        old_schedule: Dict[float, Dict[int, List[int]]] = defaultdict(lambda: defaultdict(list))
+        new_schedule: Dict[float, Dict[int, List[MOutFunctionality]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
+        if self.midi_out is not None and not self.midi_out.is_port_open():
+            self.midi_out.open_port(self.port_id)
+        time_now = time.time()
+        while len(self.unscheduled_step):
+            channel, out_mode = self.unscheduled_step.pop()
+            self.play_now(
+                step_tick=0,
+                time_now=time_now,
+                channel=channel,
+                old_schedule=old_schedule,
+                new_schedule=new_schedule,
+                out_modes=[out_mode],
+            )
+        self.update_step_schedule(old_schedule=old_schedule, new_schedule=new_schedule)
+        self.play_later_and_schedule(offset_time=time_now)
+
+    def play_now(
+        self,
+        step_tick: float,
+        time_now: float,
+        channel: int,
+        out_modes: List["MOutFunctionality"],
+        old_schedule: Dict[float, Dict[int, List[int]]],
+        new_schedule: Dict[float, Dict[int, List[MOutFunctionality]]],
+    ) -> None:
+        for i, out_mode in enumerate(out_modes):
+            if out_mode.name in self.allowed_valid_out_modes:
+                message: List[int] = out_mode.get_as_message()
+                if len(message) >= 3 and min(message) >= 0:
+                    self.channel_message(
+                        midi_out=self.midi_out,
+                        command=message[0],
+                        ch=channel,
+                        data=message[1:3],
+                    )
+                    (
+                        self.debug_midi(
+                            midi_id=self.midi_id,
+                            channel=channel,
+                            time_now=time_now,
+                            step_tick=step_tick,
+                            exe=out_mode.get_exe(),
+                            valid_out_mode=out_mode.name,
+                            message=message,
+                        )
+                        if DEBUG
+                        else None
+                    )
+                if len(message) > 3 and message[3] > 0 and min(message) >= 0:
+                    if self.sequencer is not None:
+                        next_tick = step_tick + float(message[3] * self.sequencer.quant_interval)
+                        new_schedule[next_tick][channel].append(out_mode.new(lock=False))
+                old_schedule[step_tick][channel].append(i)
 
     def update_step_schedule(
         self,
@@ -695,8 +736,10 @@ class MiDiOut:
 
     def run_message_bus(self) -> None:
         if self.sequencer is not None:
-            self.add_parts_to_step_schedule()
-            self.play_step_schedule(offset_time=self.sequencer.clock_sync)
+            if self.sequencer.settings[ValidSettings.PLAY_SHOW].get_value() == ValidButtons.ON:
+                self.play_later_and_schedule(offset_time=self.sequencer.clock_sync)
+            else:
+                self.play_now_and_schedule()
 
     @staticmethod
     def channel_message(midi_out: MidiOut, command: int, data: List[int], ch=None):

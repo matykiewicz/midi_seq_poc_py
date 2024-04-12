@@ -48,6 +48,7 @@ def read_all_presets(
                 all_out_instruments.add(instrument)
         elif class_name == "MInFunctionality":
             in_mode_dict = read_preset(file_path=file_path)
+            in_mode_dict["data"] = []
             in_mode = MInFunctionality(**in_mode_dict)
             all_in_modes.append(in_mode)
             for instrument in in_mode.instruments:
@@ -113,6 +114,10 @@ def write_preset_type(
             del preset_dict["_exe_"]
         if "_lock_" in preset_dict:
             del preset_dict["_lock_"]
+        if "_t_1_" in preset_dict:
+            del preset_dict["_t_1_"]
+        if "_t_2_" in preset_dict:
+            del preset_dict["_t_2_"]
         yaml.dump(preset_dict, fh)
 
 

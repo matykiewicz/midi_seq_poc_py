@@ -1,7 +1,7 @@
 import random
 import time
 from multiprocessing import Process, Queue
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import attrs
 
@@ -65,24 +65,25 @@ class Engine(Sequencer):
             self.midi_outs[midi_id].attach(sequencer=self)
         self.run_sequencer_schedule()
 
-    def get_current_allowed_valid_out_modes(self) -> List[str]:
-        midi, channel, part, step, out_mode = self.get_current_e_pos()
-        return self.midi_outs[midi].allowed_valid_out_modes
-
     def run_sequencer_schedule(self) -> None:
         while True:
-            out_mode = None
+            midi_channel_out_modes: List[Tuple[int, int, MOutFunctionality]] = list()
+            out_midi, out_channel, _, _, _ = self.get_current_e_pos()
             if not self.func_queue.empty():
                 func_dict: Dict[str, Any] = self.func_queue.get()
                 if "indexes" in func_dict:
                     out_mode = self.convert_to_out_mode(func_dict)
+                    midi_channel_out_modes.append((out_midi, out_channel, out_mode))
                     self.set_step(out_mode=out_mode)
-                    midi_id = int(self.settings[ValidSettings.E_MIDI_O].get_value())
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
             for midi_id in self.midi_ins.keys():
-                self.midi_ins[midi_id].run_message_bus()
+                midi_channel_out_modes += self.midi_ins[midi_id].run_message_bus(
+                    out_midi=out_midi, out_channel=out_channel
+                )
+            for midi_id, channel, out_mode in midi_channel_out_modes:
+                self.midi_outs[midi_id].unscheduled_step.append((channel, out_mode))
             for midi_id in self.midi_outs.keys():
                 self.midi_outs[midi_id].run_message_bus()
             time.sleep(self.internal_config.sleep)

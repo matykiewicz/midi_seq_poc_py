@@ -1,3 +1,5 @@
+import math
+import time
 from collections import defaultdict
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple, Union
@@ -85,14 +87,12 @@ class MMappings(AttrsInstance):
     ) -> List[Tuple[int, int, str, bool]]:
         found_ports: List[int] = list()
         found_midis: List[int] = list()
-        found_channels: List[List[int]] = list()
         found_names: List[str] = list()
         found_is_outs: List[bool] = list()
         de_dup: List[Tuple[int, str, bool]] = list()
         for i, port_id_name_is_out in enumerate(port_names_comb):
             port_id, port_name, is_out = port_id_name_is_out
             for j, conn in enumerate(self.conns):
-                channel = conn.channel
                 if (
                     port_name == conn.port_name
                     and is_out == conn.is_out
@@ -246,32 +246,116 @@ class SFunctionality(AttrsInstance):
 class MInFunctionality(AttrsInstance):
     # MIDI & In Modes
     name: str
-    convert_to: List[str]
-    codes: List[int]
+    in_rules: List[List[Union[str, int]]]
+    out_rules: List[List[Union[str, int]]]
     data: List[List[int]]
     instruments: List[str]
     comment: str
+    _t_1_: float = 0.0
+    _t_2_: float = 0.0
     _exe_: int = 0
     _lock_: bool = True
 
     def new(self, lock: bool) -> "MInFunctionality":
         new = deepcopy(self)
         new._lock_ = lock
+        new._t_1_ = time.time()
+        new._t_2_ = 0.0
+        new.data.clear()
         return new
 
-    def set_with_message(self, message: List[int]) -> "MInFunctionality":
-        if message[0] in self.codes:
-            self.data.append(message)
-            self._exe_ += 1
+    def set_with_message_and_time(
+        self, message: List[int], t: Tuple[float, float]
+    ) -> "MInFunctionality":
+        if not self._lock_:
+            if self._exe_ < len(self.in_rules):
+                self.apply_time(t=t)
+                applied = self.rules_apply(self.in_rules[self._exe_], message=message)
+                if applied != 0:
+                    self.data.append(message)
+                    self._exe_ += 1
+                    if applied < 0:
+                        self.out_rules.append(self.out_rules.pop(0))
+        else:
+            raise PermissionError(f"{self.name} out_mode is locked!")
         return self
 
-    def is_ready(self) -> bool:
-        return self._exe_ == len(self.data)
+    def apply_time(self, t: Tuple[float, float]) -> "MInFunctionality":
+        if self._exe_ == 0:
+            self._t_1_ = t[0]
+        else:
+            if t[1] > 0.0:
+                self._t_2_ = self._t_1_ + t[1]
+            else:
+                self._t_2_ = t[0]
+        return self
 
-    def convert(
-        self, valid_out_modes: List[str], out_modes: List["MOutFunctionality"]
-    ) -> "MOutFunctionality":
-        return out_modes[0]
+    def rules_apply(self, rules: List[Union[str, int]], message: List[int]) -> int:
+        all_apply = 1
+        for i, rule in enumerate(rules):
+            if isinstance(rule, int):
+                if rule > 0:
+                    all_apply = all_apply * int(message[i] == rule)
+                else:
+                    if message[0] >= abs(rule):
+                        all_apply = all_apply
+                    else:
+                        all_apply = -all_apply
+            elif isinstance(rule, str):
+                if rule == "match":
+                    all_apply = all_apply and (message[i] == self.data[self._exe_ - 1][i])
+                elif rule == "":
+                    all_apply = all_apply
+        return all_apply
+
+    def is_ready(self) -> bool:
+        return self._exe_ == len(self.in_rules)
+
+    def reset(self) -> "MInFunctionality":
+        self._exe_ = 0
+        self._t_1_ = 0.0
+        self._t_2_ = 0.0
+        self.data.clear()
+        return self
+
+    def convert_with_out_modes_and_tempo(
+        self, out_modes: Dict[str, "MOutFunctionality"], tempo: int, n_quants: int
+    ) -> Optional[Tuple[int, int, "MOutFunctionality"]]:
+        valid_out_mode, midi_id, channel = self.out_rules[0]
+        if valid_out_mode in out_modes:
+            out_mode = out_modes[valid_out_mode].new(lock=False).reset_offsets(off=0)
+            duration = self._t_2_ - self._t_1_
+            length = self.convert_duration_to_length(
+                duration=duration, tempo=tempo, n_quants=n_quants
+            )
+            self.set_length(length=length, exe=0)
+            for exe in range(self._exe_):
+                data = self.get_row_values(exe=exe)
+                for i, lab in enumerate(out_mode.get_labels()):
+                    out_mode.set_indexes_with_lab_and_val(lab=lab, val=data[i], exe=exe)
+            self.reset()
+            return midi_id, channel, out_mode
+        else:
+            self.reset()
+            return None
+
+    @staticmethod
+    def convert_duration_to_length(duration: float, tempo: int, n_quants: int) -> int:
+        interval = 60 / tempo
+        quant = interval / n_quants
+        length = math.ceil(duration / quant)
+        return length
+
+    def set_length(self, length: int, exe: int) -> "MInFunctionality":
+        self.data[exe][3] = length
+        return self
+
+    def get_row_values(self, exe: int) -> List[str]:
+        values: List[str] = list()
+        if exe < len(self.data):
+            for value in self.data[exe]:
+                values.append(str(value))
+        return values
 
 
 @define
@@ -285,11 +369,35 @@ class MOutFunctionality(AttrsInstance):
     vis_ind: List[int]
     instruments: List[str]
     comment: str
+    _t_1_: float = 0.0
+    _t_2_: float = 0.0
     _exe_: int = 0
     _lock_: bool = True
 
+    def new(self, lock: bool) -> "MOutFunctionality":
+        new = deepcopy(self)
+        new._lock_ = lock
+        new._t_1_ = time.time()
+        new._t_2_ = 0.0
+        return new
+
+    def reset_offsets(self, off: int) -> "MOutFunctionality":
+        for i in range(len(self.offsets)):
+            self.offsets[i] = off
+        return self
+
     def get_exe(self) -> int:
         return self._exe_
+
+    def convert_with_lab_and_data(self, lab: str, data: str) -> int:
+        ind = -1
+        if lab in self.labels:
+            off_int = self.labels.index(lab)
+            if off_int < len(self.data) and data in self.data[off_int]:
+                return self.data[off_int].index(data)
+        else:
+            raise ValueError(f"Label {lab} not found!")
+        return ind
 
     def update_offsets_with_lab(self, lab: str, by: int) -> "MOutFunctionality":
         if lab in self.labels:
@@ -346,9 +454,13 @@ class MOutFunctionality(AttrsInstance):
         if exe < len(self.indexes):
             if "Note" in self.labels and "Scale" in self.labels:
                 scale = self.get_single_value_by_off(off="Scale", ind=0)
-                self.set_data_with_lab(lab="Note", data=create_notes(scale=scale))
+                new_data = create_notes(scale=scale)
+                off_int = self.labels.index("Note")
+                if len(new_data) == len(self.data[off_int]):
+                    self.set_data_with_lab(lab="Note", data=create_notes(scale=scale))
             for j in range(len(self.indexes[exe])):
-                values.append(deepcopy(self.data[j][self.indexes[exe][j]]))
+                ind = self.indexes[exe][j]
+                values.append(deepcopy(self.data[j][ind]))
         return values
 
     def get_vis_ind(self) -> List[int]:
@@ -357,19 +469,14 @@ class MOutFunctionality(AttrsInstance):
     def get_vis_label(self) -> str:
         return self.labels[self.vis_ind[1]]
 
-    def new(self, lock: bool) -> "MOutFunctionality":
-        new = deepcopy(self)
-        new._lock_ = lock
-        return new
-
     def new_with_indexes(self, indexes: List[List[int]]) -> "MOutFunctionality":
         new_out_mode = self.new(lock=False)
         new_out_mode = new_out_mode.set_indexes(indexes=deepcopy(indexes))
         return new_out_mode
 
-    def new_with_off(self, off: str, ind: int, exe: Optional[int]) -> "MOutFunctionality":
+    def new_with_lab(self, lab: str, sub_ind: int, exe: Optional[int]) -> "MOutFunctionality":
         new_out_mode = self.new(lock=False)
-        new_out_mode.set_indexes_with_off(off=off, ind=ind, exe=exe)
+        new_out_mode.set_indexes_with_lab_and_off(lab=lab, sub_ind=sub_ind, exe=exe)
         return new_out_mode
 
     def set_data_with_lab(self, lab: str, data: List[str]) -> "MOutFunctionality":
@@ -380,21 +487,40 @@ class MOutFunctionality(AttrsInstance):
             raise ValueError(f"Label {lab} not found!")
         return self
 
-    def set_indexes_with_off(
-        self, off: str, ind: int, exe: Optional[int] = None
+    def set_indexes_with_lab_and_off(
+        self, lab: str, sub_ind: int, exe: Optional[int] = None
     ) -> "MOutFunctionality":
         if self._lock_:
             raise PermissionError(f"{self.name} out_mode is locked!")
-        if off in self.labels:
-            off_int = self.labels.index(off)
-            ind = self.offsets[off_int] + ind
+        if lab in self.labels:
+            off_int = self.labels.index(lab)
+            ind = self.offsets[off_int] + sub_ind
             if off_int < len(self.data):
                 for i in range(len(self.indexes)):
                     if exe is None or exe == i:
                         if ind < len(self.data[off_int]):
                             self.indexes[i][off_int] = ind
         else:
-            raise ValueError(f"Offset {off} not found!")
+            raise ValueError(f"Offset {lab} not found!")
+        return self
+
+    def set_indexes_with_lab_and_val(
+        self, lab: str, val: str, exe: Optional[int] = None
+    ) -> "MOutFunctionality":
+        if self._lock_:
+            raise PermissionError(f"{self.name} out_mode is locked!")
+        if lab in self.labels:
+            off_int = self.labels.index(lab)
+            ind = 0
+            if val not in self.data[off_int]:
+                self.data[off_int].append(val)
+            ind = self.data[off_int].index(val)
+            for i in range(len(self.indexes)):
+                if exe is None or exe == i:
+                    if ind < len(self.data[off_int]):
+                        self.indexes[i][off_int] = ind
+        else:
+            raise ValueError(f"Offset {lab} not found!")
         return self
 
     def set_indexes(self, indexes: List[List[int]]) -> "MOutFunctionality":
@@ -415,7 +541,10 @@ class MOutFunctionality(AttrsInstance):
             value_int = 0
             if lab == "Note":
                 if value != ValidButtons.NA:
-                    value_int = int(Note(value)) + 12
+                    if "-" in value:
+                        value_int = int(Note(value)) + 12
+                    else:
+                        value_int = int(value)
                 else:
                     value_int = -1
             else:
@@ -427,7 +556,8 @@ class MOutFunctionality(AttrsInstance):
             values_str = self.get_row_values(exe=self._exe_)
             labels_str = self.get_labels()
             for i, value_str in enumerate(values_str):
-                values_int.append(convert_value_to_int(lab=labels_str[i], value=value_str))
+                if labels_str[i] != "Scale":
+                    values_int.append(convert_value_to_int(lab=labels_str[i], value=value_str))
         self._exe_ += 1
         return values_int
 
@@ -738,7 +868,7 @@ class MapEChS(SFunctionality):
 
 class MapEPNameS(SFunctionality):
     def __init__(self, port_names_comb: List[Tuple[int, str, bool]]):
-        port_names: List[str] = list()
+        port_names: List[Union[str, int]] = list()
         for i, port_id_name_is_out in enumerate(port_names_comb):
             port_id, port_name, is_out = port_id_name_is_out
             if port_name not in port_names:

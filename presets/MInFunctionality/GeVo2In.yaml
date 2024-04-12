@@ -1,0 +1,17 @@
+comment: ''
+data: []
+in_rules:
+- - 144
+  - ''
+- - 128
+  - match
+instruments:
+- GenericIn
+name: GeVo2In
+out_rules:
+- - GeVo2Out
+  - -1
+  - -1
+- - ''
+  - -1
+  - -1

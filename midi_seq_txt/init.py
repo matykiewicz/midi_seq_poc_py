@@ -75,10 +75,6 @@ def create_motions() -> List[str]:
 VOICE_1_OUT = MOutFunctionality(
     name="GeVo1Out",
     comment="Generic MIDI start and stop of a note",
-    indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
-    offsets=[1, 1 + 8 * 2, 6, 1, 0],
-    labels=["Code", "Note", "Velocity", "Length", "Scale"],
-    vis_ind=[0, 1],
     instruments=[str(ValidInstruments.GENERIC_OUT)],
     data=[
         [str(0), str(0x90), str(0x80)],
@@ -90,15 +86,15 @@ VOICE_1_OUT = MOutFunctionality(
         [str(x.value) for x in list(ValidLengths)],
         create_scales(),
     ],
+    indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
+    offsets=[1, 1 + 8 * 2, 6, 1, 0],
+    labels=["Code", "Note", "Velocity", "Length", "Scale"],
+    vis_ind=[0, 1],
 )
 
 VOICE_2_OUT = MOutFunctionality(
     name="GeVo2Out",
     comment="Generic MIDI start and stop of a note",
-    indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
-    offsets=[1, 1 + 8 * 2, 6, 1, 0],
-    labels=["Code", "Note", "Velocity", "Length", "Scale"],
-    vis_ind=[0, 1],
     instruments=[str(ValidInstruments.GENERIC_OUT)],
     data=[
         [str(0), str(0x90), str(0x80)],
@@ -110,27 +106,40 @@ VOICE_2_OUT = MOutFunctionality(
         [str(x.value) for x in list(ValidLengths)],
         create_scales(),
     ],
+    indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
+    offsets=[1, 1 + 8 * 2, 6, 1, 0],
+    labels=["Code", "Note", "Velocity", "Length", "Scale"],
+    vis_ind=[0, 1],
 )
 
 CUTOFF_EG_INT_OUT = MOutFunctionality(
     name="VBCutEGIOut",
     comment="Volca Bass Cutoff EG Intensity CC",
-    indexes=[[1, 0]],
-    offsets=[1, 1],
-    labels=["Code", "Cutoff"],
-    vis_ind=[0, 1],
     instruments=[str(ValidInstruments.VOLCA_BASS_OUT)],
     data=[
         [str(0), str(0x90), str(0x80)],
         create_motions(),
     ],
+    indexes=[[1, 0]],
+    offsets=[1, 1],
+    labels=["Code", "Cutoff"],
+    vis_ind=[0, 1],
 )
 
-VOICE_IN = MInFunctionality(
-    name="GeVoIn",
-    codes=[0x90, 0x80],
-    convert_to=["GeVo1Out", "GeVo2Out"],
-    instruments=[ValidInstruments.GENERIC_IN],
+VOICE_1_IN = MInFunctionality(
+    name="GeVo1In",
+    instruments=[str(ValidInstruments.GENERIC_IN)],
+    comment="",
+    data=[],
+    in_rules=[[0x90, ""], [0x80, "match"]],
+    out_rules=[["GeVo1Out", -1, -1], ["", -1, -1]],
+)
+
+VOICE_2_IN = MInFunctionality(
+    name="GeVo2In",
+    in_rules=[[0x90, ""], [0x80, "match"]],
+    out_rules=[["GeVo2Out", -1, -1], ["", -1, -1]],
+    instruments=[str(ValidInstruments.GENERIC_IN)],
     comment="",
     data=[],
 )
@@ -282,7 +291,8 @@ def init_io_modes_and_instruments_mem() -> (
         CUTOFF_EG_INT_OUT.name: CUTOFF_EG_INT_OUT,
     }
     in_modes: Dict[str, MInFunctionality] = {
-        VOICE_IN.name: VOICE_IN,
+        VOICE_1_IN.name: VOICE_1_IN,
+        VOICE_2_IN.name: VOICE_2_IN,
     }
     out_instruments: List[str] = list()
     in_instruments: List[str] = list()

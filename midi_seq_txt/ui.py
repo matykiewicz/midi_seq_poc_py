@@ -128,9 +128,9 @@ class KeysUI(Static):
         out_mode = self.sequencer.out_modes[valid_out_mode]
         main_label = out_mode.get_vis_label()
         return (
-            out_mode.new_with_off(off=main_label, ind=key_ind, exe=None)
-            .new_with_off(off="Length", ind=0, exe=0)
-            .new_with_off(off="Velocity", ind=0, exe=0)
+            out_mode.new_with_lab(lab=main_label, sub_ind=key_ind, exe=None)
+            .new_with_lab(lab="Length", sub_ind=0, exe=0)
+            .new_with_lab(lab="Velocity", sub_ind=0, exe=0)
         )
 
     def key_1(self):

@@ -96,6 +96,8 @@ async def test_map_presets(command_line_args):
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
         time.sleep(0.01)
+        await pilot.press("e")  # note/key press
+        time.sleep(0.01)
         await pilot.press("a")  # presets
         time.sleep(0.01)
         await pilot.press("d")  # conns
@@ -109,7 +111,7 @@ async def test_map_presets(command_line_args):
         await pilot.press("4")  # edit mapping
         time.sleep(0.01)
         await pilot.press("b")  # next conn
-        time.sleep(100.01)
+        time.sleep(1000.01)
     ms_app.sequencer.process.kill()
 
 
