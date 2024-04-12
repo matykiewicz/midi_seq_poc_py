@@ -448,7 +448,7 @@ class MiDiIn:
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
         self.midi_in: Optional[MidiIn] = None
-        self.allowed_in_modes: List[MInFunctionality] = list()
+        self.allowed_valid_in_modes: List[str] = list()
 
     def attach(self, sequencer: Sequencer) -> None:
         self.sequencer = sequencer
@@ -466,7 +466,7 @@ class MiDiIn:
             for in_mode in self.sequencer.in_modes.values():
                 for instrument in in_mode.instruments:
                     if instrument in allowed_instruments:
-                        self.allowed_in_modes.append(in_mode)
+                        self.allowed_valid_in_modes.append(in_mode.name)
 
     def run_message_bus(self) -> None:
         if self.sequencer is not None and self.midi_in is not None:
@@ -494,10 +494,19 @@ class MiDiIn:
         return out_modes
 
     def translate_ins_to_out(self, messages: List[List[int]], ts: List[float]) -> MOutFunctionality:
-        while True:
-            message = messages.pop()
-            for in_mode in self.allowed_in_modes:
-                pass
+        if self.sequencer is not None:
+            in_modes: List[MInFunctionality] = [
+                in_mode.new(lock=False) for in_mode in self.sequencer.in_modes.values()
+            ]
+            while True:
+                message = messages.pop()
+                for in_mode in in_modes:
+                    if in_mode.name in self.allowed_valid_in_modes:
+                        in_mode.set_with_message(message=message)
+                        if in_mode.is_ready():
+                            return in_mode.convert()
+        else:
+            raise ValueError("Sequencer is not ready!")
 
 
 class MiDiOut:
@@ -508,7 +517,7 @@ class MiDiOut:
         self.midi_out: Optional[MidiOut] = None
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
-        self.allowed_out_modes: List[MOutFunctionality] = list()
+        self.allowed_valid_out_modes: List[str] = list()
         self.scheduled_steps: Dict[float, Dict[int, List[MOutFunctionality]]] = dict()
 
     def debug_prep(self):
@@ -551,7 +560,7 @@ class MiDiOut:
             for out_mode in self.sequencer.out_modes.values():
                 for instrument in out_mode.instruments:
                     if instrument in allowed_instruments:
-                        self.allowed_out_modes.append(out_mode)
+                        self.allowed_valid_out_modes.append(out_mode.name)
 
     # - - SCHEDULE - - #
 
@@ -601,35 +610,38 @@ class MiDiOut:
             if time_now >= (step_tick + offset_time):
                 for channel in self.scheduled_steps[step_tick].keys():
                     for i, out_mode in enumerate(self.scheduled_steps[step_tick][channel]):
-                        message: List[int] = out_mode.get_message()
-                        if len(message) >= 3 and min(message) >= 0:
-                            self.channel_message(
-                                midi_out=self.midi_out,
-                                command=message[0],
-                                ch=channel,
-                                data=message[1:3],
-                            )
-                            (
-                                self.debug_midi(
-                                    midi_id=self.midi_id,
-                                    channel=channel,
-                                    time_now=time_now,
-                                    offset_time=offset_time,
-                                    step_tick=step_tick,
-                                    exe=out_mode.get_exe(),
-                                    valid_out_mode=out_mode.name,
-                                    message=message,
+                        if out_mode.name in self.allowed_valid_out_modes:
+                            message: List[int] = out_mode.get_as_message()
+                            if len(message) >= 3 and min(message) >= 0:
+                                self.channel_message(
+                                    midi_out=self.midi_out,
+                                    command=message[0],
+                                    ch=channel,
+                                    data=message[1:3],
                                 )
-                                if DEBUG
-                                else None
-                            )
-                        if len(message) > 3 and message[3] > 0 and min(message) >= 0:
-                            if self.sequencer is not None:
-                                next_tick = step_tick + float(
-                                    message[3] * self.sequencer.quant_interval
+                                (
+                                    self.debug_midi(
+                                        midi_id=self.midi_id,
+                                        channel=channel,
+                                        time_now=time_now,
+                                        offset_time=offset_time,
+                                        step_tick=step_tick,
+                                        exe=out_mode.get_exe(),
+                                        valid_out_mode=out_mode.name,
+                                        message=message,
+                                    )
+                                    if DEBUG
+                                    else None
                                 )
-                                new_schedule[next_tick][channel].append(out_mode.new(lock=False))
-                        old_schedule[step_tick][channel].append(i)
+                            if len(message) > 3 and message[3] > 0 and min(message) >= 0:
+                                if self.sequencer is not None:
+                                    next_tick = step_tick + float(
+                                        message[3] * self.sequencer.quant_interval
+                                    )
+                                    new_schedule[next_tick][channel].append(
+                                        out_mode.new(lock=False)
+                                    )
+                            old_schedule[step_tick][channel].append(i)
                 break
         self.update_step_schedule(old_schedule=old_schedule, new_schedule=new_schedule)
 

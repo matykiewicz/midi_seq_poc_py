@@ -102,7 +102,9 @@ def read_preset_type(
         raise TypeError("Type mismatch!")
 
 
-def write_preset_type(preset: Union[MMappings, MOutFunctionality, MMusic], loc: str) -> None:
+def write_preset_type(
+    preset: Union[MMappings, MInFunctionality, MOutFunctionality, MMusic], loc: str
+) -> None:
     preset_type = preset.__class__.__name__
     preset_dict = attrs.asdict(preset)
     os.makedirs(f"{loc}/{preset_type}", exist_ok=True)
@@ -118,7 +120,7 @@ def write_all_presets(args: Namespace) -> None:
     loc: str = args.dir
     import midi_seq_txt.init
 
-    presets: List[Union[MMappings, MOutFunctionality, MMusic]] = list()
+    presets: List[Union[MMappings, MInFunctionality, MOutFunctionality, MMusic]] = list()
     for obj_name in dir(midi_seq_txt.init):
         if "_" in obj_name:
             obj = getattr(midi_seq_txt.init, obj_name)

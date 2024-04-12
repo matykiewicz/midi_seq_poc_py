@@ -245,6 +245,23 @@ class MInFunctionality(AttrsInstance):
     converters: List[str]
     codes: List[int]
     instruments: List[str]
+    comment: str
+    _exe_: int = 0
+    _lock_: bool = True
+
+    def new(self, lock: bool) -> "MInFunctionality":
+        new = deepcopy(self)
+        new._lock_ = lock
+        return new
+
+    def set_with_message(self, message: List[int]) -> "MInFunctionality":
+        return self
+
+    def is_ready(self) -> bool:
+        return self._exe_ < 0
+
+    def convert(self) -> "MOutFunctionality":
+        pass
 
 
 @define
@@ -380,7 +397,7 @@ class MOutFunctionality(AttrsInstance):
                         self.indexes[i][j] = indexes[i][j]
         return self
 
-    def get_message(self) -> List[int]:
+    def get_as_message(self) -> List[int]:
         if self._lock_:
             raise PermissionError(f"{self.name} out_mode is locked!")
 

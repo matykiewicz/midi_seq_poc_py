@@ -127,7 +127,11 @@ CUTOFF_EG_INT_OUT = MOutFunctionality(
 )
 
 MIDI_CLOCK_IN = MInFunctionality(
-    name="MidiClockIn", codes=[0xF8], converters=[], instruments=[ValidInstruments.GENERIC]
+    name="MidiClockIn",
+    codes=[0xF8],
+    converters=[],
+    instruments=[ValidInstruments.GENERIC],
+    comment="",
 )
 
 MMAPPINGS_00 = MMappings(
