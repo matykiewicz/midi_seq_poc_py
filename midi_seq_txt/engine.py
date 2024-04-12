@@ -1,7 +1,7 @@
 import random
 import time
 from multiprocessing import Process, Queue
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import attrs
 
@@ -64,6 +64,10 @@ class Engine(Sequencer):
         for midi_id in self.midi_outs.keys():
             self.midi_outs[midi_id].attach(sequencer=self)
         self.run_sequencer_schedule()
+
+    def get_current_allowed_valid_out_modes(self) -> List[str]:
+        midi, channel, part, step, out_mode = self.get_current_e_pos()
+        return self.midi_outs[midi].allowed_valid_out_modes
 
     def run_sequencer_schedule(self) -> None:
         while True:

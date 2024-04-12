@@ -99,7 +99,7 @@ indexes:
   - 0
   - 0
 instruments:
-- Generic
+- GenericOut
 labels:
 - Code
 - Note

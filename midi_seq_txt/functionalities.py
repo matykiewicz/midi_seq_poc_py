@@ -46,11 +46,12 @@ class MMiDi(AttrsInstance):
     port_id: int
     port_name: str
     is_out: bool
+    channels: List[int] = list()
 
 
 @define
 class MConn(AttrsInstance):
-    midi_id: int
+    midi_id: int = -1
     port_name: str = ""
     channel: int = -1
     is_out: bool = True
@@ -68,7 +69,7 @@ class MConn(AttrsInstance):
 class MMappings(AttrsInstance):
     name: str = ""
     comment: str = ""
-    conns: List[MConn] = [MConn(i) for i in range(InitConfig().max_conns)]
+    conns: List[MConn] = [MConn() for i in range(InitConfig().max_conns)]
 
     def get_sorted(self) -> List[MConn]:
         return sorted(self.conns, key=lambda m: m.midi_id)
@@ -76,24 +77,25 @@ class MMappings(AttrsInstance):
     def __attrs_post_init__(self):
         missing = InitConfig().max_conns - len(self.conns)
         if missing:
-            max_midi_id = max([mapping.midi_id for mapping in self.conns])
             for i in range(missing):
-                self.conns.append(MConn(midi_id=max_midi_id + 1 + i))
+                self.conns.append(MConn())
 
     def filter_midis(
         self, port_names_comb: List[Tuple[int, str, bool]]
     ) -> List[Tuple[int, int, str, bool]]:
         found_ports: List[int] = list()
         found_midis: List[int] = list()
+        found_channels: List[List[int]] = list()
         found_names: List[str] = list()
         found_is_outs: List[bool] = list()
         de_dup: List[Tuple[int, str, bool]] = list()
         for i, port_id_name_is_out in enumerate(port_names_comb):
             port_id, port_name, is_out = port_id_name_is_out
-            for j, mapping in enumerate(self.conns):
+            for j, conn in enumerate(self.conns):
+                channel = conn.channel
                 if (
-                    port_name == mapping.port_name
-                    and is_out == mapping.is_out
+                    port_name == conn.port_name
+                    and is_out == conn.is_out
                     and (port_id, port_name, is_out) not in de_dup
                 ):
                     de_dup.append((port_id, port_name, is_out))
@@ -147,13 +149,15 @@ class MMappings(AttrsInstance):
             out_mode = out_modes[valid_out_mode]
             for instrument in out_mode.instruments:
                 instruments_dict[instrument].append(valid_out_mode)
-        for mapping in self.conns:
-            midi_id = mapping.midi_id
-            channel = mapping.channel
-            instruments = mapping.instruments
-            for instrument in instruments:
-                for valid_out_mode in instruments_dict[instrument]:
-                    mappings_dict[midi_id][channel].append(valid_out_mode)
+        for conn in self.conns:
+            midi_id = conn.midi_id
+            channel = conn.channel
+            instruments = conn.instruments
+            is_out = conn.is_out
+            if midi_id > -1 and channel > -1 and is_out:
+                for instrument in instruments:
+                    for valid_out_mode in instruments_dict[instrument]:
+                        mappings_dict[midi_id][channel].append(valid_out_mode)
         return mappings_dict
 
 
@@ -242,8 +246,9 @@ class SFunctionality(AttrsInstance):
 class MInFunctionality(AttrsInstance):
     # MIDI & In Modes
     name: str
-    converters: List[str]
+    convert_to: List[str]
     codes: List[int]
+    data: List[List[int]]
     instruments: List[str]
     comment: str
     _exe_: int = 0
@@ -255,13 +260,18 @@ class MInFunctionality(AttrsInstance):
         return new
 
     def set_with_message(self, message: List[int]) -> "MInFunctionality":
+        if message[0] in self.codes:
+            self.data.append(message)
+            self._exe_ += 1
         return self
 
     def is_ready(self) -> bool:
-        return self._exe_ < 0
+        return self._exe_ == len(self.data)
 
-    def convert(self) -> "MOutFunctionality":
-        pass
+    def convert(
+        self, valid_out_modes: List[str], out_modes: List["MOutFunctionality"]
+    ) -> "MOutFunctionality":
+        return out_modes[0]
 
 
 @define
@@ -690,12 +700,21 @@ class MapNameS(SFunctionality):
         )
 
 
-class MapEConS(SFunctionality):
+class MapEConnS(SFunctionality):
     def __init__(self):
         super().__init__(
-            name=ValidSettings.MAP_E_CON.value,
+            name=ValidSettings.MAP_E_CONN.value,
             ind=0,
             values=[i for i in range(InitConfig().max_conns)],
+        )
+
+
+class MapEMidiS(SFunctionality):
+    def __init__(self):
+        super().__init__(
+            name=ValidSettings.MAP_E_MIDI.value,
+            ind=0,
+            values=[i for i in range(InitConfig().max_midis)],
         )
 
 
@@ -717,7 +736,7 @@ class MapEChS(SFunctionality):
         )
 
 
-class MapEPNameOS(SFunctionality):
+class MapEPNameS(SFunctionality):
     def __init__(self, port_names_comb: List[Tuple[int, str, bool]]):
         port_names: List[Union[str, int]] = list()
         for i, port_id_name_is_out in enumerate(port_names_comb):
@@ -725,41 +744,31 @@ class MapEPNameOS(SFunctionality):
             if is_out:
                 port_names.append(port_name)
         super().__init__(
-            name=ValidSettings.MAP_E_PNAME_O.value,
+            name=ValidSettings.MAP_E_PNAME.value,
             ind=0,
             values=port_names,
         )
 
 
-class MapEInstrOS(SFunctionality):
-    def __init__(self, out_instruments: List[str]):
-        unique: List[Union[str, int]] = list(set(out_instruments + [""]))
+class MapEInstr1S(SFunctionality):
+    def __init__(self, in_instruments: List[str], out_instruments: List[str]):
+        in_unique: List[Union[str, int]] = list(set(in_instruments + [""]))
+        out_unique: List[Union[str, int]] = list(set(out_instruments + [""]))
+        unique = in_unique + ["|"] + out_unique
         super().__init__(
-            name=ValidSettings.MAP_E_INSTR_O.value,
+            name=ValidSettings.MAP_E_INSTR_1.value,
             ind=0,
             values=unique,
         )
 
 
-class MapEPNameIS(SFunctionality):
-    def __init__(self, port_names_comb: List[Tuple[int, str, bool]]):
-        port_names: List[Union[str, int]] = list()
-        for i, port_name_is_out in enumerate(port_names_comb):
-            port_id, port_name, is_out = port_name_is_out
-            if not is_out:
-                port_names.append(port_name)
+class MapEInstr2S(SFunctionality):
+    def __init__(self, in_instruments: List[str], out_instruments: List[str]):
+        in_unique: List[Union[str, int]] = list(set(in_instruments + [""]))
+        out_unique: List[Union[str, int]] = list(set(out_instruments + [""]))
+        unique = in_unique + ["|"] + out_unique
         super().__init__(
-            name=ValidSettings.MAP_E_PNAME_I.value,
-            ind=0,
-            values=port_names,
-        )
-
-
-class MapEInstrIS(SFunctionality):
-    def __init__(self, in_instruments: List[str]):
-        unique: List[Union[str, int]] = list(set(in_instruments + [""]))
-        super().__init__(
-            name=ValidSettings.MAP_E_INSTR_I.value,
+            name=ValidSettings.MAP_E_INSTR_2.value,
             ind=0,
             values=unique,
         )

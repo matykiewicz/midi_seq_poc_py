@@ -15,7 +15,6 @@ class InitConfig:
     n_keys: int = 8
     n_channels: int = 16
     n_buttons: int = 8
-    midi_workers: int = 10
     init_time: float = 0.0
     n_quants: int = 4
     velocity_min: int = 0
@@ -26,3 +25,4 @@ class InitConfig:
     music_count: int = 16
     max_conns: int = 16
     max_instr: int = 2
+    max_midis: int = 8

@@ -60,13 +60,13 @@ class ValidButtons(StrEnum):
     PRESETS_S_MAP = "SaMap"
     PRESETS_E_MAP_ON = "EdMaOn"
     PRESETS_E_MAP_OFF = "EdMaOff"
-    PRESETS_E_MAP_N_CON = "+Con"
+    PRESETS_E_MAP_N_CONN = "+Conn"
+    PRESETS_E_MAP_N_MIDI = "+Midi"
     PRESETS_E_MAP_N_DIR = "+Dir"
     PRESETS_E_MAP_N_CH = "+Chan"
-    PRESETS_E_MAP_N_PNAME_O = "+PNmOut"
-    PRESETS_E_MAP_N_INSTR_O = "+InsOut"
-    PRESETS_E_MAP_N_PNAME_I = "+PNmIn"
-    PRESETS_E_MAP_N_INSTR_I = "+InsIn"
+    PRESETS_E_MAP_N_PNAME = "+PoNa"
+    PRESETS_E_MAP_N_INSTR_1 = "+Ins1"
+    PRESETS_E_MAP_N_INSTR_2 = "+Ins2"
 
 
 BUT_PRES = (
@@ -95,13 +95,13 @@ BUT_PRES = (
     ValidButtons.EMPTY,
     ValidButtons.EMPTY,
     ValidButtons.PRESETS_E_MAP_OFF,
-    ValidButtons.PRESETS_E_MAP_N_CON,
+    ValidButtons.PRESETS_E_MAP_N_CONN,
+    ValidButtons.PRESETS_E_MAP_N_MIDI,
     ValidButtons.PRESETS_E_MAP_N_DIR,
     ValidButtons.PRESETS_E_MAP_N_CH,
-    ValidButtons.PRESETS_E_MAP_N_PNAME_O,
-    ValidButtons.PRESETS_E_MAP_N_INSTR_O,
-    ValidButtons.PRESETS_E_MAP_N_PNAME_I,
-    ValidButtons.PRESETS_E_MAP_N_INSTR_I,
+    ValidButtons.PRESETS_E_MAP_N_PNAME,
+    ValidButtons.PRESETS_E_MAP_N_INSTR_1,
+    ValidButtons.PRESETS_E_MAP_N_INSTR_2,
 )
 
 BUT_TEMPO = (
@@ -222,18 +222,20 @@ class ValidSettings(StrEnum):
     PRESETS = "Presets"
     MUS_NAME = "MusName"
     MAP_NAME = "MapName"
-    MAP_E_CON = "MapEditCon"
+    MAP_E_CONN = "MapEditConn"
+    MAP_E_MIDI = "MapEditMidi"
     MAP_E_DIR = "MapEditDir"
     MAP_E_CH = "MapEditCh"
-    MAP_E_PNAME_O = "MapEditPortNameOut"
-    MAP_E_INSTR_O = "MapEditInstrOut"
-    MAP_E_PNAME_I = "MapEditPortNameIn"
-    MAP_E_INSTR_I = "MapEditInstrIn"
+    MAP_E_PNAME = "MapEditPortName"
+    MAP_E_INSTR_1 = "MapEditInstr1"
+    MAP_E_INSTR_2 = "MapEditInstr2"
 
 
 class ValidInstruments(StrEnum):
-    GENERIC = "Generic"
-    VOLCA_DRUM = "Volca Drum"
-    VOLCA_KEYS = "Volca Keys"
-    VOLCA_BASS = "Volca Bass"
-    VOLCA_FM2 = "Volca FM2"
+    GENERIC_IN = "GenericIn"
+    GENERIC_OUT = "GenericOut"
+    VOLCA_DRUM_OUT = "Volca Drum Out"
+    VOLCA_KEYS_OUT = "Volca Keys Out"
+    VOLCA_BASS_OUT = "Volca Bass Out"
+    VOLCA_FM2_OUT = "Volca FM2 Out"
+    VOLCA_FM2_IN = "Volca FM2 In"

@@ -2,29 +2,29 @@ comment: ''
 conns:
 - channel: 1
   instruments:
-  - Volca Drum
-  - Generic
+  - Volca Drum Out
+  - GenericOut
   is_out: true
   midi_id: 0
   port_name: ''
 - channel: 1
   instruments:
-  - Volca Bass
-  - Generic
+  - Volca Bass Out
+  - GenericOut
   is_out: true
   midi_id: 1
   port_name: ''
 - channel: 1
   instruments:
-  - Volca Keys
-  - Generic
+  - Volca Keys Out
+  - GenericOut
   is_out: true
   midi_id: 2
   port_name: ''
 - channel: 1
   instruments:
-  - Volca FM2
-  - Generic
+  - Volca FM2 Out
+  - GenericOut
   is_out: true
   midi_id: 3
   port_name: ''
@@ -33,83 +33,83 @@ conns:
   - ''
   - ''
   is_out: true
-  midi_id: 4
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 5
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 6
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 7
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 8
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 9
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 10
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 11
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 12
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 13
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 14
+  midi_id: -1
   port_name: ''
 - channel: -1
   instruments:
   - ''
   - ''
   is_out: true
-  midi_id: 15
+  midi_id: -1
   port_name: ''
 name: Mappings_01

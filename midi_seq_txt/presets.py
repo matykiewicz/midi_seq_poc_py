@@ -54,8 +54,8 @@ def read_all_presets(
                 all_in_instruments.add(instrument)
         elif class_name == "MMappings":
             mappings_dict = read_preset(file_path=file_path)
-            mapping = MMappings(**mappings_dict)
-            all_mappings.append(mapping)
+            mappings = MMappings(**mappings_dict)
+            all_mappings.append(mappings)
         elif class_name == "MMusic":
             music_dict = read_preset(file_path=file_path)
             music = MMusic(**music_dict)

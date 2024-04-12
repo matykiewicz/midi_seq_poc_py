@@ -1,3 +1,4 @@
+import abc
 import math
 import os
 import time
@@ -82,6 +83,10 @@ class Sequencer:
             in_instruments=self.in_instruments,
         )
         self.sequences = init_music_mem(mappings=self.mappings)
+
+    @abc.abstractmethod
+    def get_current_allowed_valid_out_modes(self) -> List[str]:
+        pass
 
     def get_current_e_pos(self) -> Tuple[int, int, int, int, str]:
         midi = int(self.settings[ValidSettings.E_MIDI_O].get_value())
@@ -268,34 +273,36 @@ class Sequencer:
             self.load_map()
         elif valid_setting in [
             ValidSettings.MAP_E_DIR,
+            ValidSettings.MAP_E_CONN,
+            ValidSettings.MAP_E_MIDI,
             ValidSettings.MAP_E_CH,
-            ValidSettings.MAP_E_INSTR_O,
-            ValidSettings.MAP_E_PNAME_O,
-            ValidSettings.MAP_E_INSTR_I,
-            ValidSettings.MAP_E_PNAME_I,
+            ValidSettings.MAP_E_INSTR_1,
+            ValidSettings.MAP_E_INSTR_2,
+            ValidSettings.MAP_E_PNAME,
         ]:
             self.edit_mappings()
 
     def edit_mappings(self):
-        midi_id = int(self.settings[ValidSettings.MAP_E_CON].get_value())
+        conn_id = int(self.settings[ValidSettings.MAP_E_CONN].get_value())
+        midi_id = int(self.settings[ValidSettings.MAP_E_MIDI].get_value())
         is_out = str(self.settings[ValidSettings.MAP_E_DIR].get_value()) == "True"
         channel = int(self.settings[ValidSettings.MAP_E_CH].get_value())
-        port_name_out = str(self.settings[ValidSettings.MAP_E_PNAME_O].get_value())
-        port_name_in = str(self.settings[ValidSettings.MAP_E_PNAME_I].get_value())
-        instr_out = str(self.settings[ValidSettings.MAP_E_INSTR_O].get_value())
-        instr_in = str(self.settings[ValidSettings.MAP_E_INSTR_I].get_value())
-        conns = self.mappings.get_sorted()
-        if conns[midi_id].is_out != is_out:
-            conns[midi_id].port_name = ""
-            conns[midi_id].instruments = [""] * self.internal_config.max_instr
+        port_name = str(self.settings[ValidSettings.MAP_E_PNAME].get_value())
+        instr_1 = str(self.settings[ValidSettings.MAP_E_INSTR_1].get_value())
+        instr_2 = str(self.settings[ValidSettings.MAP_E_INSTR_2].get_value())
+        conns = self.mappings.conns
+        if conns[conn_id].is_out != is_out:
+            conns[conn_id].port_name = ""
+            conns[conn_id].instruments = [""] * self.internal_config.max_instr
         conns[midi_id].is_out = is_out
         conns[midi_id].channel = channel
-        if is_out:
-            conns[midi_id].port_name = port_name_out
-            conns[midi_id].instruments[0] = instr_out
-        else:
-            conns[midi_id].port_name = port_name_in
-            conns[midi_id].instruments[0] = instr_in
+        conns[midi_id].midi_id = midi_id
+        # if is_out:
+        #    conns[midi_id].port_name = port_name_out
+        #    conns[midi_id].instruments[0] = instr_out
+        # else:
+        #    conns[midi_id].port_name = port_name_in
+        #    conns[midi_id].instruments[0] = instr_in
 
     def load_music(self):
         music_name = str(self.settings[ValidSettings.MUS_NAME].get_value())
@@ -445,6 +452,7 @@ class MiDiIn:
         self.port_id = midi.port_id
         self.midi_id = midi.midi_id
         self.port_name = midi.port_name
+        self.channels: List[int] = midi.channels
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
         self.midi_in: Optional[MidiIn] = None
@@ -470,6 +478,7 @@ class MiDiIn:
 
     def run_message_bus(self) -> None:
         if self.sequencer is not None and self.midi_in is not None:
+            allowed_valid_out_modes = self.sequencer.get_current_allowed_valid_out_modes()
             messages: List[List[int]] = list()
             ts: List[float] = list()
             while True:
@@ -480,23 +489,35 @@ class MiDiIn:
                     message, t = message_t
                     messages.append(message)
                     ts.append(t)
-            out_modes = self.translate_ins_to_outs(messages=messages, ts=ts)
+            out_modes = self.translate_ins_to_outs(
+                messages=messages, ts=ts, valid_out_modes=allowed_valid_out_modes
+            )
             for out_mode in out_modes:
                 self.sequencer.set_step(out_mode=out_mode)
 
     def translate_ins_to_outs(
-        self, messages: List[List[int]], ts: List[float]
+        self,
+        messages: List[List[int]],
+        ts: List[float],
+        valid_out_modes: List[str],
     ) -> List[MOutFunctionality]:
         out_modes: List[MOutFunctionality] = list()
         while len(messages):
-            out_mode = self.translate_ins_to_out(messages=messages, ts=ts)
+            out_mode = self.translate_ins_to_out(
+                messages=messages, ts=ts, valid_out_modes=valid_out_modes
+            )
             out_modes.append(out_mode)
         return out_modes
 
-    def translate_ins_to_out(self, messages: List[List[int]], ts: List[float]) -> MOutFunctionality:
+    def translate_ins_to_out(
+        self, messages: List[List[int]], ts: List[float], valid_out_modes: List[str]
+    ) -> MOutFunctionality:
         if self.sequencer is not None:
             in_modes: List[MInFunctionality] = [
                 in_mode.new(lock=False) for in_mode in self.sequencer.in_modes.values()
+            ]
+            out_modes: List[MOutFunctionality] = [
+                out_mode.new(lock=False) for out_mode in self.sequencer.out_modes.values()
             ]
             while True:
                 message = messages.pop()
@@ -504,9 +525,15 @@ class MiDiIn:
                     if in_mode.name in self.allowed_valid_in_modes:
                         in_mode.set_with_message(message=message)
                         if in_mode.is_ready():
-                            return in_mode.convert()
+                            return in_mode.convert(
+                                valid_out_modes=valid_out_modes, out_modes=out_modes
+                            )
         else:
             raise ValueError("Sequencer is not ready!")
+
+    @staticmethod
+    def get_channel(command: int) -> int:
+        return command & 0xF
 
 
 class MiDiOut:
@@ -514,6 +541,7 @@ class MiDiOut:
         self.port_id = midi.port_id
         self.midi_id = midi.midi_id
         self.port_name = midi.port_name
+        self.channels: List[int] = midi.channels
         self.midi_out: Optional[MidiOut] = None
         self.internal_config = InitConfig()
         self.sequencer: Optional[Sequencer] = None
