@@ -738,10 +738,10 @@ class MapEChS(SFunctionality):
 
 class MapEPNameS(SFunctionality):
     def __init__(self, port_names_comb: List[Tuple[int, str, bool]]):
-        port_names: List[Union[str, int]] = list()
+        port_names: List[str] = list()
         for i, port_id_name_is_out in enumerate(port_names_comb):
             port_id, port_name, is_out = port_id_name_is_out
-            if is_out:
+            if port_name not in port_names:
                 port_names.append(port_name)
         super().__init__(
             name=ValidSettings.MAP_E_PNAME.value,
@@ -752,9 +752,7 @@ class MapEPNameS(SFunctionality):
 
 class MapEInstr1S(SFunctionality):
     def __init__(self, in_instruments: List[str], out_instruments: List[str]):
-        in_unique: List[Union[str, int]] = list(set(in_instruments + [""]))
-        out_unique: List[Union[str, int]] = list(set(out_instruments + [""]))
-        unique = in_unique + ["|"] + out_unique
+        unique: List[Union[str, int]] = list(set(in_instruments + out_instruments + [""]))
         super().__init__(
             name=ValidSettings.MAP_E_INSTR_1.value,
             ind=0,
@@ -764,9 +762,7 @@ class MapEInstr1S(SFunctionality):
 
 class MapEInstr2S(SFunctionality):
     def __init__(self, in_instruments: List[str], out_instruments: List[str]):
-        in_unique: List[Union[str, int]] = list(set(in_instruments + [""]))
-        out_unique: List[Union[str, int]] = list(set(out_instruments + [""]))
-        unique = in_unique + ["|"] + out_unique
+        unique: List[Union[str, int]] = list(set([""] + in_instruments + out_instruments))
         super().__init__(
             name=ValidSettings.MAP_E_INSTR_2.value,
             ind=0,

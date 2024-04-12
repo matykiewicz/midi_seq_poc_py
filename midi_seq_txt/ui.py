@@ -104,7 +104,7 @@ class KeysUI(Static):
             port_id = self.sequencer.midi_id_to_port_id(conn.midi_id)
             cur_edit = "!" if edit_on and i == edit_conn else " "
             text += (
-                f"{cur_edit}{out_in}:{conn.midi_id} -> N:'{conn.port_name}' C:{conn.channel} "
+                f"{cur_edit} {out_in}:{conn.midi_id} -> N:'{conn.port_name}' C:{conn.channel} "
                 f"I:{conn.instruments} -> {port_id if port_id > -1 else 'off'}\n"
             )
 

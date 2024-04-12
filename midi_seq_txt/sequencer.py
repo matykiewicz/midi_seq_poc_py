@@ -273,36 +273,37 @@ class Sequencer:
             self.load_map()
         elif valid_setting in [
             ValidSettings.MAP_E_DIR,
-            ValidSettings.MAP_E_CONN,
             ValidSettings.MAP_E_MIDI,
             ValidSettings.MAP_E_CH,
             ValidSettings.MAP_E_INSTR_1,
             ValidSettings.MAP_E_INSTR_2,
             ValidSettings.MAP_E_PNAME,
         ]:
-            self.edit_mappings()
+            self.edit_mappings(valid_setting=valid_setting)
 
-    def edit_mappings(self):
+    def edit_mappings(self, valid_setting: ValidSettings):
         conn_id = int(self.settings[ValidSettings.MAP_E_CONN].get_value())
-        midi_id = int(self.settings[ValidSettings.MAP_E_MIDI].get_value())
         is_out = str(self.settings[ValidSettings.MAP_E_DIR].get_value()) == "True"
-        channel = int(self.settings[ValidSettings.MAP_E_CH].get_value())
+        midi_id = int(self.settings[ValidSettings.MAP_E_MIDI].get_value())
         port_name = str(self.settings[ValidSettings.MAP_E_PNAME].get_value())
+        channel = int(self.settings[ValidSettings.MAP_E_CH].get_value())
         instr_1 = str(self.settings[ValidSettings.MAP_E_INSTR_1].get_value())
         instr_2 = str(self.settings[ValidSettings.MAP_E_INSTR_2].get_value())
         conns = self.mappings.conns
-        if conns[conn_id].is_out != is_out:
-            conns[conn_id].port_name = ""
-            conns[conn_id].instruments = [""] * self.internal_config.max_instr
-        conns[midi_id].is_out = is_out
-        conns[midi_id].channel = channel
-        conns[midi_id].midi_id = midi_id
-        # if is_out:
-        #    conns[midi_id].port_name = port_name_out
-        #    conns[midi_id].instruments[0] = instr_out
-        # else:
-        #    conns[midi_id].port_name = port_name_in
-        #    conns[midi_id].instruments[0] = instr_in
+        if valid_setting == ValidSettings.MAP_E_DIR:
+            if conns[conn_id].is_out != is_out:
+                conns[conn_id].instruments = [""] * self.internal_config.max_instr
+            conns[conn_id].is_out = is_out
+        elif valid_setting == ValidSettings.MAP_E_MIDI:
+            conns[conn_id].midi_id = midi_id
+        elif valid_setting == ValidSettings.MAP_E_PNAME:
+            conns[conn_id].port_name = port_name
+        elif valid_setting == ValidSettings.MAP_E_CH:
+            conns[conn_id].channel = channel
+        elif valid_setting == ValidSettings.MAP_E_INSTR_1:
+            conns[conn_id].instruments[0] = instr_1
+        elif valid_setting == ValidSettings.MAP_E_INSTR_2:
+            conns[conn_id].instruments[1] = instr_2
 
     def load_music(self):
         music_name = str(self.settings[ValidSettings.MUS_NAME].get_value())

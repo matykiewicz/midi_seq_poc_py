@@ -96,10 +96,10 @@ BUT_PRES = (
     ValidButtons.EMPTY,
     ValidButtons.PRESETS_E_MAP_OFF,
     ValidButtons.PRESETS_E_MAP_N_CONN,
-    ValidButtons.PRESETS_E_MAP_N_MIDI,
     ValidButtons.PRESETS_E_MAP_N_DIR,
-    ValidButtons.PRESETS_E_MAP_N_CH,
+    ValidButtons.PRESETS_E_MAP_N_MIDI,
     ValidButtons.PRESETS_E_MAP_N_PNAME,
+    ValidButtons.PRESETS_E_MAP_N_CH,
     ValidButtons.PRESETS_E_MAP_N_INSTR_1,
     ValidButtons.PRESETS_E_MAP_N_INSTR_2,
 )
