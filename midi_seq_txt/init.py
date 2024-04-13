@@ -78,7 +78,7 @@ VOICE_1_OUT = MOutFunctionality(
     instruments=[str(ValidInstruments.GENERIC_OUT)],
     data=[
         [str(0), str(0x90), str(0x80)],
-        [str(i) for i in range(128)],
+        [str(-1)] + [str(i) for i in range(128)],
         [
             str(i)
             for i in range(
@@ -102,7 +102,7 @@ VOICE_2_OUT = MOutFunctionality(
     instruments=[str(ValidInstruments.GENERIC_OUT)],
     data=[
         [str(0), str(0x90), str(0x80)],
-        [str(i) for i in range(128)],
+        [str(-1)] + [str(i) for i in range(128)],
         [
             str(i * InitConfig().velocity_step)
             for i in range(InitConfig().velocity_min, InitConfig().velocity_max + 1)

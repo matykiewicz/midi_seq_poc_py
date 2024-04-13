@@ -74,21 +74,39 @@ class Engine(Sequencer):
                 for out_midi, channel, out_mode in self.midi_ins[in_midi].run_message_bus(
                     out_midi=out_midi, out_channel=out_channel
                 ):
-                    self.send_out_mode(out_mode=out_mode)
-            if not self.detached_func_queue.empty():
-                func_dict: Dict[str, Any] = self.detached_func_queue.get()
-                if "indexes" in func_dict:
-                    out_mode = self.convert_to_out_mode(func_dict)
-                    midi_channel_out_modes.append((out_midi, out_channel, out_mode))
                     self.set_step(out_mode=out_mode)
-                else:
-                    setting = self.convert_to_setting(func_dict)
-                    self.set_option(option=setting)
+                    self.send_out_mode(out_mode=out_mode)
+                    midi_channel_out_modes.append((out_midi, out_channel, out_mode))
+            self.ingest_func_data(
+                midi_channel_out_modes=midi_channel_out_modes,
+                out_midi=out_midi,
+                out_channel=out_channel,
+            )
             for out_midi, channel, out_mode in midi_channel_out_modes:
                 self.midi_outs[out_midi].unscheduled_step.append((channel, out_mode))
             for out_midi in self.midi_outs.keys():
                 self.midi_outs[out_midi].run_message_bus()
             time.sleep(self.internal_config.sleep)
+
+    def ingest_func_data(
+        self,
+        midi_channel_out_modes: List[Tuple[int, int, MOutFunctionality]],
+        out_midi: int,
+        out_channel: int,
+    ) -> None:
+        if self.detached:
+            queue = self.detached_func_queue
+        else:
+            queue = self.attached_func_queue
+        if not queue.empty():
+            func_dict: Dict[str, Any] = self.detached_func_queue.get()
+            if "indexes" in func_dict:
+                out_mode = self.convert_to_out_mode(func_dict)
+                midi_channel_out_modes.append((out_midi, out_channel, out_mode))
+                self.set_step(out_mode=out_mode)
+            else:
+                setting = self.convert_to_setting(func_dict)
+                self.set_option(option=setting)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:
         valid_setting = ValidSettings(setting_dict["name"])
@@ -103,17 +121,17 @@ class Engine(Sequencer):
         return out_mode_value
 
     def send_out_mode(self, out_mode: MOutFunctionality) -> None:
-        self.set_step(out_mode=out_mode)
         if self.detached:
             self.attached_func_queue.put(attrs.asdict(out_mode))
         else:
+            self.set_step(out_mode=out_mode)
             self.detached_func_queue.put(attrs.asdict(out_mode))
 
     def send_setting(self, setting: SFunctionality) -> None:
-        self.set_option(option=setting)
         if self.detached:
             self.attached_func_queue.put(attrs.asdict(setting))
         else:
+            self.set_option(option=setting)
             self.detached_func_queue.put(attrs.asdict(setting))
 
     def send_delete(self) -> None:

@@ -11,6 +11,7 @@ class ValidLengths(Enum):
     DOUBLE = InitConfig().n_quants * 2
     QUADRUPLE = InitConfig().n_quants * 4
     OCTUPLE = InitConfig().n_quants * 8
+    SEXDECUPLE = InitConfig().n_quants * 16
 
 
 class ValidButtons(StrEnum):

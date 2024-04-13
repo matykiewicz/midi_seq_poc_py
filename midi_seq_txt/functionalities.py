@@ -309,8 +309,8 @@ class MInFunctionality(AttrsInstance):
                     all_apply = all_apply
         return all_apply
 
-    def is_ready(self) -> bool:
-        return self._exe_ == len(self.in_rules)
+    def has_next(self) -> bool:
+        return self._exe_ < len(self.in_rules)
 
     def reset(self) -> "MInFunctionality":
         self._exe_ = 0
@@ -346,8 +346,8 @@ class MInFunctionality(AttrsInstance):
         interval = 60 / tempo
         quant = interval / n_quants
         length = math.ceil(duration / quant)
-        if length > int(ValidLengths.OCTUPLE.value):
-            length = int(ValidLengths.OCTUPLE.value)
+        if length > int(ValidLengths.SEXDECUPLE.value):
+            length = int(ValidLengths.SEXDECUPLE.value)
         return length
 
     def set_length(self, length: int, exe: int) -> "MInFunctionality":
@@ -393,6 +393,9 @@ class MOutFunctionality(AttrsInstance):
 
     def get_exe(self) -> int:
         return self._exe_
+
+    def has_next(self) -> bool:
+        return self._exe_ < len(self.indexes)
 
     def update_offsets_with_lab(self, lab: str, by: int) -> "MOutFunctionality":
         if lab in self.labels:
