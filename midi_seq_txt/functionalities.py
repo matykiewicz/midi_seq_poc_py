@@ -18,6 +18,7 @@ from .const import (
     BUT_TEMPO,
     BUT_VIEW,
     ValidButtons,
+    ValidLengths,
     ValidNav,
     ValidSettings,
 )
@@ -323,7 +324,7 @@ class MInFunctionality(AttrsInstance):
     ) -> Optional[Tuple[int, int, "MOutFunctionality"]]:
         valid_out_mode, midi_id, channel = self.out_rules[0]
         if valid_out_mode in out_modes:
-            out_mode = out_modes[valid_out_mode].new(lock=False).reset_offsets(off=0)
+            out_mode = out_modes[str(valid_out_mode)].new(lock=False).reset_offsets(off=0)
             duration = self._t_2_ - self._t_1_
             length = self.convert_duration_to_length(
                 duration=duration, tempo=tempo, n_quants=n_quants
@@ -332,9 +333,10 @@ class MInFunctionality(AttrsInstance):
             for exe in range(self._exe_):
                 data = self.get_row_values(exe=exe)
                 for i, lab in enumerate(out_mode.get_labels()):
-                    out_mode.set_indexes_with_lab_and_val(lab=lab, val=data[i], exe=exe)
+                    if i < len(data) and lab != "Note" and lab != "Scale" and lab != "Button":
+                        out_mode.set_indexes_with_lab_and_val(lab=lab, val=data[i], exe=exe)
             self.reset()
-            return midi_id, channel, out_mode
+            return int(midi_id), int(channel), out_mode
         else:
             self.reset()
             return None
@@ -344,6 +346,8 @@ class MInFunctionality(AttrsInstance):
         interval = 60 / tempo
         quant = interval / n_quants
         length = math.ceil(duration / quant)
+        if length > int(ValidLengths.OCTUPLE.value):
+            length = int(ValidLengths.OCTUPLE.value)
         return length
 
     def set_length(self, length: int, exe: int) -> "MInFunctionality":
@@ -367,6 +371,7 @@ class MOutFunctionality(AttrsInstance):
     offsets: List[int]
     data: List[List[str]]
     vis_ind: List[int]
+    but_ind: List[int]
     instruments: List[str]
     comment: str
     _t_1_: float = 0.0
@@ -389,16 +394,6 @@ class MOutFunctionality(AttrsInstance):
     def get_exe(self) -> int:
         return self._exe_
 
-    def convert_with_lab_and_data(self, lab: str, data: str) -> int:
-        ind = -1
-        if lab in self.labels:
-            off_int = self.labels.index(lab)
-            if off_int < len(self.data) and data in self.data[off_int]:
-                return self.data[off_int].index(data)
-        else:
-            raise ValueError(f"Label {lab} not found!")
-        return ind
-
     def update_offsets_with_lab(self, lab: str, by: int) -> "MOutFunctionality":
         if lab in self.labels:
             off_int = self.labels.index(lab)
@@ -416,17 +411,6 @@ class MOutFunctionality(AttrsInstance):
 
     def get_labels(self) -> List[str]:
         return deepcopy(self.labels)
-
-    def get_values(self, indexes: Optional[List[List[int]]] = None) -> List[List[str]]:
-        values: List[List[str]] = list()
-        if indexes is None:
-            indexes = self.indexes
-        for i in range(len(indexes)):
-            value = list()
-            for j, index in enumerate(indexes[i]):
-                value.append(deepcopy(self.data[j][index]))
-            values.append(value)
-        return values
 
     def get_single_value_by_off(self, off: str, ind: int) -> str:
         if off in self.labels:
@@ -452,12 +436,6 @@ class MOutFunctionality(AttrsInstance):
     def get_row_values(self, exe: int) -> List[str]:
         values: List[str] = list()
         if exe < len(self.indexes):
-            if "Note" in self.labels and "Scale" in self.labels:
-                scale = self.get_single_value_by_off(off="Scale", ind=0)
-                new_data = create_notes(scale=scale)
-                off_int = self.labels.index("Note")
-                if len(new_data) == len(self.data[off_int]):
-                    self.set_data_with_lab(lab="Note", data=create_notes(scale=scale))
             for j in range(len(self.indexes[exe])):
                 ind = self.indexes[exe][j]
                 values.append(deepcopy(self.data[j][ind]))
@@ -466,8 +444,8 @@ class MOutFunctionality(AttrsInstance):
     def get_vis_ind(self) -> List[int]:
         return self.vis_ind
 
-    def get_vis_label(self) -> str:
-        return self.labels[self.vis_ind[1]]
+    def get_but_label(self) -> str:
+        return self.labels[self.but_ind[1]]
 
     def new_with_indexes(self, indexes: List[List[int]]) -> "MOutFunctionality":
         new_out_mode = self.new(lock=False)
@@ -500,6 +478,11 @@ class MOutFunctionality(AttrsInstance):
                     if exe is None or exe == i:
                         if ind < len(self.data[off_int]):
                             self.indexes[i][off_int] = ind
+                            if lab == "Note" and "Key" in self.labels:
+                                note = self.data[off_int][ind]
+                                if "-" in note:
+                                    key = str(int(Note(note)) + 12)
+                                    self.set_indexes_with_lab_and_val("Key", key)
         else:
             raise ValueError(f"Offset {lab} not found!")
         return self
@@ -511,10 +494,10 @@ class MOutFunctionality(AttrsInstance):
             raise PermissionError(f"{self.name} out_mode is locked!")
         if lab in self.labels:
             off_int = self.labels.index(lab)
-            ind = 0
             if val not in self.data[off_int]:
-                self.data[off_int].append(val)
-            ind = self.data[off_int].index(val)
+                ind = self.find_the_closest(val=val, values=self.data[off_int])
+            else:
+                ind = self.data[off_int].index(val)
             for i in range(len(self.indexes)):
                 if exe is None or exe == i:
                     if ind < len(self.data[off_int]):
@@ -522,6 +505,18 @@ class MOutFunctionality(AttrsInstance):
         else:
             raise ValueError(f"Offset {lab} not found!")
         return self
+
+    @staticmethod
+    def find_the_closest(val: str, values: List[str]) -> int:
+        val_int = int(val)
+        min_dif = 256
+        best_ind = -1
+        for ind, value in enumerate(values):
+            val_dif = abs(val_int - int(value))
+            if val_dif < min_dif:
+                min_dif = val_dif
+                best_ind = ind
+        return best_ind
 
     def set_indexes(self, indexes: List[List[int]]) -> "MOutFunctionality":
         if self._lock_:
@@ -536,28 +531,17 @@ class MOutFunctionality(AttrsInstance):
     def get_as_message(self) -> List[int]:
         if self._lock_:
             raise PermissionError(f"{self.name} out_mode is locked!")
-
-        def convert_value_to_int(lab: str, value: str) -> int:
-            value_int = 0
-            if lab == "Note":
-                if value != ValidButtons.NA:
-                    if "-" in value:
-                        value_int = int(Note(value)) + 12
-                    else:
-                        value_int = int(value)
-                else:
-                    value_int = -1
-            else:
-                value_int = int(value)
-            return value_int
-
         values_int: List[int] = list()
         if self._exe_ < len(self.indexes):
             values_str = self.get_row_values(exe=self._exe_)
             labels_str = self.get_labels()
             for i, value_str in enumerate(values_str):
-                if labels_str[i] != "Scale":
-                    values_int.append(convert_value_to_int(lab=labels_str[i], value=value_str))
+                if (
+                    labels_str[i] != "Note"
+                    and labels_str[i] != "Scale"
+                    and labels_str[i] != "Button"
+                ):
+                    values_int.append(int(value_str))
         self._exe_ += 1
         return values_int
 

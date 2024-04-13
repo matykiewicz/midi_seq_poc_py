@@ -96,7 +96,11 @@ async def test_map_presets(command_line_args):
     pilot: Pilot
     async with ms_app.run_test() as pilot:  # noqa
         time.sleep(0.01)
+        await pilot.press("c")  # rec on
+        time.sleep(0.01)
         await pilot.press("e")  # note/key press
+        time.sleep(0.01)
+        await pilot.press("a")  # rec off
         time.sleep(0.01)
         await pilot.press("a")  # presets
         time.sleep(0.01)

@@ -78,18 +78,22 @@ VOICE_1_OUT = MOutFunctionality(
     instruments=[str(ValidInstruments.GENERIC_OUT)],
     data=[
         [str(0), str(0x90), str(0x80)],
-        create_notes(scale="C"),
+        [str(i) for i in range(128)],
         [
-            str(i * InitConfig().velocity_step)
-            for i in range(InitConfig().velocity_min, InitConfig().velocity_max + 1)
+            str(i)
+            for i in range(
+                InitConfig().velocity_min, InitConfig().velocity_max + 1, InitConfig().velocity_step
+            )
         ],
         [str(x.value) for x in list(ValidLengths)],
+        create_notes(scale="C"),
         create_scales(),
     ],
-    indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
-    offsets=[1, 1 + 8 * 2, 6, 1, 0],
-    labels=["Code", "Note", "Velocity", "Length", "Scale"],
+    indexes=[[1, 0, 6, 1, 0, 0], [2, 0, 0, 0, 0, 0]],
+    offsets=[1, 0, 6, 1, 1 + 8 * 3, 0],
+    labels=["Code", "Key", "Velocity", "Length", "Note", "Scale"],
     vis_ind=[0, 1],
+    but_ind=[0, 4],
 )
 
 VOICE_2_OUT = MOutFunctionality(
@@ -98,17 +102,19 @@ VOICE_2_OUT = MOutFunctionality(
     instruments=[str(ValidInstruments.GENERIC_OUT)],
     data=[
         [str(0), str(0x90), str(0x80)],
-        create_notes(scale="C"),
+        [str(i) for i in range(128)],
         [
             str(i * InitConfig().velocity_step)
             for i in range(InitConfig().velocity_min, InitConfig().velocity_max + 1)
         ],
         [str(x.value) for x in list(ValidLengths)],
+        create_notes(scale="C"),
         create_scales(),
     ],
-    indexes=[[1, 0, 6, 1, 0], [2, 0, 0, 0, 0]],
-    offsets=[1, 1 + 8 * 2, 6, 1, 0],
-    labels=["Code", "Note", "Velocity", "Length", "Scale"],
+    indexes=[[1, 0, 6, 1, 0, 0], [2, 0, 0, 0, 0, 0]],
+    offsets=[1, 0, 6, 1, 1 + 8 * 3, 0],
+    labels=["Code", "Key", "Velocity", "Length", "Note", "Scale"],
+    but_ind=[0, 4],
     vis_ind=[0, 1],
 )
 
@@ -123,6 +129,7 @@ CUTOFF_EG_INT_OUT = MOutFunctionality(
     indexes=[[1, 0]],
     offsets=[1, 1],
     labels=["Code", "Cutoff"],
+    but_ind=[0, 1],
     vis_ind=[0, 1],
 )
 

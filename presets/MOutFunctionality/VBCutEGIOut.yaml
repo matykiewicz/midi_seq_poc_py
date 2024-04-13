@@ -1,3 +1,6 @@
+but_ind:
+- 0
+- 1
 comment: Volca Bass Cutoff EG Intensity CC
 data:
 - - '0'

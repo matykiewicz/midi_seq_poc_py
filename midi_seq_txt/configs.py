@@ -17,9 +17,9 @@ class InitConfig:
     n_buttons: int = 8
     init_time: float = 0.0
     n_quants: int = 4
-    velocity_min: int = 0
-    velocity_step: int = 20
-    velocity_max: int = 6
+    velocity_min: int = 5
+    velocity_step: int = 15
+    velocity_max: int = 125
     init_scale: str = "C"
     map_count: int = 16
     music_count: int = 16

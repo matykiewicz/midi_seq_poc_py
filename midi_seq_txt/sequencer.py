@@ -238,9 +238,9 @@ class Sequencer:
     def get_record_positions(
         self, out_mode: MOutFunctionality
     ) -> List[Tuple[int, int, int, int, str]]:
-        main_label = out_mode.get_vis_label()
+        button_label = out_mode.get_but_label()
         positions_to_record: List[Tuple[int, int, int, int, str]] = list()
-        if out_mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
+        if out_mode.get_single_value_by_lab(exe=0, lab=button_label) != ValidButtons.NEXT:
             positions_to_record += [self.get_current_e_pos()]
             self.settings[ValidSettings.E_STEP].next_ind()
             if self.settings[ValidSettings.VIEW_FUNCTION].get_value() == ValidButtons.VIEW_REC:
@@ -253,9 +253,9 @@ class Sequencer:
     def get_copy_positions(
         self, out_mode: MOutFunctionality
     ) -> List[Tuple[int, int, int, int, str]]:
-        main_label = out_mode.get_vis_label()
+        button_label = out_mode.get_but_label()
         positions_to_copy: List[Tuple[int, int, int, int, str]] = list()
-        if out_mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NEXT:
+        if out_mode.get_single_value_by_lab(exe=0, lab=button_label) != ValidButtons.NEXT:
             positions_to_copy += [self.get_current_v_pos()]
         return positions_to_copy
 
@@ -629,8 +629,8 @@ class MiDiOut:
                         valid_out_mode=valid_out_mode
                     )
                     out_mode.set_indexes(indexes=indexes)
-                    main_label = out_mode.get_vis_label()
-                    if out_mode.get_single_value_by_lab(exe=0, lab=main_label) != ValidButtons.NA:
+                    button_label = out_mode.get_but_label()
+                    if out_mode.get_single_value_by_lab(exe=0, lab=button_label) != ValidButtons.NA:
                         self.scheduled_steps[step_tick][channel].append(out_mode)
 
     def play_later_and_schedule(self, offset_time: float = 0.0) -> None:

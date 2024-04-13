@@ -9,6 +9,8 @@ class ValidLengths(Enum):
     HALF = InitConfig().n_quants // 2
     QUARTER = InitConfig().n_quants // 4
     DOUBLE = InitConfig().n_quants * 2
+    QUADRUPLE = InitConfig().n_quants * 4
+    OCTUPLE = InitConfig().n_quants * 8
 
 
 class ValidButtons(StrEnum):

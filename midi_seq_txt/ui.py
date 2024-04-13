@@ -126,107 +126,121 @@ class KeysUI(Static):
     def config_out_mode(self, key_ind: int) -> MOutFunctionality:
         valid_out_mode = str(self.sequencer.settings[ValidSettings.E_O_MODE].get_value())
         out_mode = self.sequencer.out_modes[valid_out_mode]
-        main_label = out_mode.get_vis_label()
+        button_label = out_mode.get_but_label()
         return (
-            out_mode.new_with_lab(lab=main_label, sub_ind=key_ind, exe=None)
+            out_mode.new_with_lab(lab=button_label, sub_ind=key_ind, exe=None)
             .new_with_lab(lab="Length", sub_ind=0, exe=0)
             .new_with_lab(lab="Velocity", sub_ind=0, exe=0)
         )
 
     def key_1(self):
         out_mode = self.config_out_mode(key_ind=0)
-        self.sequencer.send_out_mode(out_mode=out_mode)
+        button_label = out_mode.get_but_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=button_label)
+        if out_mode_value == ValidButtons.NEXT:
+            self.sequencer.get_current_proto_mode().update_offsets_with_lab(
+                lab=button_label, by=self.internal_config.n_buttons
+            )
+        else:
+            self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_2(self):
         out_mode = self.config_out_mode(key_ind=1)
-        self.sequencer.send_out_mode(out_mode=out_mode)
-        main_label = out_mode.get_vis_label()
-        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        button_label = out_mode.get_but_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=button_label)
         if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-                lab=main_label, by=self.internal_config.n_buttons
+                lab=button_label, by=self.internal_config.n_buttons
             )
+        else:
+            self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_3(self):
         out_mode = self.config_out_mode(key_ind=2)
-        self.sequencer.send_out_mode(out_mode=out_mode)
-        main_label = out_mode.get_vis_label()
-        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        button_label = out_mode.get_but_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=button_label)
         if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-                lab=main_label, by=self.internal_config.n_buttons
+                lab=button_label, by=self.internal_config.n_buttons
             )
+        else:
+            self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_4(self):
         out_mode = self.config_out_mode(key_ind=3)
-        self.sequencer.send_out_mode(out_mode=out_mode)
-        main_label = out_mode.get_vis_label()
-        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        button_label = out_mode.get_but_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=button_label)
         if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-                lab=main_label, by=self.internal_config.n_buttons
+                lab=button_label, by=self.internal_config.n_buttons
             )
+        else:
+            self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_5(self):
         out_mode = self.config_out_mode(key_ind=4)
-        self.sequencer.send_out_mode(out_mode=out_mode)
-        main_label = out_mode.get_vis_label()
-        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        button_label = out_mode.get_but_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=button_label)
         if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-                lab=main_label, by=self.internal_config.n_buttons
+                lab=button_label, by=self.internal_config.n_buttons
             )
+        else:
+            self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_6(self):
         out_mode = self.config_out_mode(key_ind=5)
-        self.sequencer.send_out_mode(out_mode=out_mode)
-        main_label = out_mode.get_vis_label()
-        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        button_label = out_mode.get_but_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=button_label)
         if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-                lab=main_label, by=self.internal_config.n_buttons
+                lab=button_label, by=self.internal_config.n_buttons
             )
+        else:
+            self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_7(self):
         out_mode = self.config_out_mode(key_ind=6)
-        self.sequencer.send_out_mode(out_mode=out_mode)
-        main_label = out_mode.get_vis_label()
-        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        button_label = out_mode.get_but_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=button_label)
         if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-                lab=main_label, by=self.internal_config.n_buttons
+                lab=button_label, by=self.internal_config.n_buttons
             )
+        else:
+            self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
 
     def key_8(self):
         out_mode = self.config_out_mode(key_ind=7)
-        self.sequencer.send_out_mode(out_mode=out_mode)
-        main_label = out_mode.get_vis_label()
-        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=main_label)
+        button_label = out_mode.get_but_label()
+        out_mode_value = out_mode.get_single_value_by_lab(exe=0, lab=button_label)
         if out_mode_value == ValidButtons.NEXT:
             self.sequencer.get_current_proto_mode().update_offsets_with_lab(
-                lab=main_label, by=self.internal_config.n_buttons
+                lab=button_label, by=self.internal_config.n_buttons
             )
+        else:
+            self.sequencer.send_out_mode(out_mode=out_mode)
         self.update_all()
         if self.navigation_ui is not None:
             self.navigation_ui.update_all()
@@ -694,9 +708,9 @@ class NavigationUI(Static):
             text += f"V:{out_mode.get_single_value_by_off(off='Velocity', ind=0)},"
         if "Scale" in out_mode.get_labels():
             text += f"S:{out_mode.get_single_value_by_off(off='Scale', ind=0)}|"
-        vis_label = out_mode.get_vis_label()
+        button_label = out_mode.get_but_label()
         for j in range(self.internal_config.n_buttons):
-            text += f"{out_mode.get_single_value_by_off(off=vis_label, ind=j)}|"
+            text += f"{out_mode.get_single_value_by_off(off=button_label, ind=j)}|"
         self.keys_vis.update(text)
 
     def update_settings_vis(self) -> None:

@@ -26,7 +26,8 @@ class Engine(Sequencer):
         from midi_seq_txt.sequencer import DEBUG
 
         self.process = Process(target=self.start, args=(DEBUG,))
-        self.func_queue: Queue[Dict[str, Any]] = Queue()
+        self.detached_func_queue: Queue[Dict[str, Any]] = Queue()
+        self.attached_func_queue: Queue[Dict[str, Any]] = Queue()
         self.current_step_id: Queue[int] = Queue()
 
     def create_midi_ins(self) -> Dict[int, MiDiIn]:
@@ -69,8 +70,13 @@ class Engine(Sequencer):
         while True:
             midi_channel_out_modes: List[Tuple[int, int, MOutFunctionality]] = list()
             out_midi, out_channel, _, _, _ = self.get_current_e_pos()
-            if not self.func_queue.empty():
-                func_dict: Dict[str, Any] = self.func_queue.get()
+            for in_midi in self.midi_ins.keys():
+                for out_midi, channel, out_mode in self.midi_ins[in_midi].run_message_bus(
+                    out_midi=out_midi, out_channel=out_channel
+                ):
+                    self.send_out_mode(out_mode=out_mode)
+            if not self.detached_func_queue.empty():
+                func_dict: Dict[str, Any] = self.detached_func_queue.get()
                 if "indexes" in func_dict:
                     out_mode = self.convert_to_out_mode(func_dict)
                     midi_channel_out_modes.append((out_midi, out_channel, out_mode))
@@ -78,14 +84,10 @@ class Engine(Sequencer):
                 else:
                     setting = self.convert_to_setting(func_dict)
                     self.set_option(option=setting)
-            for midi_id in self.midi_ins.keys():
-                midi_channel_out_modes += self.midi_ins[midi_id].run_message_bus(
-                    out_midi=out_midi, out_channel=out_channel
-                )
-            for midi_id, channel, out_mode in midi_channel_out_modes:
-                self.midi_outs[midi_id].unscheduled_step.append((channel, out_mode))
-            for midi_id in self.midi_outs.keys():
-                self.midi_outs[midi_id].run_message_bus()
+            for out_midi, channel, out_mode in midi_channel_out_modes:
+                self.midi_outs[out_midi].unscheduled_step.append((channel, out_mode))
+            for out_midi in self.midi_outs.keys():
+                self.midi_outs[out_midi].run_message_bus()
             time.sleep(self.internal_config.sleep)
 
     def convert_to_setting(self, setting_dict: Dict[str, Any]) -> SFunctionality:
@@ -102,11 +104,17 @@ class Engine(Sequencer):
 
     def send_out_mode(self, out_mode: MOutFunctionality) -> None:
         self.set_step(out_mode=out_mode)
-        self.func_queue.put(attrs.asdict(out_mode))
+        if self.detached:
+            self.attached_func_queue.put(attrs.asdict(out_mode))
+        else:
+            self.detached_func_queue.put(attrs.asdict(out_mode))
 
     def send_setting(self, setting: SFunctionality) -> None:
         self.set_option(option=setting)
-        self.func_queue.put(attrs.asdict(setting))
+        if self.detached:
+            self.attached_func_queue.put(attrs.asdict(setting))
+        else:
+            self.detached_func_queue.put(attrs.asdict(setting))
 
     def send_delete(self) -> None:
         midi, channel, part, step, valid_out_mode = self.get_current_e_pos()
