@@ -24,7 +24,7 @@ from .init import (
 )
 from .presets import read_preset_type
 
-DEBUG: bool = True
+DEBUG: bool = False
 
 
 class Sequencer:
