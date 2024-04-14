@@ -102,6 +102,10 @@ async def test_map_presets(command_line_args):
         time.sleep(0.01)
         await pilot.press("e")  # note/key press
         time.sleep(0.01)
+        await pilot.press("4")  # skip
+        time.sleep(0.01)
+        await pilot.press("e")  # note/key press
+        time.sleep(0.01)
         await pilot.press("a")  # rec off
         time.sleep(0.01)
 

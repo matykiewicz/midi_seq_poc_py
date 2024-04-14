@@ -85,6 +85,15 @@ class Engine(Sequencer):
             while len(midi_channel_out_modes):
                 out_midi, out_channel, out_mode = midi_channel_out_modes.pop()
                 self.midi_outs[out_midi].unscheduled_step.append((out_channel, out_mode))
+            min_step: int = 2 * self.internal_config.n_steps
+            for out_midi in self.midi_outs.keys():
+                if len(self.midi_outs[out_midi].scheduled_steps):
+                    min_step_tick = min(self.midi_outs[out_midi].scheduled_steps.keys())
+                    step = int(min_step_tick / self.step_interval)
+                    if step < min_step:
+                        min_step = step
+            if min_step <= self.internal_config.n_steps:
+                self.current_step_id.put(min_step)
             for out_midi in self.midi_outs.keys():
                 self.midi_outs[out_midi].run_message_bus()
             time.sleep(self.internal_config.sleep)

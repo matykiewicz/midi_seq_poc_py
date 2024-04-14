@@ -1,6 +1,7 @@
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from textual.app import ComposeResult
+from textual.timer import Timer
 from textual.widgets import Label, Sparkline, Static
 
 from .configs import InitConfig
@@ -31,10 +32,15 @@ class KeysUI(Static):
         self.navigation_ui: Optional[NavigationUI] = None
         self.seq_step: int = 1
         self.update_all()
+        self.update_step: Optional[Timer] = None
+
+    def on_mount(self):
+        self.update_step = self.set_interval(
+            60 / (2 * self.internal_config.tempo_max * self.internal_config.tempo_step),
+            self.update_bottom,
+        )
 
     def update_top(self) -> None:
-        if not self.sequencer.current_step_id.empty():
-            self.seq_step = self.sequencer.current_step_id.get()
         show_as = self.sequencer.settings[ValidSettings.VIEW_FUNCTION].get_value()
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "To"
@@ -61,15 +67,23 @@ class KeysUI(Static):
             )
         self.data_vis_top.data = data
         step = int(self.sequencer.settings[ValidSettings.V_STEP].get_value())
-        pos_label = (
-            f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|"
-            f"{valid_out_mode}|{self.seq_step:02}"
-        )
+        pos_label = f"{show_as}|M{midi}|C{channel}|P{part:02}|S{step:02}|" f"{valid_out_mode}"
         self.pos_top_label.update(pos_label)
 
+    def handle_queues(self):
+        self.seq_step = 0
+        while not self.sequencer.current_step_id.empty():
+            seq_step = self.sequencer.current_step_id.get()
+            if seq_step > self.seq_step:
+                self.seq_step = seq_step
+        if not self.sequencer.attached_func_queue.empty():
+            func_dict: Dict[str, Any] = self.sequencer.attached_func_queue.get()
+            if "indexes" in func_dict:
+                out_mode = self.sequencer.convert_to_out_mode(func_dict)
+                self.sequencer.set_step(out_mode=out_mode)
+
     def update_bottom(self) -> None:
-        if not self.sequencer.current_step_id.empty():
-            self.seq_step = self.sequencer.current_step_id.get()
+        self.handle_queues()
         show_as = "Edit"
         if self.sequencer.settings[ValidSettings.COPY].get_ind() == 1:
             show_as = "From"

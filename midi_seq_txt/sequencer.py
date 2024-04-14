@@ -674,6 +674,7 @@ class MiDiOut:
             self.update_step_schedule(old_schedule=old_schedule, new_schedule=new_schedule)
 
     def play_now_and_schedule(self) -> None:
+        time_now = time.time()
         old_schedule: Dict[float, Dict[int, List[int]]] = defaultdict(lambda: defaultdict(list))
         new_schedule: Dict[float, Dict[int, List[MOutFunctionality]]] = defaultdict(
             lambda: defaultdict(list)
@@ -684,15 +685,16 @@ class MiDiOut:
             self.sequencer.reset_intervals()
             while len(self.unscheduled_step):
                 channel, out_mode = self.unscheduled_step.pop()
-                # self.play_now(
-                #    step_tick=0,
-                #    time_now=time_now,
-                #    channel=channel,
-                #    old_schedule=old_schedule,
-                #    new_schedule=new_schedule,
-                #    out_modes=[out_mode],
-                # )
-                # self.sequencer.clock_sync = time_now
+                self.play_now(
+                    step_tick=0,
+                    time_now=time_now,
+                    channel=channel,
+                    old_schedule=old_schedule,
+                    new_schedule=new_schedule,
+                    out_modes=[out_mode],
+                    offset_time=0.0,
+                )
+                self.sequencer.clock_sync = time_now
             self.update_step_schedule(old_schedule=old_schedule, new_schedule=new_schedule)
 
     def play_now(
