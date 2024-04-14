@@ -11,7 +11,7 @@ class InitConfig:
     n_motions: int = 21
     tempo_step: int = 10
     tempo_min: int = 5
-    tempo_max: int = 20
+    tempo_max: int = 24
     n_keys: int = 8
     n_channels: int = 16
     n_buttons: int = 8

@@ -82,8 +82,9 @@ class Engine(Sequencer):
                 out_midi=out_midi,
                 out_channel=out_channel,
             )
-            for out_midi, channel, out_mode in midi_channel_out_modes:
-                self.midi_outs[out_midi].unscheduled_step.append((channel, out_mode))
+            while len(midi_channel_out_modes):
+                out_midi, out_channel, out_mode = midi_channel_out_modes.pop()
+                self.midi_outs[out_midi].unscheduled_step.append((out_channel, out_mode))
             for out_midi in self.midi_outs.keys():
                 self.midi_outs[out_midi].run_message_bus()
             time.sleep(self.internal_config.sleep)
